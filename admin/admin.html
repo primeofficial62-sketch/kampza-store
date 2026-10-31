@@ -1,260 +1,227 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
+<html lang="en"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="robots" content="noindex,nofollow">
-<meta name="theme-color" content="#252525">
+<meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#252525">
 <title>KAMPZA Admin</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <style>
-:root{--o:#FF7628;--o2:#e5600f;--c:#252525;--g:#F4F4F4;--w:#fff;--line:#e4e4e4;--mut:#777;--ok:#1f9d55;--bad:#d64545;--warn:#b86e00}
+:root{--o:#FF7628;--o2:#e5600f;--c:#252525;--g:#F4F4F4;--w:#fff;--line:#e4e4e4;--mut:#777;--ok:#1f9d55;--bad:#d64545;--warn:#b86e00;--info:#2b6cb0;--sb:236px;--sh:0 1px 3px rgba(0,0,0,.06),0 6px 16px rgba(0,0,0,.04)}
 *{box-sizing:border-box;margin:0}
-body{font:14px/1.45 Inter,system-ui,sans-serif;background:var(--g);color:var(--c);min-height:100dvh;padding-bottom:calc(66px + env(safe-area-inset-bottom))}
-h1,h2,h3,.brand{font-family:Sora,Inter,sans-serif}
-button,input,select,textarea{font:inherit;color:inherit}
-button{cursor:pointer;border:0}
+body{font:14px/1.45 Inter,system-ui,sans-serif;background:var(--g);color:var(--c);min-height:100dvh}
+h1,h2,h3,.sora{font-family:Sora,Inter,sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}button{cursor:pointer;border:0}
 :focus-visible{outline:2px solid var(--o);outline-offset:2px}
-header{background:var(--c);color:#fff;padding:12px 16px;padding-top:calc(12px + env(safe-area-inset-top));display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20}
-.brand{font-size:20px;font-weight:700}.brand small{display:block;font:400 11px Inter;color:var(--o)}
-header h1{font-size:16px;margin-left:auto;font-weight:600}
-nav{position:fixed;bottom:0;left:0;right:0;background:var(--c);display:flex;padding-bottom:env(safe-area-inset-bottom);z-index:30}
-nav button{flex:1;background:none;color:#b9b9b9;padding:11px 2px;font-size:11px;font-weight:600}
-nav button.on{color:var(--o);box-shadow:inset 0 3px 0 var(--o)}
-nav .out{display:none}
-main{padding:14px 16px 24px;max-width:960px;margin:auto}
-.card{background:var(--w);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px}
-.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.sp{justify-content:space-between}
-.mut{color:var(--mut);font-size:12px}
-.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}
-.stat{background:var(--w);border:1px solid var(--line);border-radius:12px;padding:12px}
-.stat b{display:block;font:700 22px Sora,Inter;margin-top:2px}.stat.hot{border-color:var(--o)}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
-input,select,textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px;background:var(--w)}
-label.mut{display:block}
-.btn{background:var(--o);color:#fff;border-radius:8px;padding:9px 14px;font-weight:600}.btn:hover{background:var(--o2)}
-.btn.alt{background:var(--w);color:var(--c);border:1px solid var(--line)}.btn.red{background:var(--bad)}
-.btn:disabled{opacity:.5;cursor:default}
-.chips{display:flex;gap:6px;overflow-x:auto;margin-bottom:10px;padding-bottom:2px}
-.chip{background:var(--w);border:1px solid var(--line);border-radius:999px;padding:6px 13px;white-space:nowrap;font-weight:600;font-size:13px}
-.chip.on{background:var(--o);border-color:var(--o);color:#fff}
-.pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:600;background:var(--g)}
-.pill.ok{background:#e3f6ea;color:var(--ok)}.pill.warn{background:#fff1dc;color:var(--warn)}.pill.bad{background:#fde8e8;color:var(--bad)}
-.empty{text-align:center;color:var(--mut);padding:36px 12px}
-h2{font-size:18px;margin:2px 0 12px}
-#toast{position:fixed;left:50%;bottom:calc(78px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--c);color:#fff;padding:10px 16px;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:50;max-width:90vw}
-#toast.show{opacity:1}
-@media(min-width:820px){
- body{padding:0 0 0 220px}
- nav{top:0;bottom:auto;width:220px;height:100dvh;flex-direction:column;padding:78px 10px 14px}
- nav button{flex:none;text-align:left;padding:11px 14px;font-size:14px;border-radius:10px}
- nav button.on{background:#333;box-shadow:none}
- nav .out{display:block;margin-top:auto;color:#ff9a9a}
- header{margin-left:-220px;padding-left:20px;width:calc(100% + 220px);z-index:40;position:fixed;top:0;left:220px;margin:0;width:calc(100% - 220px)}
- header .brand{display:none}header h1{margin:0;font-size:17px}
- nav::before{content:"KAMPZA";position:absolute;top:18px;left:24px;color:#fff;font:700 20px Sora}
- main{padding-top:76px}.stats{grid-template-columns:repeat(4,1fr)}
- #toast{bottom:24px}
-}
-.lock{position:fixed;inset:0;background:var(--c);color:#fff;display:grid;place-items:center;padding:24px;z-index:100;overflow-y:auto}
-.lock[hidden]{display:none}
-.lock-in{display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;max-width:320px}
-.mark{width:72px;height:72px;border-radius:18px;background:var(--o);display:grid;place-items:center;font:700 28px Sora;margin-bottom:10px;overflow:hidden}
-.mark img{width:100%;height:100%;object-fit:cover;display:block}
+.logo{width:36px;height:36px;border-radius:10px;object-fit:cover;display:block}
+aside{position:fixed;inset:0 auto 0 0;width:var(--sb);background:var(--c);color:#fff;display:flex;flex-direction:column;padding:16px 10px calc(14px + env(safe-area-inset-bottom));z-index:60;transition:transform .2s;overflow-y:auto}
+.bd{display:flex;align-items:center;gap:10px;padding:2px 8px 16px;font:700 19px Sora}
+aside button.n{display:flex;gap:10px;align-items:center;width:100%;background:none;color:#bdbdbd;text-align:left;padding:11px 12px;border-radius:10px;font-weight:600;min-height:44px}
+aside button.n:hover{background:#303030}aside button.n.on{background:var(--o);color:#fff}
+aside .g{font-size:11px;color:#777;text-transform:uppercase;letter-spacing:.06em;padding:14px 12px 4px}
+aside .out{margin-top:auto;color:#ff9a9a}
+header{position:fixed;top:0;left:var(--sb);right:0;height:60px;background:var(--w);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;padding:0 20px;padding-top:env(safe-area-inset-top);z-index:40;box-sizing:content-box}
+header h1{font-size:17px}#burger{display:none;background:none;font-size:22px;padding:8px;min-width:44px;min-height:44px}
+header .gs{margin-left:auto;max-width:260px;width:40%}
+main{margin-left:var(--sb);padding:80px 20px 40px;padding-top:calc(80px + env(safe-area-inset-top));max-width:1180px}
+#scrim{display:none}
+.card{background:var(--w);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px;box-shadow:var(--sh)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.sp{justify-content:space-between}.mut{color:var(--mut);font-size:12px}
+.stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-bottom:14px}
+.stat{background:var(--w);border:1px solid var(--line);border-radius:14px;padding:14px;text-align:left;box-shadow:var(--sh);transition:transform .15s,border-color .15s}
+.stat:hover{transform:translateY(-2px);border-color:var(--o)}.stat b{display:block;font:700 22px Sora;margin-top:4px}
+.two{display:grid;grid-template-columns:2fr 1fr;gap:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+input,select,textarea{width:100%;border:1px solid var(--line);border-radius:9px;padding:10px;background:var(--w);min-height:42px}
+.btn{background:var(--o);color:#fff;border-radius:9px;padding:10px 14px;font-weight:600;min-height:42px}.btn:hover{background:var(--o2)}
+.btn.alt{background:var(--w);color:var(--c);border:1px solid var(--line)}.btn.red{background:var(--bad)}.btn.sm{padding:6px 10px;min-height:34px;font-size:13px}.btn:disabled{opacity:.5}
+.chips{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px}
+.chip{background:var(--w);border:1px solid var(--line);border-radius:999px;padding:7px 14px;white-space:nowrap;font-weight:600;font-size:13px}.chip.on{background:var(--o);border-color:var(--o);color:#fff}
+.pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:600;background:var(--g);white-space:nowrap}
+.pill.ok{background:#e3f6ea;color:var(--ok)}.pill.warn{background:#fff1dc;color:var(--warn)}.pill.bad{background:#fde8e8;color:var(--bad)}.pill.info{background:#e6effa;color:var(--info)}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:640px}th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}th{font-size:12px;color:var(--mut)}
+.empty{text-align:center;color:var(--mut);padding:36px 12px}h2{font-size:18px;margin:2px 0 12px}
+.bars{display:flex;align-items:flex-end;gap:4px;height:150px;margin-top:10px}.bars i{flex:1;background:var(--o);border-radius:4px 4px 0 0;min-height:2px;opacity:.9}.bars i:hover{opacity:1}
+.hb{height:8px;background:var(--g);border-radius:9px;overflow:hidden;margin:3px 0 9px}.hb i{display:block;height:100%;background:var(--o)}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--c);color:#fff;padding:10px 16px;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:200;max-width:90vw}#toast.show{opacity:1}
+.lock{position:fixed;inset:0;background:var(--c);color:#fff;display:grid;place-items:center;padding:24px;z-index:100;overflow-y:auto}.lock[hidden]{display:none}
+.lock-in{display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;max-width:320px}.lock .logo{width:84px;height:84px;border-radius:20px;margin-bottom:10px}
 .lock h2{margin:0;font-size:22px}.lock .sub{color:#bbb;min-height:1.4em;text-align:center}.lock .sub.err{color:#ff9a9a}
-.dots{display:flex;gap:16px;margin:22px 0 22px}.dot{width:15px;height:15px;border-radius:50%;border:2px solid rgba(255,255,255,.4);transition:background .1s}
-.dot.on{background:#fff;border-color:#fff}.dots.shake{animation:shake .35s}
+.dots{display:flex;gap:16px;margin:22px 0}.dot{width:15px;height:15px;border-radius:50%;border:2px solid rgba(255,255,255,.4)}.dot.on{background:var(--o);border-color:var(--o)}.dots.shake{animation:shake .35s}
 @keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
-.pad{display:grid;grid-template-columns:repeat(3,72px);gap:14px}
-.pad button{width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.16);color:#fff;font-size:24px;font-weight:500}
-.pad button:active{background:rgba(255,255,255,.24)}.pad button:disabled{opacity:.4}.pad .ghost{background:none;border-color:transparent;font-size:17px;color:#bbb}
-body.locked>header,body.locked>nav,body.locked>main{display:none}
-@media(prefers-reduced-motion:reduce){.dots.shake{animation:none}}
-@media(prefers-reduced-motion:reduce){*{transition:none!important}}
-</style>
-</head>
+.pad{display:grid;grid-template-columns:repeat(3,72px);gap:14px}.pad button{width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.16);color:#fff;font-size:24px}
+.pad button:active{background:var(--o)}.pad button:disabled{opacity:.4}.pad .ghost{background:none;border-color:transparent;font-size:17px;color:#bbb}
+body.locked>aside,body.locked>header,body.locked>main{display:none}
+@media(max-width:860px){
+ aside{transform:translateX(-100%);width:270px}body.open aside{transform:none}
+ body.open #scrim{display:block;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:55}
+ header{left:0;padding:0 12px;padding-top:env(safe-area-inset-top)}#burger{display:block}header .gs{width:50%}
+ main{margin-left:0;padding-left:12px;padding-right:12px}.two{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}
+}
+@media print{aside,header,.noprint{display:none!important}main{margin:0;padding:0}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style></head>
 <body class="locked">
-<div class="lock" id="lock"><div class="lock-in"><div class="mark"><img src="icon-512.png" alt="KAMPZA" width="72" height="72" onerror="this.remove();this.parentNode.textContent='K'"></div><h2>KAMPZA Admin</h2><div class="sub" id="lsub">Enter your PIN</div>
+<div class="lock" id="lock"><div class="lock-in"><img class="logo" alt="KAMPZA"><h2>KAMPZA Admin</h2><div class="sub" id="lsub">Enter your PIN</div>
 <div class="dots" id="dots"><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i></div>
 <div class="pad" id="pad"><button>1</button><button>2</button><button>3</button><button>4</button><button>5</button><button>6</button><button>7</button><button>8</button><button>9</button><button class="ghost" id="pback" aria-label="Delete">⌫</button><button>0</button><span></span></div></div></div>
-<header><div class="brand">KAMPZA<small>Admin</small></div><h1 id="title">Dashboard</h1><button class="btn alt" id="out2" style="padding:6px 10px;margin-left:8px">Sign out</button></header>
-<nav id="nav">
- <button data-t="dash" class="on">Home</button><button data-t="orders">Orders</button><button data-t="quotes">Quotes</button>
- <button data-t="products">Products</button><button data-t="people">Customers</button><button data-t="mail">Email</button>
- <button class="out" id="out">Sign out</button>
-</nav>
-<main id="app"><div class="empty">Loading…</div></main>
-<div id="toast" role="status"></div>
+<aside id="nav"><div class="bd"><img class="logo" alt="KAMPZA">KAMPZA</div>
+<button class="n on" data-t="dash">▦ Dashboard</button>
+<div class="g">Sales</div><button class="n" data-t="orders">🧾 Orders</button><button class="n" data-t="quotes">💬 Quotes</button>
+<div class="g">Catalogue</div><button class="n" data-t="products">📦 Products</button><button class="n" data-t="stock">📉 Inventory</button>
+<div class="g">People</div><button class="n" data-t="people">👥 Customers</button><button class="n" data-t="mail">✉️ Email</button>
+<button class="n out" id="out">🔒 Lock panel</button></aside>
+<div id="scrim"></div>
+<header><button id="burger" aria-label="Menu">☰</button><h1 id="title">Dashboard</h1><input class="gs" id="gs" type="search" placeholder="Search orders, products, customers…"></header>
+<main id="app"><div class="empty">Loading…</div></main><div id="toast" role="status"></div>
 <script>
-// Put this file next to auth.html and store.html (same site) so the sign-in session is shared.
-const sb = supabase.createClient('https://fcgvmxkxwgymgqcbtzjd.supabase.co','sb_publishable_capYRQsCeia4hlfO4Fqdow_kDn2uy5M');
-const $ = s => document.querySelector(s), app = $('#app');
-const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const naira = n => '₦' + Number(n || 0).toLocaleString('en-NG');
-const when = d => new Date(d).toLocaleString('en-NG', {dateStyle:'medium', timeStyle:'short'});
-const ORDER_ST = ['Processing','Confirmed','Out for delivery','Delivered','Cancelled'];
-const QUOTE_ST = ['Pending','Quoted','Accepted','Declined'];
-const TITLES = {dash:'Dashboard', orders:'Orders', quotes:'Quote requests', products:'Products', people:'Customers', mail:'Email customers'};
-const opts = (l, cur) => l.map(s => `<option${s===cur?' selected':''}>${esc(s)}</option>`).join('');
-const stCls = s => ({Delivered:'ok',Accepted:'ok',Quoted:'ok',Cancelled:'bad',Declined:'bad',Pending:'warn',Processing:'warn'}[s] || '');
-const err = (what, e) => `<div class="empty">Could not load ${what}: ${esc(e.message)}</div>`;
-let tab = 'dash', ofilter = 'All', q = '', session = null;
-
-function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),2400)}
-const chips = (list, cur, key) => `<div class="chips">${list.map(s => `<button class="chip${s===cur?' on':''}" data-${key}="${esc(s)}">${esc(s)}</button>`).join('')}</div>`;
-const search = ph => `<input id="q" type="search" placeholder="${ph}" value="${esc(q)}" style="margin-bottom:10px">`;
-const orderCard = (o, edit) => `<div class="card" data-id="${esc(o.id)}">
-  <div class="row sp"><b>${esc(o.id)}</b><span class="pill ${stCls(o.status)}">${esc(o.status)}</span></div>
-  <ul style="margin:8px 0;padding-left:18px">${(o.items||[]).map(i=>`<li>${esc(i.q)}× ${esc(i.n)} — ${naira(i.p*i.q)}</li>`).join('')}</ul>
-  <div class="mut">${naira(o.total)} · ${o.pay==='wallet'?'Paid with wallet':'Pay on delivery'} · ${when(o.created_at)}<br>${esc(o.phone)} · ${esc(o.address)}</div>
-  ${edit ? `<div style="margin-top:10px"><select data-act="ost">${opts(ORDER_ST,o.status)}</select></div>` : ''}</div>`;
-
-const views = {
-  async dash(){
-    const [s, o, p] = await Promise.all([sb.rpc('admin_stats'), sb.from('orders').select('*').order('created_at',{ascending:false}).limit(5), sb.from('products').select('name,stock').eq('active',true).not('stock','is',null).lte('stock',3).order('stock')]);
-    if (s.error) return app.innerHTML = err('stats', s.error);
-    const d = s.data, st = (l, v, hot) => `<div class="stat${hot?' hot':''}"><span class="mut">${l}</span><b>${v}</b></div>`;
-    app.innerHTML = `<div class="stats">${st('Orders today', d.orders_today)}${st('Open orders', d.open_orders, d.open_orders>0)}${st('Pending quotes', d.pending_quotes, d.pending_quotes>0)}${st('Low stock items', d.low_stock)}${st('Revenue (not cancelled)', naira(d.revenue))}${st('Customers', d.customers)}${st('Wallet balances held', naira(d.wallet_total))}</div>
-      ${p.data?.length ? `<div class="card"><b>Running low</b><div class="mut" style="margin-top:4px">${p.data.map(x=>`${esc(x.name)} (${x.stock} left)`).join(' · ')}</div></div>` : ''}
-      <h2>Latest orders</h2>${o.data?.length ? o.data.map(x => orderCard(x, false)).join('') : '<div class="empty">No orders yet. New orders will show up here.</div>'}`;
-  },
-  async orders(){
-    let r = sb.from('orders').select('*').order('created_at',{ascending:false}).limit(150);
-    if (ofilter !== 'All') r = r.eq('status', ofilter);
-    const {data,error} = await r; if (error) return app.innerHTML = err('orders', error);
-    app.innerHTML = chips(['All',...ORDER_ST], ofilter, 'of') + (data.length ? data.map(o => orderCard(o, true)).join('') : `<div class="empty">No ${ofilter === 'All' ? '' : esc(ofilter.toLowerCase()) + ' '}orders.</div>`);
-  },
-  async quotes(){
-    const {data,error} = await sb.from('quotes').select('*').order('created_at',{ascending:false}).limit(150);
-    if (error) return app.innerHTML = err('quotes', error);
-    app.innerHTML = data.length ? data.map(x => `<div class="card" data-id="${esc(x.id)}">
-      <div class="row sp"><b>${esc(x.item)} × ${esc(x.qty)}</b><span class="pill ${stCls(x.status)}">${esc(x.status)}</span></div>
-      <div class="mut">Budget ${x.budget?naira(x.budget):'not set'} · ${when(x.created_at)}${x.note?'<br>'+esc(x.note):''}</div>
-      <div class="grid" style="margin-top:10px"><input type="number" min="0" placeholder="Your price (₦)" value="${esc(x.reply_price??'')}" data-f="price"><select data-f="status">${opts(QUOTE_ST,x.status)}</select></div>
-      <textarea data-f="note" rows="2" placeholder="Reply to the student" style="margin-top:8px">${esc(x.reply_note??'')}</textarea>
-      <button class="btn" data-act="qsave" style="margin-top:8px">Save reply</button></div>`).join('') : '<div class="empty">No quote requests yet.</div>';
-  },
-  async products(){
-    const {data,error} = await sb.from('products').select('*').order('created_at',{ascending:false});
-    if (error) return app.innerHTML = err('products', error);
-    const f = (k, l, v, t='text') => `<label class="mut">${l}<input type="${t}" ${t==='number'?'min="0"':''} value="${esc(v??'')}" data-f="${k}"></label>`;
-    const list = data.filter(p => !q || (p.name + ' ' + (p.category||'') + ' ' + p.id).toLowerCase().includes(q.toLowerCase()));
-    app.innerHTML = `<details class="card"><summary><b>Add a product</b></summary><div class="grid" style="margin-top:10px" id="newp">
-      ${f('id','ID (e.g. p8)','')}${f('name','Name','')}${f('emoji','Emoji','')}${f('price','Price ₦','','number')}${f('old_price','Old price ₦','','number')}${f('category','Category','')}${f('stock','Stock','','number')}${f('image','Image URL','')}</div>
-      <label class="mut" style="margin-top:8px">Description<textarea rows="2" data-f="description"></textarea></label><button class="btn" data-act="padd" style="margin-top:8px">Add product</button></details>
-      ${search('Search products')}` + (list.length ? list.map(p => `<div class="card" data-id="${esc(p.id)}">
-      <div class="row sp"><b>${esc(p.emoji||'')} ${esc(p.name)}</b><span class="mut">${esc(p.id)}</span></div>
-      <div class="grid" style="margin-top:8px">${f('name','Name',p.name)}${f('price','Price ₦',p.price,'number')}${f('old_price','Old price ₦',p.old_price,'number')}${f('stock','Stock (blank = unlimited)',p.stock,'number')}${f('category','Category',p.category)}${f('emoji','Emoji',p.emoji)}${f('image','Image URL',p.image)}</div>
-      <label class="mut" style="margin-top:8px">Description<textarea rows="2" data-f="description">${esc(p.description??'')}</textarea></label>
-      <div class="row" style="margin-top:8px"><label><input type="checkbox" style="width:auto" data-f="active"${p.active?' checked':''}> Visible in store</label><label><input type="checkbox" style="width:auto" data-f="flash"${p.flash?' checked':''}> Flash deal</label>
-      <span style="margin-left:auto" class="row"><button class="btn red" data-act="pdel">Delete</button><button class="btn" data-act="psave">Save</button></span></div></div>`).join('') : '<div class="empty">No products match.</div>');
-  },
-  async people(){
-    const {data,error} = await sb.rpc('admin_users'); if (error) return app.innerHTML = err('customers', error);
-    const list = data.filter(u => !q || (u.email + ' ' + u.name).toLowerCase().includes(q.toLowerCase()));
-    app.innerHTML = search('Search by name or email') + (list.length ? list.map(u => `<div class="card" data-id="${esc(u.id)}" data-name="${esc(u.email)}">
-      <div class="row sp"><b>${esc(u.name || u.email)}</b><span class="pill ok">${naira(u.balance)}</span></div>
-      <div class="mut">${esc(u.email)} · joined ${when(u.joined)}</div>
-      <div style="margin-top:8px"><button class="btn alt" data-act="wadj">Adjust wallet</button></div></div>`).join('') : '<div class="empty">No customers match.</div>');
-  },
-  async mail(){
-    app.innerHTML = `<div class="card"><p class="mut" style="margin-bottom:10px">Sends to every customer with a confirmed email who has not turned update emails off. Send a test to yourself first.</p>
-      <label class="mut">Subject<input id="m-sub" maxlength="120"></label>
-      <label class="mut" style="margin-top:8px">Message<textarea id="m-msg" rows="7" maxlength="4000"></textarea></label>
-      <div class="row" style="margin-top:10px"><button class="btn alt" data-act="mtest">Send test to me</button><button class="btn" data-act="mall">Send to all customers</button></div></div>`;
-  }
-};
-
+const LOGO="icon-512.png";
+document.querySelectorAll('.logo').forEach(i=>i.src=LOGO);
+// PIN-only login (unchanged flow): PIN -> admin-pin-login edge function -> verifyOtp -> is_admin(). Session lives in this tab only.
+const sb=supabase.createClient('https://fcgvmxkxwgymgqcbtzjd.supabase.co','sb_publishable_capYRQsCeia4hlfO4Fqdow_kDn2uy5M',{auth:{storage:window.sessionStorage,autoRefreshToken:true,persistSession:true}});
+const $=s=>document.querySelector(s),app=$('#app');
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const naira=n=>'₦'+Number(n||0).toLocaleString('en-NG');
+const when=d=>new Date(d).toLocaleString('en-NG',{dateStyle:'medium',timeStyle:'short'});
+const ORDER_ST=['Processing','Confirmed','Out for delivery','Delivered','Cancelled'],QUOTE_ST=['Pending','Quoted','Accepted','Declined'];
+const TITLES={dash:'Dashboard',orders:'Orders',quotes:'Quote requests',products:'Products',stock:'Inventory',people:'Customers',mail:'Email customers'};
+const opts=(l,c)=>l.map(s=>`<option${s===c?' selected':''}>${esc(s)}</option>`).join('');
+const stCls=s=>({Delivered:'ok',Accepted:'ok',Quoted:'info',Confirmed:'info','Out for delivery':'info',Cancelled:'bad',Declined:'bad',Pending:'warn',Processing:'warn'}[s]||'');
+const err=(w,e)=>`<div class="empty">Could not load ${w}: ${esc(e.message)}</div>`;
+const wa=(p,t)=>'https://wa.me/'+String(p||'').replace(/\D/g,'').replace(/^0/,'234')+(t?'?text='+encodeURIComponent(t):'');
+let tab='dash',ofilter='All',q='',range='30',session=null,users=[];
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),2600)}
+const chips=(l,c,k)=>`<div class="chips">${l.map(s=>`<button class="chip${s===c?' on':''}" data-${k}="${esc(s)}">${esc(s)}</button>`).join('')}</div>`;
+const search=ph=>`<input id="q" type="search" placeholder="${ph}" value="${esc(q)}" style="margin-bottom:12px">`;
+const uname=id=>{const u=users.find(x=>x.id===id);return u?(u.name||u.email):'Customer'};
+const csv=(name,rows)=>{const b=new Blob([rows.map(r=>r.map(c=>'"'+String(c??'').replace(/"/g,'""')+'"').join(',')).join('\n')],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;a.click()};
+async function loadUsers(){if(!users.length){const {data}=await sb.rpc('admin_users');users=data||[]}}
+const summ=o=>(o.items||[]).map(i=>`${i.q}× ${i.n}`).join(', ');
+const orderRow=o=>`<tr data-id="${esc(o.id)}"><td><b>${esc(o.id)}</b><div class="mut">${when(o.created_at)}</div></td><td>${esc(uname(o.user_id))}<div class="mut">${esc(o.phone)}</div></td><td>${esc(summ(o))}</td><td>${naira(o.total)}<div class="mut">${o.pay==='wallet'?'Wallet':'Pay on delivery'}</div></td>
+<td><select data-act="ost" style="min-width:140px">${opts(ORDER_ST,o.status)}</select></td><td class="row noprint"><a class="btn alt sm" target="_blank" rel="noopener" href="${wa(o.phone,'Hello, about your KAMPZA order '+o.id)}">WhatsApp</a><button class="btn alt sm" data-act="inv">Invoice</button></td></tr>`;
+const ordTable=l=>l.length?`<div class="card tw"><table><thead><tr><th>Order</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th><th></th></tr></thead><tbody>${l.map(orderRow).join('')}</tbody></table></div>`:'<div class="empty">No orders found.</div>';
+const RANGES={'1':'Today','7':'Last 7 days','30':'Last 30 days','90':'Last 90 days','365':'This year'};
+const views={
+ async dash(){
+  const since=new Date();since.setDate(since.getDate()-(range==='1'?0:Number(range)));since.setHours(0,0,0,0);
+  const [s,o,p]=await Promise.all([sb.rpc('admin_stats'),sb.from('orders').select('*').gte('created_at',since.toISOString()).order('created_at',{ascending:false}).limit(1000),sb.from('products').select('id,name,stock,active')]);
+  if(s.error)return app.innerHTML=err('stats',s.error);await loadUsers();
+  const d=s.data,ords=o.data||[],prods=p.data||[],live=ords.filter(x=>x.status!=='Cancelled');
+  const st=(l,v,t,hot)=>`<button class="stat" data-t="${t}" style="${hot?'border-color:var(--o)':''}"><span class="mut">${l}</span><b>${v}</b></button>`;
+  const days={};live.forEach(x=>{const k=x.created_at.slice(0,10);days[k]=(days[k]||0)+Number(x.total)});
+  const ks=Object.keys(days).sort(),mx=Math.max(1,...Object.values(days));
+  const byS={};ords.forEach(x=>byS[x.status]=(byS[x.status]||0)+1);
+  const top={};live.forEach(x=>(x.items||[]).forEach(i=>top[i.n]=(top[i.n]||0)+Number(i.q)));
+  const tp=Object.entries(top).sort((a,b)=>b[1]-a[1]).slice(0,5),tm=Math.max(1,...tp.map(x=>x[1]));
+  const low=prods.filter(x=>x.active&&x.stock!=null&&x.stock<=3);
+  app.innerHTML=`<div class="row sp" style="margin-bottom:12px"><div><h2 style="margin:0">Welcome back, Admin</h2><div class="mut">${new Date().toLocaleDateString('en-NG',{dateStyle:'full'})}</div></div>
+  <select id="rng" style="width:auto">${Object.entries(RANGES).map(([k,v])=>`<option value="${k}"${k===range?' selected':''}>${v}</option>`).join('')}</select></div>
+  <div class="stats">${st('Orders today',d.orders_today,'orders')}${st('Open orders',d.open_orders,'orders',d.open_orders>0)}${st('Pending quotes',d.pending_quotes,'quotes',d.pending_quotes>0)}${st('Total revenue',naira(d.revenue),'orders')}${st('Customers',d.customers,'people')}${st('Low stock',d.low_stock,'stock',d.low_stock>0)}${st('Products',prods.length,'products')}${st('Wallet balances held',naira(d.wallet_total),'people')}</div>
+  <div class="two"><div class="card"><b>Sales — ${RANGES[range]}</b><div class="mut">${naira(live.reduce((a,x)=>a+Number(x.total),0))} from ${live.length} order${live.length===1?'':'s'}</div>
+  ${ks.length?`<div class="bars">${ks.map(k=>`<i title="${k}: ${naira(days[k])}" style="height:${Math.max(2,days[k]/mx*100)}%"></i>`).join('')}</div>`:'<div class="empty">No sales in this period.</div>'}</div>
+  <div class="card"><b>Order status</b><div style="margin-top:10px">${Object.keys(byS).length?Object.entries(byS).map(([k,v])=>`<div class="row sp"><span>${esc(k)}</span><b>${v}</b></div><div class="hb"><i style="width:${v/ords.length*100}%"></i></div>`).join(''):'<div class="empty">No orders.</div>'}</div></div></div>
+  <div class="two"><div class="card"><b>Top-selling products</b><div style="margin-top:10px">${tp.length?tp.map(([n,v])=>`<div class="row sp"><span>${esc(n)}</span><b>${v} sold</b></div><div class="hb"><i style="width:${v/tm*100}%"></i></div>`).join(''):'<div class="empty">No sales yet.</div>'}</div></div>
+  <div class="card"><b>Running low</b><div style="margin-top:10px">${low.length?low.map(x=>`<div class="row sp"><span>${esc(x.name)}</span><span class="pill bad">${x.stock} left</span></div>`).join(''):'<div class="empty">All stocked.</div>'}</div></div></div>
+  <div class="row sp"><h2>Recent orders</h2><button class="btn alt sm" data-t="orders">View all</button></div>${ordTable(ords.slice(0,5))}
+  <div class="row noprint"><button class="btn" data-t="products">+ Add product</button><button class="btn alt" data-t="quotes">Manage quotes</button><button class="btn alt" data-t="stock">Inventory</button></div>`;
+ },
+ async orders(){
+  await loadUsers();let r=sb.from('orders').select('*').order('created_at',{ascending:false}).limit(500);if(ofilter!=='All')r=r.eq('status',ofilter);
+  const {data,error}=await r;if(error)return app.innerHTML=err('orders',error);
+  const l=data.filter(o=>!q||(o.id+' '+uname(o.user_id)+' '+o.phone+' '+summ(o)).toLowerCase().includes(q.toLowerCase()));
+  app.innerHTML=`<div class="row sp"><div style="flex:1;min-width:200px">${search('Search orders')}</div><button class="btn alt noprint" data-act="oexp">Export CSV</button></div>`+chips(['All',...ORDER_ST],ofilter,'of')+ordTable(l);app._o=l;
+ },
+ async quotes(){
+  await loadUsers();const {data,error}=await sb.from('quotes').select('*').order('created_at',{ascending:false}).limit(300);if(error)return app.innerHTML=err('quotes',error);
+  app.innerHTML=data.length?data.map(x=>`<div class="card" data-id="${esc(x.id)}"><div class="row sp"><b>${esc(x.item)} × ${esc(x.qty)}</b><span class="pill ${stCls(x.status)}">${esc(x.status)}</span></div>
+  <div class="mut">${esc(uname(x.user_id))} · Budget ${x.budget?naira(x.budget):'not set'} · ${when(x.created_at)}${x.note?'<br>'+esc(x.note):''}</div>
+  <div class="grid" style="margin-top:10px"><input type="number" min="0" placeholder="Your price (₦)" value="${esc(x.reply_price??'')}" data-f="price"><select data-f="status">${opts(QUOTE_ST,x.status)}</select></div>
+  <textarea data-f="note" rows="2" placeholder="Reply to the customer" style="margin-top:8px">${esc(x.reply_note??'')}</textarea><button class="btn" data-act="qsave" style="margin-top:8px">Save reply</button></div>`).join(''):'<div class="empty">No quote requests yet.</div>';
+ },
+ async products(){
+  const {data,error}=await sb.from('products').select('*').order('created_at',{ascending:false});if(error)return app.innerHTML=err('products',error);
+  const f=(k,l,v,t='text')=>`<label class="mut">${l}<input type="${t}" ${t==='number'?'min="0"':''} value="${esc(v??'')}" data-f="${k}"></label>`;
+  const l=data.filter(p=>!q||(p.name+' '+(p.category||'')+' '+p.id).toLowerCase().includes(q.toLowerCase()));
+  app.innerHTML=`<div class="stats"><div class="stat"><span class="mut">Total</span><b>${data.length}</b></div><div class="stat"><span class="mut">Active</span><b>${data.filter(x=>x.active).length}</b></div><div class="stat"><span class="mut">Hidden</span><b>${data.filter(x=>!x.active).length}</b></div><div class="stat"><span class="mut">Out of stock</span><b>${data.filter(x=>x.stock===0).length}</b></div></div>
+  <details class="card"><summary><b>+ Add a product</b></summary><div class="grid" style="margin-top:10px">${f('id','ID (e.g. p8)','')}${f('name','Name','')}${f('emoji','Emoji','')}${f('price','Price ₦','','number')}${f('old_price','Old price ₦','','number')}${f('category','Category','')}${f('brand','Brand','')}${f('stock','Stock','','number')}${f('image','Image URL','')}</div>
+  <label class="mut" style="margin-top:8px;display:block">Description<textarea rows="2" data-f="description"></textarea></label><button class="btn" data-act="padd" style="margin-top:8px">Add product</button></details>${search('Search products')}`+
+  (l.length?l.map(p=>`<div class="card" data-id="${esc(p.id)}"><div class="row sp"><b>${esc(p.emoji||'')} ${esc(p.name)}</b><span class="mut">${esc(p.id)}</span></div>
+  <div class="grid" style="margin-top:8px">${f('name','Name',p.name)}${f('price','Price ₦',p.price,'number')}${f('old_price','Old price ₦',p.old_price,'number')}${f('stock','Stock (blank = unlimited)',p.stock,'number')}${f('category','Category',p.category)}${f('brand','Brand',p.brand)}${f('emoji','Emoji',p.emoji)}${f('image','Image URL',p.image)}</div>
+  <label class="mut" style="margin-top:8px;display:block">Description<textarea rows="2" data-f="description">${esc(p.description??'')}</textarea></label>
+  <div class="row" style="margin-top:8px"><label><input type="checkbox" style="width:auto;min-height:0" data-f="active"${p.active?' checked':''}> Visible in store</label><label><input type="checkbox" style="width:auto;min-height:0" data-f="flash"${p.flash?' checked':''}> Flash deal</label>
+  <span style="margin-left:auto" class="row"><button class="btn alt" data-act="pdup">Duplicate</button><button class="btn red" data-act="pdel">Delete</button><button class="btn" data-act="psave">Save</button></span></div></div>`).join(''):'<div class="empty">No products match.</div>');
+ },
+ async stock(){
+  const {data,error}=await sb.from('products').select('id,name,stock,active,emoji').order('stock',{ascending:true,nullsFirst:false});if(error)return app.innerHTML=err('inventory',error);
+  const l=data.filter(p=>p.stock!=null).filter(p=>!q||p.name.toLowerCase().includes(q.toLowerCase()));
+  app.innerHTML=search('Search inventory')+(l.length?`<div class="card tw"><table><thead><tr><th>Product</th><th>Stock</th><th>Status</th><th>Set stock</th></tr></thead><tbody>${l.map(p=>`<tr data-id="${esc(p.id)}"><td>${esc(p.emoji||'')} ${esc(p.name)}</td><td><b>${p.stock}</b></td><td><span class="pill ${p.stock===0?'bad':p.stock<=3?'warn':'ok'}">${p.stock===0?'Out of stock':p.stock<=3?'Low':'In stock'}</span></td><td class="row"><input type="number" min="0" value="${p.stock}" data-f="stock" style="width:90px"><button class="btn sm" data-act="ssave">Update</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No tracked stock.</div>');
+ },
+ async people(){
+  users=[];await loadUsers();const l=users.filter(u=>!q||((u.email||'')+' '+(u.name||'')).toLowerCase().includes(q.toLowerCase()));
+  app.innerHTML=`<div class="row sp"><div style="flex:1;min-width:200px">${search('Search by name or email')}</div><button class="btn alt" data-act="cexp">Export CSV</button></div>`+(l.length?l.map(u=>`<div class="card" data-id="${esc(u.id)}"><div class="row sp"><b>${esc(u.name||u.email)}</b><span class="pill ok">${naira(u.balance)}</span></div>
+  <div class="mut">${esc(u.email)} · joined ${when(u.joined)}</div><div style="margin-top:8px"><button class="btn alt" data-act="wadj">Adjust wallet</button></div></div>`).join(''):'<div class="empty">No customers match.</div>');
+ },
+ async mail(){
+  app.innerHTML=`<div class="card"><p class="mut" style="margin-bottom:10px">Sends to every customer with a confirmed email who has not turned update emails off. Send a test to yourself first.</p>
+  <label class="mut">Subject<input id="m-sub" maxlength="120"></label><label class="mut" style="margin-top:8px;display:block">Message<textarea id="m-msg" rows="7" maxlength="4000"></textarea></label>
+  <div class="row" style="margin-top:10px"><button class="btn alt" data-act="mtest">Send test to me</button><button class="btn" data-act="mall">Send to all customers</button></div></div>`;
+ }};
 async function show(){
-  $('#title').textContent = TITLES[tab];
-  document.querySelectorAll('#nav [data-t]').forEach(b => b.classList.toggle('on', b.dataset.t === tab));
-  app.innerHTML = '<div class="empty">Loading…</div>';
-  try { await views[tab](); } catch (e) { app.innerHTML = err('this page', e); }
+ $('#title').textContent=TITLES[tab];document.querySelectorAll('#nav [data-t]').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));
+ document.body.classList.remove('open');app.innerHTML='<div class="empty">Loading…</div>';
+ try{await views[tab]()}catch(e){app.innerHTML=err('this page',e)}
 }
-
-async function run(p, ok){ const {error, data} = await p; toast(error ? error.message : ok); return {error, data}; }
-const val = (card, k) => card.querySelector(`[data-f=${k}]`);
-const num = v => v === '' || v == null ? null : Number(v);
-
-document.addEventListener('input', e => { if (e.target.id === 'q') { q = e.target.value; clearTimeout(input.t); input.t = setTimeout(async () => { const pos = q.length; await views[tab](); const el = $('#q'); el.focus(); el.setSelectionRange(pos, pos); }, 250); } });
-const input = {};
-
-document.addEventListener('change', async e => {
-  if (e.target.dataset.act !== 'ost') return;
-  const id = e.target.closest('.card').dataset.id;
-  if (e.target.value === 'Cancelled' && !confirm('Cancel this order? Wallet payments are refunded and stock is returned.')) return show();
-  const {error} = await run(sb.from('orders').update({status: e.target.value}).eq('id', id), 'Order updated');
-  show();
+async function run(p,ok){const r=await p;toast(r.error?r.error.message:ok);return r}
+const val=(c,k)=>c.querySelector(`[data-f=${k}]`),num=v=>v===''||v==null?null:Number(v);
+let t1;document.addEventListener('input',e=>{
+ if(e.target.id==='q'||e.target.id==='gs'){const g=e.target.id==='gs';q=e.target.value;clearTimeout(t1);t1=setTimeout(async()=>{if(g&&!['orders','products','people'].includes(tab)){tab='orders';await show()}else await views[tab]();const el=g?$('#gs'):$('#q');if(el&&!g){el.focus();el.setSelectionRange(q.length,q.length)}},300)}});
+document.addEventListener('change',async e=>{
+ if(e.target.id==='rng'){range=e.target.value;return show()}
+ if(e.target.dataset.act!=='ost')return;const id=e.target.closest('tr').dataset.id;
+ if(e.target.value==='Cancelled'&&!confirm('Cancel this order? Wallet payments are refunded and stock is returned.'))return show();
+ await run(sb.from('orders').update({status:e.target.value}).eq('id',id),'Order updated');show();
 });
-
-document.addEventListener('click', async e => {
-  const b = e.target.closest('button'); if (!b) return;
-  if (b.dataset.t) { tab = b.dataset.t; q = ''; return show(); }
-  if (b.dataset.of) { ofilter = b.dataset.of; return show(); }
-  const act = b.dataset.act, card = b.closest('.card'); if (!act) return;
-  b.disabled = true;
-  try {
-    if (act === 'qsave') {
-      await run(sb.from('quotes').update({status: val(card,'status').value, reply_price: num(val(card,'price').value), reply_note: val(card,'note').value.trim() || null}).eq('id', card.dataset.id), 'Reply saved');
-    } else if (act === 'psave' || act === 'padd') {
-      const root = act === 'padd' ? card : card, g = k => val(root, k), name = g('name').value.trim(), price = g('price').value;
-      if (!name || price === '') return toast('Name and price are required');
-      const row = {name, price: Number(price), old_price: num(g('old_price').value), stock: num(g('stock').value), category: g('category').value.trim() || null, emoji: g('emoji').value.trim() || null, image: g('image').value.trim() || null, description: g('description').value.trim() || null};
-      if (act === 'psave') { Object.assign(row, {active: g('active').checked, flash: g('flash').checked}); await run(sb.from('products').update(row).eq('id', card.dataset.id), 'Product saved'); }
-      else { const id = g('id').value.trim(); if (!id) return toast('Give the product an ID'); const {error} = await run(sb.from('products').insert({id, ...row}), 'Product added'); if (!error) show(); }
-    } else if (act === 'pdel') {
-      if (!confirm('Delete this product for good? To hide it instead, untick "Visible in store".')) return;
-      const {error} = await run(sb.from('products').delete().eq('id', card.dataset.id), 'Product deleted'); if (!error) show();
-    } else if (act === 'wadj') {
-      const amt = Number(prompt('Amount in ₦ (use a minus to deduct, e.g. -500)', '')); if (!amt) return;
-      const note = prompt('Reason (shown in their wallet history)', '') || '';
-      const {error, data} = await run(sb.rpc('admin_adjust_wallet', {p_user: card.dataset.id, p_amount: amt, p_note: note}), 'Wallet updated');
-      if (!error) show();
-    } else if (act === 'mtest' || act === 'mall') {
-      const subject = $('#m-sub').value.trim(), message = $('#m-msg').value.trim();
-      if (subject.length < 3 || message.length < 5) return toast('Add a subject and a message');
-      if (act === 'mall' && !confirm('Send this to ALL customers now? This cannot be undone.')) return;
-      const {data, error} = await sb.functions.invoke('admin-broadcast', {body: {token: session.access_token, subject, message, test: act === 'mtest'}});
-      toast(error || !data?.ok ? (data?.error || error?.message || 'Could not send') : `Sent to ${data.sent} of ${data.total}`);
-    }
-  } finally { b.disabled = false; }
+$('#burger').onclick=()=>document.body.classList.toggle('open');$('#scrim').onclick=()=>document.body.classList.remove('open');
+document.addEventListener('click',async e=>{
+ const b=e.target.closest('button');if(!b)return;
+ if(b.dataset.t){tab=b.dataset.t;q='';$('#gs').value='';return show()}
+ if(b.dataset.of){ofilter=b.dataset.of;return show()}
+ const act=b.dataset.act,card=b.closest('.card')||b.closest('tr');if(!act)return;b.disabled=true;
+ try{
+  if(act==='qsave')await run(sb.from('quotes').update({status:val(card,'status').value,reply_price:num(val(card,'price').value),reply_note:val(card,'note').value.trim()||null}).eq('id',card.dataset.id),'Reply saved');
+  else if(act==='psave'||act==='padd'||act==='pdup'){
+   const g=k=>val(card,k),name=g('name').value.trim(),price=g('price').value;if(!name||price==='')return toast('Name and price are required');
+   const row={name,price:Number(price),old_price:num(g('old_price').value),stock:num(g('stock').value),category:g('category').value.trim()||null,brand:g('brand').value.trim()||null,emoji:g('emoji').value.trim()||null,image:g('image').value.trim()||null,description:g('description').value.trim()||null};
+   if(act==='psave'){Object.assign(row,{active:g('active').checked,flash:g('flash').checked});await run(sb.from('products').update(row).eq('id',card.dataset.id),'Product saved')}
+   else if(act==='pdup'){const {error}=await run(sb.from('products').insert({id:card.dataset.id+'-copy'+Date.now().toString(36).slice(-3),...row,name:name+' (copy)',active:false}),'Duplicated (hidden until you enable it)');if(!error)show()}
+   else{const id=g('id').value.trim();if(!id)return toast('Give the product an ID');const {error}=await run(sb.from('products').insert({id,...row}),'Product added');if(!error)show()}
+  }else if(act==='pdel'){if(!confirm('Delete this product for good? To hide it instead, untick "Visible in store".'))return;const {error}=await run(sb.from('products').delete().eq('id',card.dataset.id),'Product deleted');if(!error)show()}
+  else if(act==='ssave'){const v=num(val(card,'stock').value);if(v==null||v<0)return toast('Enter a valid stock number');const {error}=await run(sb.from('products').update({stock:v}).eq('id',card.dataset.id),'Stock updated');if(!error)show()}
+  else if(act==='wadj'){const amt=Number(prompt('Amount in ₦ (use a minus to deduct, e.g. -500)',''));if(!amt)return;const note=prompt('Reason (shown in their wallet history)','')||'';const {error}=await run(sb.rpc('admin_adjust_wallet',{p_user:card.dataset.id,p_amount:amt,p_note:note}),'Wallet updated');if(!error){users=[];show()}}
+  else if(act==='oexp')csv('kampza-orders.csv',[['Order','Customer','Phone','Items','Total','Payment','Status','Date'],...(app._o||[]).map(o=>[o.id,uname(o.user_id),o.phone,summ(o),o.total,o.pay,o.status,o.created_at])]);
+  else if(act==='cexp')csv('kampza-customers.csv',[['Name','Email','Wallet','Joined'],...users.map(u=>[u.name,u.email,u.balance,u.joined])]);
+  else if(act==='inv'){const {data:o}=await sb.from('orders').select('*').eq('id',card.dataset.id).single();const w=window.open('','_blank');if(w){w.document.write(`<title>Invoice ${esc(o.id)}</title><body style="font:14px Inter,sans-serif;max-width:640px;margin:30px auto"><img src="${LOGO}" width="56" style="border-radius:12px"><h2>KAMPZA — Invoice ${esc(o.id)}</h2><p>${esc(uname(o.user_id))} · ${esc(o.phone)}<br>${esc(o.address)}<br>${when(o.created_at)}</p><table width="100%" cellpadding="6" border="1" style="border-collapse:collapse">${(o.items||[]).map(i=>`<tr><td>${esc(i.n)}</td><td>${esc(i.q)}</td><td>${naira(i.p*i.q)}</td></tr>`).join('')}<tr><td colspan="2"><b>Total</b></td><td><b>${naira(o.total)}</b></td></tr></table><p>Payment: ${o.pay==='wallet'?'Paid with wallet':'Pay on delivery'} · Status: ${esc(o.status)}</p><script>onload=()=>print()<\/script>`);w.document.close()}}
+  else if(act==='mtest'||act==='mall'){const subject=$('#m-sub').value.trim(),message=$('#m-msg').value.trim();if(subject.length<3||message.length<5)return toast('Add a subject and a message');if(act==='mall'&&!confirm('Send this to ALL customers now? This cannot be undone.'))return;
+   const {data,error}=await sb.functions.invoke('admin-broadcast',{body:{token:session.access_token,subject,message,test:act==='mtest'}});toast(error||!data?.ok?(data?.error||error?.message||'Could not send'):`Sent to ${data.sent} of ${data.total}`)}
+ }finally{b.disabled=false}
 });
-
-async function signOut(){ try { sessionStorage.removeItem('k_unlocked'); } catch (e) {} await sb.auth.signOut(); location.href = 'auth.html'; }
-$('#out').onclick = $('#out2').onclick = signOut;
-
-let pin = '', busy = false, lockedUntil = 0;
-const lsub = $('#lsub'), dots = $('#dots');
-function paint(){ dots.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('on', i < pin.length)); }
-function msg(t, bad){ lsub.textContent = t; lsub.classList.toggle('err', !!bad); }
-function unlock(){ try { sessionStorage.setItem('k_unlocked', '1'); } catch (e) {} document.body.classList.remove('locked'); $('#lock').hidden = true; show(); }
+async function signOut(){await sb.auth.signOut();location.reload()}$('#out').onclick=signOut;
+let pin='',busy=false;const lsub=$('#lsub'),dots=$('#dots');
+const paint=()=>dots.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('on',i<pin.length));
+const msg=(t,bad)=>{lsub.textContent=t;lsub.classList.toggle('err',!!bad)};
+function unlock(){document.body.classList.remove('locked');$('#lock').hidden=true;show()}
 async function tryPin(){
-  busy = true; $('#pad').querySelectorAll('button').forEach(b => b.disabled = true); msg('Checking…');
-  const {data, error} = await sb.rpc('admin_verify_pin', {p_pin: pin});
-  busy = false; $('#pad').querySelectorAll('button').forEach(b => b.disabled = false);
-  if (data?.ok) return unlock();
-  pin = ''; paint(); dots.classList.remove('shake'); void dots.offsetWidth; dots.classList.add('shake');
-  if (error) msg('Could not check the PIN. Try again.', true);
-  else if (data?.locked) msg('Too many wrong tries. Wait ' + Math.ceil(data.seconds / 60) + ' min.', true);
-  else msg('Wrong PIN. ' + data.left + ' ' + (data.left === 1 ? 'try' : 'tries') + ' left.', true);
+ busy=true;$('#pad').querySelectorAll('button').forEach(b=>b.disabled=true);msg('Checking…');let r=null,fail=false;
+ try{const {data,error}=await sb.functions.invoke('admin-pin-login',{body:{pin}});r=data;if(error&&!data)fail=true;
+  if(r?.ok){let v=await sb.auth.verifyOtp({token_hash:r.token_hash,type:'email'});if(v.error)v=await sb.auth.verifyOtp({token_hash:r.token_hash,type:'magiclink'});
+   if(v.error||!v.data?.session)fail=true;else{session=v.data.session;const {data:ok}=await sb.rpc('is_admin');if(ok){sb.auth.onAuthStateChange((_e,s)=>{if(s)session=s});return unlock()}fail=true}}
+ }catch(e){fail=true}
+ busy=false;$('#pad').querySelectorAll('button').forEach(b=>b.disabled=false);pin='';paint();dots.classList.remove('shake');void dots.offsetWidth;dots.classList.add('shake');
+ if(fail||!r)msg('Could not log in. Check your connection and try again.',true);else if(r.locked)msg('Too many wrong tries. Wait '+Math.ceil(r.seconds/60)+' min.',true);else msg('Wrong PIN. '+r.left+' '+(r.left===1?'try':'tries')+' left.',true);
 }
-function press(d){ if (busy || pin.length >= 4) return; pin += d; paint(); if (pin.length === 4) tryPin(); }
-$('#pad').addEventListener('click', e => { const b = e.target.closest('button'); if (!b || b.id === 'pback') return; press(b.textContent.trim()); });
-$('#pback').onclick = () => { if (!busy) { pin = pin.slice(0, -1); paint(); } };
-document.addEventListener('keydown', e => { if ($('#lock').hidden) return; if (/^[0-9]$/.test(e.key)) press(e.key); else if (e.key === 'Backspace' && !busy) { pin = pin.slice(0, -1); paint(); } });
-
-(async () => {
-  ({data:{session}} = await sb.auth.getSession());
-  if (!session) { location.href = 'auth.html'; return; }
-  const {data:isAdmin} = await sb.rpc('is_admin');
-  if (!isAdmin) { $('#lock').hidden = true; document.body.classList.remove('locked'); app.innerHTML = '<div class="empty">This account is not an admin. Sign in with an admin account.<br><br><button class="btn" onclick="signOut()">Sign out</button></div>'; document.querySelector('main').style.display = 'block'; return; }
-  sb.auth.onAuthStateChange((_e, s) => { if (s) session = s; });
-  let ok = false; try { ok = sessionStorage.getItem('k_unlocked') === '1'; } catch (e) {}
-  if (ok) unlock();
-})();
-</script>
-</body>
-</html>
+function press(d){if(busy||pin.length>=4)return;pin+=d;paint();if(pin.length===4)tryPin()}
+$('#pad').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.id==='pback')return;press(b.textContent.trim())});
+$('#pback').onclick=()=>{if(!busy){pin=pin.slice(0,-1);paint()}};
+document.addEventListener('keydown',e=>{if($('#lock').hidden)return;if(/^[0-9]$/.test(e.key))press(e.key);else if(e.key==='Backspace'&&!busy){pin=pin.slice(0,-1);paint()}});
+(async()=>{const {data:{session:cur}}=await sb.auth.getSession();if(cur){session=cur;const {data:ok}=await sb.rpc('is_admin');if(ok){sb.auth.onAuthStateChange((_e,s)=>{if(s)session=s});return unlock()}await sb.auth.signOut()}})();
+</script></body></html>

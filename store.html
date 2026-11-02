@@ -200,9 +200,22 @@ body.aiopen .fab{display:none}
 .cat{flex:0 0 80px;font-size:11px}.cat span{overflow-wrap:normal;word-break:normal;hyphens:none;min-height:2.4em}
 @media(min-width:768px){.cat{flex-basis:92px;font-size:12px}}
 @media(max-width:350px){.card .btn{font-size:12px}.card .btn svg{display:none}}
+.gps{margin-bottom:12px}
+.gstat{padding:10px 12px;border-radius:10px;background:var(--g);margin:8px 0;font-size:13px}
+.gstat.ok{background:#e6f6ec;color:#1a7f43}.gstat.bad{background:#fde8e6;color:#b42318}
+#gmap{height:240px;border-radius:var(--r);border:1px solid var(--b);margin-bottom:8px;z-index:0;background:#eee}
+.tl{display:grid;margin:8px 0}
+.tl div{display:flex;gap:12px;padding:0 0 18px;position:relative;color:var(--m)}
+.tl div::before{content:"";width:14px;height:14px;border-radius:50%;background:var(--b);flex:none;margin-top:3px;z-index:1}
+.tl div::after{content:"";position:absolute;left:6px;top:18px;bottom:0;width:2px;background:var(--b)}
+.tl div:last-child::after{display:none}
+.tl div.on{color:var(--c)}.tl div.on::before,.tl div.on::after{background:var(--o)}
+.tl small{display:block}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="https://js.paystack.co/v1/inline.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
 <header><div class="wrap">
@@ -384,11 +397,11 @@ function accountView(){
 <button class="out" data-signout>${ic('out')}Log Out</button>
 <p class="foot">KAMPZA · Find It. Get It. Love It.<br>v${VERSION}</p>`}
 
-function ordersView(){return pgHead('My Orders')+(S.orders.length?S.orders.map(o=>`<div class="nt"><div class="oh"><b>${esc(o.id)}</b><span class="st">${esc(o.status)}</span></div><small>${dt(o.at)} · ${{wallet:'Wallet',cod:'Pay on delivery',card:'Card'}[o.pay]}${o.pay!=='cod'?(o.paid?' · Paid':' · Awaiting payment'):''}</small>${o.items.map(i=>`<div class="oh"><span>${i.q}× ${esc(i.n)}</span><span class="st">${cap(i.s)}</span></div>${i.s==='cancelled'?'':`<div class="steps">${STEPS.map((x,k)=>`<i class="${k<=STEPS.indexOf(i.s)?'on':''}"></i>`).join('')}</div>`}${i.s==='delivered'&&i.pid&&byId(i.pid)?`<button class="rm" data-rev="${i.pid}">Rate this item</button>`:''}`).join('')}<div class="oh"><small>Delivery</small><small>${fmt(o.fee)}</small></div><div class="oh tot"><span>Total</span><b>${fmt(o.total)}</b></div>${o.pay==='card'&&!o.paid&&o.st!=='cancelled'?`<button class="btn full" data-payord="${esc(o.id)}">Pay now · ${fmt(o.total)}</button>`:''}</div>`).join(''):empty('📦','No orders yet.',shop))}
+function ordersView(){return pgHead('My Orders')+(S.orders.length?S.orders.map(o=>`<div class="nt"><div class="oh"><b>${esc(o.id)}</b><span class="st">${esc(o.status)}</span></div><small>${dt(o.at)} · ${{wallet:'Wallet',cod:'Pay on delivery',card:'Card'}[o.pay]}${o.pay!=='cod'?(o.paid?' · Paid':' · Awaiting payment'):''}</small>${o.items.map(i=>`<div class="oh"><span>${i.q}× ${esc(i.n)}</span><span class="st">${cap(i.s)}</span></div>${i.s==='cancelled'?'':`<div class="steps">${STEPS.map((x,k)=>`<i class="${k<=STEPS.indexOf(i.s)?'on':''}"></i>`).join('')}</div>`}${i.s==='delivered'&&i.pid&&byId(i.pid)?`<button class="rm" data-rev="${i.pid}">Rate this item</button>`:''}`).join('')}<div class="oh"><small>Delivery</small><small>${fmt(o.fee)}</small></div><div class="oh tot"><span>Total</span><b>${fmt(o.total)}</b></div><button class="btn full ghost" data-track="${esc(o.id)}">Track order</button>${o.pay==='card'&&!o.paid&&o.st!=='cancelled'?`<button class="btn full" data-payord="${esc(o.id)}">Pay now · ${fmt(o.total)}</button>`:''}</div>`).join(''):empty('📦','No orders yet.',shop))}
 function checkoutView(){
  const ids=Object.keys(S.cart).filter(byId);if(!ids.length)return pgHead('Checkout')+empty('🛒','Your cart is empty.',shop);
  const a=ADDR[0]||{},sub=cartTotal(),tot=sub+FEE;
- return pgHead('Checkout')+`<div class="cartw"><div><h2 class="sh2" style="margin-top:0">Delivery</h2>${ADDR.length?`<div class="fld"><label for="adsel">Saved addresses</label><select id="adsel"><option value="">Enter a new address</option>${ADDR.map((x,i)=>`<option value="${i}" ${i===0?'selected':''}>${esc(x.label||'Address')} · ${esc(x.hostel||'')}, ${esc(x.campus||'')}</option>`).join('')}</select></div>`:''}${fld('cp','Campus',a.campus||'','autocomplete="off" placeholder="e.g. FUNAAB main campus"')}${fld('hs','Hostel / room',a.hostel||'','autocomplete="off" placeholder="Hostel name and room number"')}${fld('ph','Phone number',a.phone||U.phone,'type="tel" inputmode="tel" autocomplete="tel"')}<label class="chk" style="margin-bottom:6px"><input type="checkbox" id="sv" ${ADDR.length?'':'checked'}>Save this address for next time</label>
+ return pgHead('Checkout')+`<div class="cartw"><div><h2 class="sh2" style="margin-top:0">Delivery</h2>${gpsBlock()}${ADDR.length?`<div class="fld"><label for="adsel">Saved addresses</label><select id="adsel"><option value="">Enter a new address</option>${ADDR.map((x,i)=>`<option value="${i}" ${i===0?'selected':''}>${esc(x.label||'Address')} · ${esc(x.hostel||'')}, ${esc(x.campus||'')}</option>`).join('')}</select></div>`:''}${fld('cp','Campus',a.campus||'','autocomplete="off" placeholder="e.g. FUNAAB main campus"')}${fld('hs','Hostel / room',a.hostel||'','autocomplete="off" placeholder="Hostel name and room number"')}${fld('ph','Phone number',a.phone||U.phone,'type="tel" inputmode="tel" autocomplete="tel"')}<label class="chk" style="margin-bottom:6px"><input type="checkbox" id="sv" ${ADDR.length?'':'checked'}>Save this address for next time</label>
 <h2 class="sh2">Payment</h2><label class="opt"><input type="radio" name="pay" value="cod" checked><span>Pay on delivery</span></label><label class="opt"><input type="radio" name="pay" value="wallet"><span>Wallet <small>${fmt(S.wallet.bal)} available</small></span></label><label class="opt"><input type="radio" name="pay" value="card"><span>Card (Paystack)</span></label></div>
 <div class="sum"><b>Order summary</b>${ids.map(id=>`<div class="oh" style="font-weight:400;font-size:14px"><span>${S.cart[id]}× ${esc(byId(id).n)}</span><span>${fmt(byId(id).p*S.cart[id])}</span></div>`).join('')}<div style="font-weight:400;font-size:14px"><span>Subtotal</span><span>${fmt(sub)}</span></div><div style="font-weight:400;font-size:14px"><span>Delivery</span><span>${fmt(FEE)}</span></div><div><span>Total</span><span>${fmt(tot)}</span></div><button class="btn" data-place>Place order · ${fmt(tot)}</button></div></div>`}
 function quotesView(){return pgHead('My Quotes')+`<p class="sub">Can’t find something? Tell us what you need and we’ll send a price.</p>${fld('qi','What do you need?','','placeholder="e.g. HP laptop, 16GB RAM"')}${fld('qq','Quantity','1','type="number" inputmode="numeric" min="1"')}${fld('qb','Budget (₦, optional)','','type="number" inputmode="numeric"')}${area('qn','Extra details (optional)')}<button class="btn full" data-quote>Request quote</button><h2 class="sh2">Your requests</h2>`+(S.quotes.length?S.quotes.map(x=>`<div class="nt"><div class="oh"><b>${esc(x.id)}</b><span class="st">${esc(x.status)}</span></div><div>${x.qty}× ${esc(x.item)}</div><small>${dt(x.at)}${x.budget?' · Budget '+fmt(x.budget):''}</small></div>`).join(''):'<div class="soon">No quotes yet.</div>')}
@@ -418,7 +431,73 @@ async function askAI(text){
  catch(err){console.error('KAMPZA AI',err);w.textContent='I can’t connect right now. Please try again or message us on WhatsApp.'}
  chat.scrollTop=chat.scrollHeight;S.ai=S.ai.slice(-30);store();AIBUSY=false}
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='ain'){e.preventDefault();askAI(e.target.value)}});
-const PG={orders:ordersView,checkout:checkoutView,quotes:quotesView,wallet:walletView,info:infoView,security:securityView,prefs:prefsView,terms:termsView,delete:deleteView,help:helpView};
+const PG={track:trackView,orders:ordersView,checkout:checkoutView,quotes:quotesView,wallet:walletView,info:infoView,security:securityView,prefs:prefsView,terms:termsView,delete:deleteView,help:helpView};
+
+/* ===== GPS + TRACKING ===== */
+let GM='gps',GEO=null,GWATCH=null,GMAP=null,GMARK=null,GCIR=null,TC=null,LID=0;
+const gst=(m,c='')=>{const e=$('#gstat');if(e){e.textContent=m;e.className='gstat '+c}};
+function gpsBlock(){return `<div class="gps"><label class="opt"><input type="radio" name="gm" value="gps" ${GM==='gps'?'checked':''}><span>Use my GPS location <small>(recommended)</small></span></label><label class="opt"><input type="radio" name="gm" value="manual" ${GM==='manual'?'checked':''}><span>Enter address manually</span></label><div id="gpanel" ${GM==='gps'?'':'hidden'}><div id="gstat" class="gstat">Finding your location…</div><div id="gmap"></div><button class="btn full ghost" style="margin-top:0" data-locate>📍 Find my location again</button><small style="display:block;margin-top:6px">Drag the pin if it is slightly off, then add your hostel and room below.</small></div></div>`}
+function gpsInit(){
+ if(GMAP){try{GMAP.remove()}catch{}}GMAP=null;GMARK=null;GCIR=null;
+ if(GM!=='gps')return;
+ if(!window.L){gst('Map library did not load. Check your internet and reload.','bad')}
+ else{
+  GMAP=L.map('gmap').setView(GEO?[GEO.lat,GEO.lng]:[7.2275,3.4375],GEO?17:15);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(GMAP);
+  setTimeout(()=>{GMAP&&GMAP.invalidateSize()},250)}
+ if(GEO)drawPin(GEO.lat,GEO.lng,GEO.acc,true);else locate()}
+function drawPin(lat,lng,acc,fit){
+ if(!GMAP)return;
+ if(!GMARK){
+  GMARK=L.marker([lat,lng],{draggable:true}).addTo(GMAP);
+  GCIR=L.circle([lat,lng],{radius:acc||10,color:'#FF7628',weight:1,fillOpacity:.12}).addTo(GMAP);
+  GMARK.on('dragend',()=>{const p=GMARK.getLatLng();GEO={lat:p.lat,lng:p.lng,acc:GEO?.acc||0,moved:true};GCIR.setLatLng(p);gst('Pin moved. Updating address…');rev(p.lat,p.lng)});
+  GMAP.setView([lat,lng],17)}
+ else{GMARK.setLatLng([lat,lng]);GCIR.setLatLng([lat,lng]);GCIR.setRadius(acc||10);if(fit)GMAP.setView([lat,lng],17)}}
+function locate(){
+ if(!navigator.geolocation){gst('GPS is not supported on this device. Please enter your address manually.','bad');return}
+ if(GWATCH!=null){navigator.geolocation.clearWatch(GWATCH);GWATCH=null}
+ const id=++LID,t0=Date.now();let best=null;
+ gst('Finding your location… keep this page open');
+ const fin=()=>{if(id!==LID||GWATCH==null)return;navigator.geolocation.clearWatch(GWATCH);GWATCH=null;
+  if(!best){gst('Could not get a GPS fix. Move near a window or choose manual address.','bad');return}
+  GEO=best;drawPin(best.lat,best.lng,best.acc,true);
+  if(best.acc>100)gst('Weak signal (±'+Math.round(best.acc)+' m). Drag the pin to your exact spot or tap Find again.','bad');
+  else gst('Location found (±'+Math.round(best.acc)+' m). Fetching address…','ok');
+  rev(best.lat,best.lng)};
+ GWATCH=navigator.geolocation.watchPosition(p=>{if(id!==LID)return;const c=p.coords;
+   if(!best||c.accuracy<best.acc)best={lat:c.latitude,lng:c.longitude,acc:c.accuracy};
+   gst('Improving accuracy… ±'+Math.round(best.acc)+' m');drawPin(best.lat,best.lng,best.acc,false);
+   if(best.acc<=25||Date.now()-t0>20000)fin()},
+  err=>{if(id!==LID)return;
+   if(err.code===3&&best){fin();return}
+   if(GWATCH!=null){navigator.geolocation.clearWatch(GWATCH);GWATCH=null}
+   gst(err.code===1?'Location permission denied. Allow it in your browser settings or choose manual address.':'Could not get your location. Try again or choose manual address.','bad')},
+  {enableHighAccuracy:true,maximumAge:0,timeout:20000});
+ setTimeout(fin,22000)}
+async function rev(lat,lng){
+ try{const r=await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&zoom=18&accept-language=en&lat=${lat}&lon=${lng}`);
+  const j=await r.json(),a=j.address||{};
+  const area=[a.road,a.suburb||a.neighbourhood||a.village||a.town,a.city||a.county,a.state].filter(Boolean).join(', ')||j.display_name||'';
+  if(GEO)GEO.text=j.display_name||area;
+  const cp=$('#cp');if(cp&&area&&(!cp.value||cp.dataset.auto)){cp.value=area;cp.dataset.auto='1'}
+  gst('Location set'+(GEO?.acc?' (±'+Math.round(GEO.acc)+' m)':'')+'. Add your hostel and room below.','ok')
+ }catch{gst('Pin saved, but the address could not be fetched. Type your campus below.','ok')}}
+function trackView(){
+ const o=S.orders.find(k=>k.id===TC);
+ if(!o)return pgHead('Track order')+empty('📦','Order not found.');
+ return pgHead('Track '+esc(o.id))+`<div class="nt"><div class="oh"><b>${esc(o.status)}</b><span class="st">${o.paid?'Paid':o.pay==='cod'?'Pay on delivery':'Awaiting payment'}</span></div><small>${dt(o.at)} · Total ${fmt(o.total)}</small></div><h2 class="sh2">Progress</h2><div class="tl" id="tl"><small>Loading…</small></div><h2 class="sh2">Items</h2>${o.items.map(i=>`<div class="oh nt"><span>${i.q}× ${esc(i.n)}</span><span class="st">${cap(i.s)}</span></div>`).join('')}`}
+async function trackLoad(){
+ const el=$('#tl');if(!el||!sb)return;
+ const{data,error}=await sb.from('order_events').select('*').eq('order_code',TC).order('created_at');
+ if(error||!$('#tl'))return;
+ const at={};(data||[]).forEach(e=>{at[e.status]=e.created_at});
+ const o=S.orders.find(k=>k.id===TC),L={processing:'Order placed',packed:'Packed',shipped:'On the way',delivered:'Delivered'};
+ const st=[...STEPS];if(at.cancelled||o?.st==='cancelled')st.push('cancelled');
+ el.innerHTML=st.map(s=>`<div class="${at[s]||s===o?.st?'on':''}"><span><b>${s==='cancelled'?'Cancelled':L[s]}</b>${at[s]?`<small>${new Date(at[s]).toLocaleString('en-NG',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})}</small>`:''}</span></div>`).join('')}
+function live(){
+ if(!sb||!U||live.ch)return;
+ live.ch=sb.channel('kz-ev').on('postgres_changes',{event:'INSERT',schema:'public',table:'order_events'},async()=>{await loadServer();if(pg==='track')trackLoad()}).subscribe()}
 
 /* ================= SEARCH / LISTS ================= */
 const match=p=>{const h=(p.n+' '+(p.c||'')+' '+(p.b||'')).toLowerCase();return q.toLowerCase().split(/\s+/).filter(Boolean).every(t=>h.includes(t))};
@@ -439,8 +518,9 @@ function view(){
  else if(sub&&tab==='home'){const[t,it]=listItems();h=listView(t,it)}
  else h=tab==='home'?home():tab==='cats'?catsView():tab==='wish'?wishView():tab==='cart'?cartView():tab==='account'?accountView():notifsView();
  $('#app').innerHTML=h;if(prod&&byId(prod)&&!q.trim()&&!pg)loadReviews(prod);
+ if(pg==='checkout'&&!q.trim())gpsInit();else if(pg==='track'&&!q.trim())trackLoad();
  if(tab==='home'&&!sub&&!pg&&!prod&&!q.trim())start();aiSync()}
-const snap=()=>({tab,sub,pg,prod});
+const snap=()=>({tab,sub,pg,prod,tc:TC});
 function draw(h=true){nav();view();scrollTo(0,0);if(h){const t=snap();if(JSON.stringify(history.state)!==JSON.stringify(t))history.pushState(t,'')}}
 function go2(t,s=null){tab=t;sub=s;pg=null;prod=null;q='';$('#q').value='';draw()}
 
@@ -469,6 +549,8 @@ document.addEventListener('click',async e=>{
  if(x=g('[data-cat]')){tab='home';sub={cat:x.dataset.cat};pg=null;prod=null;q='';$('#q').value='';draw();return}
  if(x=g('[data-list]')){tab='home';sub=x.dataset.list;pg=null;prod=null;q='';$('#q').value='';draw();return}
  if(x=g('[data-go]')){go2(x.dataset.go);return}
+ if(x=g('[data-track]')){TC=x.dataset.track;pg='track';draw();return}
+ if(g('[data-locate]')){GEO=null;locate();return}
  if(x=g('[data-pg]')){pg=x.dataset.pg;draw();return}
  if(g('[data-pgback],[data-back],[data-hback]')){history.back();return}
  if(g('[data-read]')){S.notifs.forEach(n=>n.r=1);store();badges();view();return}
@@ -484,6 +566,7 @@ document.addEventListener('click',async e=>{
   if(PLACING)return;
   const ph=v('ph'),cp=v('cp'),hs=v('hs'),ad=hs+', '+cp,pay=document.querySelector('input[name=pay]:checked').value,t=cartTotal()+FEE;
   if(ph.length<7||cp.length<2||hs.length<2){toast('Enter your phone, campus and hostel / room');return}
+  if(GM==='gps'&&!GEO){toast('Tap "Find my location" or choose manual address');return}
   if(pay==='wallet'&&S.wallet.bal<t){toast('Wallet balance is too low. Fund your wallet first.');return}
   if(pay==='card'&&(PAYSTACK_KEY.startsWith('YOUR_')||!window.PaystackPop)){toast('Card payments are not set up yet');return}
   const items=Object.keys(S.cart).filter(byId).map(id=>({id,qty:S.cart[id]}));
@@ -491,7 +574,8 @@ document.addEventListener('click',async e=>{
   try{
    const{data,error}=await sb.rpc('place_order',{p_items:items,p_pay:pay,p_phone:ph,p_address:ad,p_key:CKEY});
    if(error)throw error;
-   if($('#sv')?.checked&&!ADDR.some(k=>k.hostel===hs&&k.campus===cp))await sb.from('addresses').insert({user_id:U.id,label:'Home',campus:cp,hostel:hs,address:ad,phone:ph,is_default:!ADDR.length});
+   if($('#sv')?.checked&&!ADDR.some(k=>k.hostel===hs&&k.campus===cp))await sb.from('addresses').insert({user_id:U.id,label:'Home',campus:cp,hostel:hs,address:ad,phone:ph,is_default:!ADDR.length,lat:GM==='gps'?GEO?.lat:null,lng:GM==='gps'?GEO?.lng:null,accuracy:GM==='gps'?GEO?.acc:null,source:GM});
+   try{await sb.rpc('set_order_location',{p_code:data.code,p_lat:GM==='gps'?GEO?.lat:null,p_lng:GM==='gps'?GEO?.lng:null,p_acc:GM==='gps'?GEO?.acc:null,p_src:GM==='gps'&&GEO?'gps':'manual'})}catch(e){console.error(e)}
    S.cart={};CKEY=crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random();U.phone=ph;store();
    notif('Order placed ✅',data.code+' · '+fmt(data.total));
    await Promise.all([loadServer(),loadCatalog()]);tab='account';pg='orders';draw();toast('Order placed');
@@ -525,6 +609,7 @@ document.addEventListener('click',async e=>{
   try{localStorage.removeItem('kz_n_'+U.id)}catch{}OUT=true;await sb.auth.signOut()}
 });
 document.addEventListener('change',async e=>{
+ if(e.target.name==='gm'){GM=e.target.value;const p=$('#gpanel');if(p)p.hidden=GM!=='gps';if(GM==='gps')gpsInit();else if(GWATCH!=null){navigator.geolocation.clearWatch(GWATCH);GWATCH=null}return}
  if(e.target.id==='sort'){SORT=e.target.value;view();return}
  if(e.target.id==='stk'){INSTOCK=e.target.checked;view();return}
  if(e.target.id==='adsel'){const a=ADDR[+e.target.value]||{};$('#cp').value=a.campus||'';$('#hs').value=a.hostel||'';$('#ph').value=a.phone||U.phone||'';return}
@@ -580,7 +665,7 @@ async function boot(){
  U={id:u.id,email:u.email,verified:!!u.email_confirmed_at,
   name:md.full_name||md.name||(u.email||'').split('@')[0],
   phone:u.phone||md.phone||'',avatar:md.avatar_url||md.picture||'',meta:md};
- loadState();welcome();history.replaceState({root:1},'');draw();await Promise.all([loadCatalog(),loadServer()])}
+ loadState();welcome();history.replaceState({root:1},'');draw();await Promise.all([loadCatalog(),loadServer()]);live()}
 /* Only the user's own Log Out signs them out. Other SIGNED_OUT events are re-checked first. */
 sb?.auth.onAuthStateChange((ev,ses)=>{if(ses?.access_token)TOKEN=ses.access_token;
  if(ev==='SIGNED_OUT'&&U){if(OUT){sessionStorage.clear();location.replace(AUTH_URL)}else setTimeout(async()=>{if(!await session()){sessionStorage.clear();location.replace(AUTH_URL)}},800)}});
@@ -589,7 +674,7 @@ addEventListener('pageshow',async e=>{if(e.persisted&&sb&&U){const t=await sessi
 addEventListener('popstate',e=>{if(!U)return;const t=e.state;
  q='';$('#q').value='';
  if(!t||t.root){tab='home';sub=null;pg=null;prod=null;draw(true);return}
- tab=t.tab||'home';sub=t.sub||null;pg=t.pg||null;prod=t.prod||null;draw(false)});
+ tab=t.tab||'home';sub=t.sub||null;pg=t.pg||null;prod=t.prod||null;TC=t.tc||TC;draw(false)});
 boot();
 
 </script>

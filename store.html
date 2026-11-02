@@ -455,7 +455,7 @@ const gst=(m,c='')=>{const e=$('#gstat');if(e){e.textContent=m;e.className='gsta
 function gpsBlock(){return `<div class="gps"><label class="opt"><input type="radio" name="gm" value="gps" ${GM==='gps'?'checked':''}><span>Use my GPS location <small>(recommended)</small></span></label><label class="opt"><input type="radio" name="gm" value="manual" ${GM==='manual'?'checked':''}><span>Enter address manually</span></label><div id="gpanel" ${GM==='gps'?'':'hidden'}><div id="gstat" class="gstat">Finding your location…</div><div id="gmap"></div><button class="btn full ghost" style="margin-top:0" data-locate>📍 Find my location again</button><small style="display:block;margin-top:6px">Drag the pin if it is slightly off, then add your hostel and room below.</small></div></div>`}
 function gpsInit(){
  if(GMAP){try{GMAP.remove()}catch{}}GMAP=null;GMARK=null;GCIR=null;
- if(GM!=='gps')return;
+ if(GM!=='gps'||!document.getElementById('gmap'))return;
  if(!window.L){gst('Map library did not load. Check your internet and reload.','bad')}
  else{
   GMAP=L.map('gmap').setView(GEO?[GEO.lat,GEO.lng]:[7.2275,3.4375],GEO?17:15);

@@ -214,7 +214,7 @@ body.aiopen .fab{display:none}
 input[readonly]{background:var(--g);color:var(--m);cursor:not-allowed}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="https://js.paystack.co/v1/inline.js"></script>
+<script src="https://js.paystack.co/v2/inline.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
@@ -296,9 +296,17 @@ async function loadServer(){
  }catch(err){console.error(err)}}
 const newRef=()=>'KZ'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 function paystack(amount,done){
- if(PAYSTACK_KEY.startsWith('YOUR_')||!window.PaystackPop){toast('Card payments are not set up yet');return false}
- const ref=newRef();
- PaystackPop.setup({key:PAYSTACK_KEY,email:U.email,amount:amount*100,currency:'NGN',ref,callback:r=>{done(r.reference)},onClose:()=>{}}).openIframe();return true}
+ if(PAYSTACK_KEY.startsWith('YOUR_')||!window.PaystackPop){toast('Payment window did not load. Check your internet and reload.');return false}
+ const ref=newRef();let ok=false;
+ const w=setTimeout(()=>{if(!ok)toast('Payment window is taking long. Check your internet and try again.')},12000);
+ const end=()=>{ok=true;clearTimeout(w)};
+ try{new PaystackPop().newTransaction({key:PAYSTACK_KEY,email:U.email,amount:Math.round(amount*100),currency:'NGN',ref,reference:ref,
+  onLoad:end,
+  onSuccess:t=>{end();done((t&&t.reference)||ref)},
+  onCancel:()=>{end();toast('Payment cancelled')},
+  onError:err=>{end();console.error('Paystack',err);toast('Paystack: '+(err&&err.message||'could not load the payment window'))}})}
+ catch(e){end();console.error(e);toast('Could not open the payment window');return false}
+ return true}
 async function verify(body){
  const{data}=await sb.auth.getSession();
  const r=await fetch(SUPABASE_URL+'/functions/v1/paystack-verify',{method:'POST',headers:{'Content-Type':'application/json',apikey:SUPABASE_ANON_KEY,Authorization:'Bearer '+(data.session?.access_token||TOKEN)},body:JSON.stringify(body)});

@@ -92,6 +92,23 @@ h1 em{font-style:normal;color:var(--or)}
 .vname.ok::before{content:"✓ "}
 .vname.bad{background:rgba(255,118,40,.12)}
 .vname.wait,.vname.warn{color:var(--mu);font-weight:500}
+/* bank picker: always opens downward */
+.bp{position:relative}
+.bp>select{position:absolute;left:0;top:0;width:1px;height:1px;opacity:0;pointer-events:none}
+.bp-btn{display:flex;align-items:center;justify-content:space-between;gap:.5rem;width:100%;text-align:left;cursor:pointer}
+.bp-btn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bp-btn.ph span{color:var(--mu)}
+.bp-btn::after{content:"";flex:none;width:.45rem;height:.45rem;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg) translateY(-2px)}
+.bp-btn[aria-expanded="true"]::after{transform:rotate(-135deg) translate(-2px,-2px)}
+.bp>select.bad+.bp-btn{border-color:var(--or);background:rgba(255,118,40,.05)}
+.bp-pnl{position:absolute;left:0;right:0;top:calc(100% + .375rem);z-index:20;background:var(--wh);border:1.5px solid var(--ln);border-radius:.75rem;box-shadow:0 18px 40px -18px rgba(37,37,37,.45);overflow:hidden}
+.bp-q{display:block;width:calc(100% - 1rem);margin:.5rem}
+.bp-list{max-height:min(16rem,50dvh);overflow-y:auto;overscroll-behavior:contain;padding-bottom:.25rem}
+.bp-g{padding:.5rem .875rem .25rem;font-size:.72rem;font-weight:700;color:var(--or)}
+.bp-o{display:block;width:100%;min-height:2.75rem;text-align:left;border:0;background:none;padding:.5rem .875rem;font-size:.95rem;cursor:pointer}
+.bp-o:hover,.bp-o:focus-visible{background:var(--gr)}
+.bp-o[aria-selected="true"]{color:var(--or);font-weight:600}
+.bp-none{padding:.75rem .875rem;color:var(--mu);font-size:.88rem}
 .tag{margin:16px 0 0;text-align:center;font-size:.8rem;color:var(--mu);font-weight:500}
 /* role chooser + vendor groups */
 .role{display:flex;align-items:center;gap:.875rem;width:100%;text-align:left;padding:1rem;margin-bottom:.75rem;border-radius:1.125rem;border:1.5px solid var(--ln);background:#fff;cursor:pointer;transition:transform .25s var(--ease),border-color .2s,box-shadow .2s}
@@ -677,6 +694,62 @@ route();
 guard();
 /* Back/forward cache: re-check when the page is restored */
 window.addEventListener('pageshow',function(e){if(e.persisted)guard()});
+})();
+</script>
+<script>
+/* bank picker: replaces the native list (which opens upward near the screen bottom) with one that opens below the field.
+   The original <select id="vbank"> stays in the page and holds the value, so the form logic is unchanged. */
+(function(){
+var sel=document.getElementById('vbank');if(!sel)return;
+var wrap=document.createElement('div');wrap.className='bp';
+sel.parentNode.insertBefore(wrap,sel);wrap.appendChild(sel);
+sel.tabIndex=-1;sel.setAttribute('aria-hidden','true');
+var lab=document.querySelector('label[for="vbank"]');if(lab)lab.setAttribute('for','vbank-btn');
+var btn=document.createElement('button');btn.type='button';btn.id='vbank-btn';btn.className='in bp-btn ph';
+btn.setAttribute('aria-haspopup','listbox');btn.setAttribute('aria-expanded','false');
+var bl=document.createElement('span');btn.appendChild(bl);
+var pnl=document.createElement('div');pnl.className='bp-pnl';pnl.hidden=true;
+var q=document.createElement('input');q.type='search';q.className='in bp-q';q.placeholder='Search banks';q.autocomplete='off';q.setAttribute('aria-label','Search banks');
+var list=document.createElement('div');list.className='bp-list';list.setAttribute('role','listbox');
+pnl.appendChild(q);pnl.appendChild(list);wrap.appendChild(btn);wrap.appendChild(pnl);
+function sync(){bl.textContent=sel.value||'Select your bank';btn.classList.toggle('ph',!sel.value)}
+function build(f){
+  list.textContent='';var n=0;f=(f||'').toLowerCase().trim();
+  Array.prototype.forEach.call(sel.children,function(c){
+    var grp=c.tagName==='OPTGROUP',opts=grp?Array.prototype.slice.call(c.children):[c];
+    var shown=opts.filter(function(o){return o.value&&(!f||o.textContent.toLowerCase().indexOf(f)>-1)});
+    if(!shown.length)return;
+    if(grp){var g=document.createElement('div');g.className='bp-g';g.textContent=c.label;list.appendChild(g)}
+    shown.forEach(function(o){
+      var b=document.createElement('button');b.type='button';b.className='bp-o';b.setAttribute('role','option');
+      b.setAttribute('aria-selected',String(o.value===sel.value));b.textContent=o.textContent;
+      b.addEventListener('click',function(){pick(o.value)});list.appendChild(b);n++;
+    });
+  });
+  if(!n){var e=document.createElement('div');e.className='bp-none';e.textContent='No bank found. Try a different spelling.';list.appendChild(e)}
+}
+function isOpen(){return !pnl.hidden}
+function close(){pnl.hidden=true;btn.setAttribute('aria-expanded','false')}
+function open(){
+  q.value='';build('');pnl.hidden=false;btn.setAttribute('aria-expanded','true');
+  var cur=list.querySelector('[aria-selected="true"]');if(cur)list.scrollTop=Math.max(0,cur.offsetTop-list.clientHeight/2);
+  /* make sure the whole list is on screen below the field */
+  var vh=(window.visualViewport&&window.visualViewport.height)||window.innerHeight,r=btn.getBoundingClientRect(),need=pnl.offsetHeight+16,below=vh-r.bottom;
+  if(below<need)window.scrollBy({top:need-below,behavior:'smooth'});
+}
+function pick(v){
+  sel.value=v;sync();close();
+  sel.classList.remove('bad');var er=document.getElementById('e-vbank');if(er)er.textContent='';
+  sel.dispatchEvent(new Event('change',{bubbles:true}));btn.focus();
+}
+btn.addEventListener('click',function(){isOpen()?close():open()});
+q.addEventListener('input',function(){build(q.value)});
+q.addEventListener('keydown',function(e){if(e.key==='Enter')e.preventDefault()});
+wrap.addEventListener('keydown',function(e){if(e.key==='Escape'&&isOpen()){close();btn.focus()}});
+document.addEventListener('click',function(e){if(isOpen()&&!wrap.contains(e.target))close()});
+sel.addEventListener('change',sync);
+if(sel.form)sel.form.addEventListener('reset',function(){setTimeout(function(){sync();close()},0)});
+sync();
 })();
 </script>
 <script>if('serviceWorker' in navigator&&location.protocol!=='file:')addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})});</script>

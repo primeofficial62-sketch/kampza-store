@@ -211,6 +211,7 @@ body.aiopen .fab{display:none}
 .tl div:last-child::after{display:none}
 .tl div.on{color:var(--c)}.tl div.on::before,.tl div.on::after{background:var(--o)}
 .tl small{display:block}
+input[readonly]{background:var(--g);color:var(--m);cursor:not-allowed}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="https://js.paystack.co/v1/inline.js"></script>
@@ -435,6 +436,13 @@ const PG={track:trackView,orders:ordersView,checkout:checkoutView,quotes:quotesV
 
 /* ===== GPS + TRACKING ===== */
 let GM='gps',GEO=null,GWATCH=null,GMAP=null,GMARK=null,GCIR=null,TC=null,LID=0;
+try{const g0=JSON.parse(sessionStorage.getItem('kz_gps')||'null');if(g0){GM=g0.GM||'gps';GEO=g0.GEO||null}}catch{}
+const gsave=()=>{try{sessionStorage.setItem('kz_gps',JSON.stringify({GM,GEO}))}catch{}};
+function addrMode(){const gps=GM==='gps';
+ ['cp','hs'].forEach(i=>{const e=$('#'+i);if(!e)return;e.readOnly=gps;
+  if(gps){e.placeholder='Filled automatically from GPS';if(GEO&&GEO.cp&&(i==='cp'?GEO.cp:GEO.hs)){e.value=i==='cp'?GEO.cp:GEO.hs;e.dataset.auto='1'}else if(!GEO||e.dataset.auto!=='1')e.value=''}
+  else{e.placeholder=i==='cp'?'e.g. FUNAAB main campus':'Hostel name and room number';if(e.dataset.auto){e.value='';delete e.dataset.auto}}});
+ const sel=$('#adsel');if(sel){const f=sel.closest('.fld');if(f)f.hidden=gps}}
 const gst=(m,c='')=>{const e=$('#gstat');if(e){e.textContent=m;e.className='gstat '+c}};
 function gpsBlock(){return `<div class="gps"><label class="opt"><input type="radio" name="gm" value="gps" ${GM==='gps'?'checked':''}><span>Use my GPS location <small>(recommended)</small></span></label><label class="opt"><input type="radio" name="gm" value="manual" ${GM==='manual'?'checked':''}><span>Enter address manually</span></label><div id="gpanel" ${GM==='gps'?'':'hidden'}><div id="gstat" class="gstat">Finding your location…</div><div id="gmap"></div><button class="btn full ghost" style="margin-top:0" data-locate>📍 Find my location again</button><small style="display:block;margin-top:6px">Drag the pin if it is slightly off, then add your hostel and room below.</small></div></div>`}
 function gpsInit(){
@@ -461,7 +469,7 @@ function locate(){
  gst('Finding your location… keep this page open');
  const fin=()=>{if(id!==LID||GWATCH==null)return;navigator.geolocation.clearWatch(GWATCH);GWATCH=null;
   if(!best){gst('Could not get a GPS fix. Move near a window or choose manual address.','bad');return}
-  GEO=best;drawPin(best.lat,best.lng,best.acc,true);
+  GEO=best;gsave();drawPin(best.lat,best.lng,best.acc,true);
   if(best.acc>100)gst('Weak signal (±'+Math.round(best.acc)+' m). Drag the pin to your exact spot or tap Find again.','bad');
   else gst('Location found (±'+Math.round(best.acc)+' m). Fetching address…','ok');
   rev(best.lat,best.lng)};
@@ -476,13 +484,16 @@ function locate(){
   {enableHighAccuracy:true,maximumAge:0,timeout:20000});
  setTimeout(fin,22000)}
 async function rev(lat,lng){
+ const put=(cp,hs)=>{if(GEO){GEO.cp=cp;GEO.hs=hs;gsave()}if(GM==='gps')addrMode()};
  try{const r=await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&zoom=18&accept-language=en&lat=${lat}&lon=${lng}`);
   const j=await r.json(),a=j.address||{};
-  const area=[a.road,a.suburb||a.neighbourhood||a.village||a.town,a.city||a.county,a.state].filter(Boolean).join(', ')||j.display_name||'';
-  if(GEO)GEO.text=j.display_name||area;
-  const cp=$('#cp');if(cp&&area&&(!cp.value||cp.dataset.auto)){cp.value=area;cp.dataset.auto='1'}
-  gst('Location set'+(GEO?.acc?' (±'+Math.round(GEO.acc)+' m)':'')+'. Add your hostel and room below.','ok')
- }catch{gst('Pin saved, but the address could not be fetched. Type your campus below.','ok')}}
+  const campus=[a.university||a.college,a.suburb||a.neighbourhood||a.village||a.town,a.city||a.county,a.state].filter(Boolean).join(', ')||(j.display_name||'').split(',').slice(1,4).join(',').trim()||'GPS location';
+  const near=a.building||a.amenity||a.tourism||a.shop||a.leisure||'';
+  const spot=[near,[a.house_number,a.road].filter(Boolean).join(' ')].filter(Boolean).join(', ')||a.hamlet||(j.display_name||'').split(',')[0]||'GPS pin';
+  if(GEO)GEO.text=j.display_name||campus;
+  put(campus,spot);
+  gst('Address filled from your GPS'+(GEO?.acc?' (±'+Math.round(GEO.acc)+' m)':'')+'. To type it yourself, choose manual address.','ok')
+ }catch{put('GPS '+lat.toFixed(5)+', '+lng.toFixed(5),'GPS pin');gst('Location saved. Address name could not be fetched, so your coordinates were used.','ok')}}
 function trackView(){
  const o=S.orders.find(k=>k.id===TC);
  if(!o)return pgHead('Track order')+empty('📦','Order not found.');
@@ -518,10 +529,10 @@ function view(){
  else if(sub&&tab==='home'){const[t,it]=listItems();h=listView(t,it)}
  else h=tab==='home'?home():tab==='cats'?catsView():tab==='wish'?wishView():tab==='cart'?cartView():tab==='account'?accountView():notifsView();
  $('#app').innerHTML=h;if(prod&&byId(prod)&&!q.trim()&&!pg)loadReviews(prod);
- if(pg==='checkout'&&!q.trim())gpsInit();else if(pg==='track'&&!q.trim())trackLoad();
+ if(pg==='checkout'&&!q.trim()){gpsInit();addrMode()}else if(pg==='track'&&!q.trim())trackLoad();
  if(tab==='home'&&!sub&&!pg&&!prod&&!q.trim())start();aiSync()}
 const snap=()=>({tab,sub,pg,prod,tc:TC});
-function draw(h=true){nav();view();scrollTo(0,0);if(h){const t=snap();if(JSON.stringify(history.state)!==JSON.stringify(t))history.pushState(t,'')}}
+function draw(h=true){nav();view();scrollTo(0,0);try{U&&localStorage.setItem('kz_nav_'+U.id,JSON.stringify(snap()))}catch{}if(h){const t=snap();if(JSON.stringify(history.state)!==JSON.stringify(t))history.pushState(t,'')}}
 function go2(t,s=null){tab=t;sub=s;pg=null;prod=null;q='';$('#q').value='';draw()}
 
 /* ================= EVENTS ================= */
@@ -554,7 +565,7 @@ document.addEventListener('click',async e=>{
  if(x=g('[data-pg]')){pg=x.dataset.pg;draw();return}
  if(g('[data-pgback],[data-back],[data-hback]')){history.back();return}
  if(g('[data-read]')){S.notifs.forEach(n=>n.r=1);store();badges();view();return}
- if(g('[data-signout]')){OUT=true;sb?.auth.signOut();return}
+ if(g('[data-signout]')){OUT=true;try{localStorage.removeItem('kz_nav_'+U.id)}catch{}sb?.auth.signOut();return}
  if(x=g('[data-share]')){const p=byId(x.dataset.share),t=p.n+' for '+fmt(p.p)+' on KAMPZA';if(navigator.share)navigator.share({title:p.n,text:t,url:location.origin}).catch(()=>{});else{navigator.clipboard?.writeText(t+' '+location.origin);toast('Link copied')}return}
  if(x=g('[data-rev]')){prod=x.dataset.rev;pg=null;q='';draw();return}
  if(x=g('[data-star]')){const r=$('#rate'),n=+x.dataset.star;r.dataset.v=n;r.querySelectorAll('button').forEach((b,i)=>b.classList.toggle('on',i<n));return}
@@ -576,6 +587,7 @@ document.addEventListener('click',async e=>{
    if(error)throw error;
    if($('#sv')?.checked&&!ADDR.some(k=>k.hostel===hs&&k.campus===cp))await sb.from('addresses').insert({user_id:U.id,label:'Home',campus:cp,hostel:hs,address:ad,phone:ph,is_default:!ADDR.length,lat:GM==='gps'?GEO?.lat:null,lng:GM==='gps'?GEO?.lng:null,accuracy:GM==='gps'?GEO?.acc:null,source:GM});
    try{await sb.rpc('set_order_location',{p_code:data.code,p_lat:GM==='gps'?GEO?.lat:null,p_lng:GM==='gps'?GEO?.lng:null,p_acc:GM==='gps'?GEO?.acc:null,p_src:GM==='gps'&&GEO?'gps':'manual'})}catch(e){console.error(e)}
+   GEO=null;try{sessionStorage.removeItem('kz_gps')}catch{}
    S.cart={};CKEY=crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random();U.phone=ph;store();
    notif('Order placed ✅',data.code+' · '+fmt(data.total));
    await Promise.all([loadServer(),loadCatalog()]);tab='account';pg='orders';draw();toast('Order placed');
@@ -609,7 +621,7 @@ document.addEventListener('click',async e=>{
   try{localStorage.removeItem('kz_n_'+U.id)}catch{}OUT=true;await sb.auth.signOut()}
 });
 document.addEventListener('change',async e=>{
- if(e.target.name==='gm'){GM=e.target.value;const p=$('#gpanel');if(p)p.hidden=GM!=='gps';if(GM==='gps')gpsInit();else if(GWATCH!=null){navigator.geolocation.clearWatch(GWATCH);GWATCH=null}return}
+ if(e.target.name==='gm'){GM=e.target.value;gsave();const p=$('#gpanel');if(p)p.hidden=GM!=='gps';if(GM==='gps')gpsInit();else if(GWATCH!=null){navigator.geolocation.clearWatch(GWATCH);GWATCH=null}addrMode();return}
  if(e.target.id==='sort'){SORT=e.target.value;view();return}
  if(e.target.id==='stk'){INSTOCK=e.target.checked;view();return}
  if(e.target.id==='adsel'){const a=ADDR[+e.target.value]||{};$('#cp').value=a.campus||'';$('#hs').value=a.hostel||'';$('#ph').value=a.phone||U.phone||'';return}
@@ -665,7 +677,7 @@ async function boot(){
  U={id:u.id,email:u.email,verified:!!u.email_confirmed_at,
   name:md.full_name||md.name||(u.email||'').split('@')[0],
   phone:u.phone||md.phone||'',avatar:md.avatar_url||md.picture||'',meta:md};
- loadState();welcome();history.replaceState({root:1},'');draw();await Promise.all([loadCatalog(),loadServer()]);live()}
+ loadState();welcome();try{const nv=jget('kz_nav_'+U.id,null);if(nv){tab=nv.tab||'home';sub=nv.sub||null;pg=nv.pg||null;prod=nv.prod||null;TC=nv.tc||null}}catch{}history.replaceState({root:1},'');draw();await Promise.all([loadCatalog(),loadServer()]);live()}
 /* Only the user's own Log Out signs them out. Other SIGNED_OUT events are re-checked first. */
 sb?.auth.onAuthStateChange((ev,ses)=>{if(ses?.access_token)TOKEN=ses.access_token;
  if(ev==='SIGNED_OUT'&&U){if(OUT){sessionStorage.clear();location.replace(AUTH_URL)}else setTimeout(async()=>{if(!await session()){sessionStorage.clear();location.replace(AUTH_URL)}},800)}});

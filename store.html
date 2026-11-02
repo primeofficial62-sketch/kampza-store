@@ -236,8 +236,8 @@ input[readonly]{background:var(--g);color:var(--m);cursor:not-allowed}
 <script>
 /* ================= CONFIG ================= */
 const SUPABASE_URL='https://fcgvmxkxwgymgqcbtzjd.supabase.co',SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjZ3ZteGt4d2d5bWdxY2J0empkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMwODgyODcsImV4cCI6MjEwODY2NDI4N30.SEROg_J5x2dldpI6buHKYVQbuuyzM4bOJLHPYDWtIbM',AUTH_URL='index.html',MAIL_ENDPOINT=SUPABASE_URL+'/functions/v1/notify',CATALOG_URL='deals.json';
-const PAYSTACK_KEY='pk_live_d9911dcf3fe46d107832d05d71a40221640de093',SUPPORT_EMAIL='kampzastore@gmail.com',WHATSAPP='2349059538257',AI_ENDPOINT=SUPABASE_URL+'/functions/v1/kampza-ai',VERSION='2.0.0';
-const AI_FN=['Kampza-ai','kampza-ai','Kampza-ai-ts','kampza-ai-ts'],MAIL_FN=['notify','notify-ts','Notify-ts','Notify'];
+const PAYSTACK_KEY='pk_live_d9911dcf3fe46d107832d05d71a40221640de093',SUPPORT_EMAIL='kampzastore@gmail.com',WHATSAPP='2349059538257',AI_ENDPOINT=SUPABASE_URL+'/functions/v1/kampza-ai',VERSION='2.1.0';
+const AI_FN=['Kampza-ai','kampza-ai','Kampza-ai-ts','kampza-ai-ts'],MAIL_FN=['notify-ts'];
 async function callFn(names,body){let last;for(const n of names){try{const r=await fetch(SUPABASE_URL+'/functions/v1/'+n,{method:'POST',headers:{'Content-Type':'application/json',apikey:SUPABASE_ANON_KEY,Authorization:'Bearer '+SUPABASE_ANON_KEY},body:JSON.stringify(body)});if(r.status===404)continue;return await r.json()}catch(e){last=e}}throw last||new Error('function not found')}
 
 /* ================= HELPERS ================= */
@@ -666,15 +666,20 @@ function loadState(){
  S.prefs=Object.assign({email:true,daily:true},S.prefs);
  S.wallet=Object.assign({bal:0,tx:[]},S.wallet);
  if(U.meta.email_daily===false)S.prefs.daily=false;else if(U.meta.email_daily===true)S.prefs.daily=true}
-function welcome(){
- const fn=U.name.split(' ')[0];
- if(!sessionStorage.getItem('kz_w_'+U.id)){
-  sessionStorage.setItem('kz_w_'+U.id,'1');
-  if(U.first){notif('Welcome to KAMPZA 🧡','Hi '+fn+', your account is ready. Find It. Get It. Love It.');if(S.prefs.email)mail('welcome')}
-  else{notif('Welcome back, '+fn+' 👋','Good to see you again. New campus deals are waiting.');if(S.prefs.email)mail('welcome')}
-  toast((U.first?'Welcome to KAMPZA, ':'Welcome back, ')+fn+' 👋');
-  try{if('Notification' in window&&Notification.permission==='default')Notification.requestPermission()}catch{}}
- if(S.day!==today()){S.day=today();notif('Today’s deals are live','Check Flash Deals on the home page for price drops.')}
+/* Once-a-day welcome. The database decides (Lagos day, any device): the first open each day
+   returns {show:true,title,body,kind}; every other open that day returns {show:false}.
+   On a seasonal day the title/body come from seasonal_campaigns. */
+async function welcome(){
+ try{
+  const{data,error}=await sb.rpc('daily_open',{p_name:(U.name||'').split(' ')[0]});
+  if(error)throw error;
+  if(data&&data.show){
+   notif(data.title,data.body);
+   toast(data.title);
+   if(data.kind==='first'&&S.prefs.email)mail('welcome');
+   try{if('Notification' in window&&Notification.permission==='default')Notification.requestPermission()}catch{}
+  }
+ }catch(err){console.error('daily_open',err)}
  store();badges()}
 async function session(){for(let i=0;i<3;i++){try{const{data}=await sb.auth.getSession();if(data.session)return data.session}catch{}await new Promise(r=>setTimeout(r,400))}return null}
 async function boot(){

@@ -12,14 +12,12 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="KAMPZA">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-
-<meta name="theme-color" content="#252525">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="kampza-logo.png">
 <style>
-:root{--or:#FF7628;--wh:#FFFFFF;--ch:#252525;--gr:#F4F4F4;--ease:cubic-bezier(.22,.8,.24,1);--font:"Poppins",system-ui,-apple-system,"Segoe UI",sans-serif}
+:root{--or:#FF7628;--wh:#FFFFFF;--ch:#252525;--gr:#F4F4F4;--ease:cubic-bezier(.22,.8,.24,1);--ease2:cubic-bezier(.65,.05,.25,1);--font:"Poppins",system-ui,-apple-system,"Segoe UI",sans-serif}
 *,*::before,*::after{box-sizing:border-box}
 html,body{margin:0;height:100%;overflow:hidden;font-family:var(--font);background:var(--gr);-webkit-text-size-adjust:100%}
 body{display:flex;align-items:center;justify-content:center}
@@ -28,15 +26,17 @@ button,a{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:t
 .ic{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 
 /* stage */
-.stage{position:relative;width:min(100vw,440px);height:100dvh;background:var(--wh);overflow:hidden;isolation:isolate}
+.stage{position:relative;width:min(100vw,440px);height:100dvh;background:var(--wh);overflow:hidden;isolation:isolate;touch-action:pan-y;user-select:none;-webkit-user-select:none}
 @media(min-width:520px){.stage{height:min(calc(100dvh - 32px),860px);border-radius:32px;box-shadow:0 30px 70px -30px rgba(0,0,0,.35)}}
-.s{position:absolute;inset:0;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top,0px) + 64px) 26px 64px;opacity:0;transform:translate3d(100%,0,0);visibility:hidden;transition:transform .7s var(--ease),opacity .7s var(--ease),visibility 0s .7s;overflow:hidden;background:linear-gradient(180deg,var(--wh),var(--gr))}
-.s.on{opacity:1;transform:none;visibility:visible;transition-delay:0s}
-.s.out{opacity:0;transform:translate3d(-100%,0,0)}
+.s{position:absolute;inset:0;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top,0px) + 64px) 26px 64px;transform:translate3d(100%,0,0);visibility:hidden;transition:transform 1s var(--ease2),visibility 0s 1s;will-change:transform;overflow:hidden;background:linear-gradient(180deg,var(--wh),var(--gr))}
+.s.on{z-index:2;transform:none;visibility:visible;transition-delay:0s;box-shadow:-24px 0 48px -24px rgba(0,0,0,.28)}
+.s.out{transform:translate3d(-28%,0,0)}
 .s.dk{background:var(--ch);color:var(--wh)}
 .deco{position:absolute;pointer-events:none;z-index:0;width:100%;height:auto;left:0}
 .deco.t{top:0}.deco.b{bottom:0}
 .s>*:not(.deco){position:relative;z-index:1}
+.s>.bub{position:absolute;z-index:0;border-radius:50%;background:rgba(255,118,40,.13);pointer-events:none}
+.play .bub{animation:drift 6s ease-in-out infinite alternate}
 
 /* typography */
 h1{margin:0;font-weight:700;line-height:1.12;letter-spacing:-.02em;font-size:clamp(26px,7.6vw,34px)}
@@ -44,42 +44,68 @@ h1 em{font-style:normal;color:var(--or)}
 .sub{margin:12px 0 0;font-size:clamp(13.5px,3.7vw,15.5px);line-height:1.5;opacity:.9;max-width:34ch}
 .dk .sub{color:#fff}
 .c{align-items:center;text-align:center}.c .sub{margin-inline:auto}
+.wd{display:inline-block;opacity:0}
+.play .wd{animation:word .75s var(--ease) both;animation-delay:calc(var(--d,0)*1ms + 350ms + var(--i)*90ms)}
 
 /* chrome */
-.skip{position:absolute;z-index:20;top:calc(env(safe-area-inset-top,0px) + 14px);right:14px;min-width:48px;min-height:44px;padding:0 14px;border:0;background:none;font-weight:600;font-size:15px;color:var(--ch);transition:color .5s}
+.skip{position:absolute;z-index:20;top:calc(env(safe-area-inset-top,0px) + 14px);right:14px;min-width:48px;min-height:44px;padding:0 14px;border:0;background:none;font-weight:600;font-size:15px;color:var(--ch);transition:color .5s,transform .2s var(--ease)}
+.skip:active{transform:scale(.9)}
 .stage.dark .skip{color:#fff}
-.dots{position:absolute;z-index:20;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 22px);display:flex;justify-content:center;gap:4px}
-.dots button{width:24px;height:24px;border:0;background:none;padding:0;display:grid;place-items:center}
-.dots button::before{content:"";width:8px;height:8px;border-radius:50%;background:#cfcfcf;transition:background .4s,transform .4s}
+.dots{position:absolute;z-index:20;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);display:flex;justify-content:center;gap:0}
+.dots button{width:30px;height:44px;border:0;background:none;padding:0;display:grid;place-items:center}
+.dots button::before{content:"";width:8px;height:8px;border-radius:4px;background:#cfcfcf;transition:background .4s,width .5s var(--ease)}
 .stage.dark .dots button::before{background:rgba(255,255,255,.35)}
-.dots button[aria-current=true]::before{background:var(--or)!important;transform:scale(1.15)}
+.dots button[aria-current=true]::before{background:var(--or)!important;width:24px}
 
 /* entrance animations (only while .play) */
 .a{opacity:0}
-.play .a{animation:up .8s var(--ease) both;animation-delay:calc(var(--d,0)*1ms)}
+.play .a{animation:up .8s var(--ease) both;animation-delay:calc(var(--d,0)*1ms + 350ms)}
 .play .pop{animation-name:pop}
 @keyframes up{from{opacity:0;transform:translate3d(0,22px,0)}to{opacity:1;transform:none}}
 @keyframes pop{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
 @keyframes sl{from{opacity:0;transform:translate3d(0,40px,0)}to{opacity:1;transform:none}}
+@keyframes word{from{opacity:0;transform:translate3d(0,.6em,0) rotate(4deg)}to{opacity:1;transform:none}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes bob{to{transform:translateY(-10px)}}
+@keyframes drift{from{transform:translate(0,0) scale(1)}to{transform:translate(14px,-26px) scale(1.15)}}
 
 /* slide 1 & 5 */
 .logo{width:min(80%,300px);height:auto;mix-blend-mode:multiply;display:block}
 .s1,.s5{justify-content:center;gap:0}
 .s1 .logo,.s5 .logo{margin-bottom:clamp(18px,5vh,44px)}
-.s1 h1{font-weight:600}
-.s5 h1{font-weight:600}
-.cta{margin-top:clamp(22px,4vh,36px);display:inline-flex;align-items:center;justify-content:center;gap:10px;width:100%;max-width:340px;min-height:56px;border-radius:999px;background:var(--or);color:#fff;font-weight:600;font-size:17px;text-decoration:none;border:0;box-shadow:0 14px 28px -12px rgba(255,118,40,.7);transition:transform .25s var(--ease),box-shadow .25s}
-.cta:hover{transform:translateY(-2px);box-shadow:0 18px 32px -12px rgba(255,118,40,.8)}
-.cta:active{transform:scale(.97)}
+.s1 h1,.s5 h1{font-weight:600}
+.play .logo.a{animation:pop .8s var(--ease) calc(var(--d)*1ms + 350ms) both,bob 4s ease-in-out 1.2s infinite alternate}
+.cta{position:relative;overflow:hidden;margin-top:clamp(22px,4vh,36px);display:inline-flex;align-items:center;justify-content:center;gap:10px;width:100%;max-width:340px;min-height:56px;border-radius:999px;background:var(--or);color:#fff;font-weight:600;font-size:17px;text-decoration:none;border:0;box-shadow:0 14px 28px -12px rgba(255,118,40,.7);transition:transform .25s var(--ease)}
+.cta:active{transform:scale(.95)}
 .cta .ic{width:20px;height:20px;stroke-width:2.2}
+.cta::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.45) 50%,transparent 70%);transform:translateX(-120%)}
+.play .cta.a{animation:pop .8s var(--ease) calc(var(--d)*1ms + 350ms) both,glow 2.2s ease-in-out 1.8s infinite}
+.play .cta::after{animation:shine 2.8s ease-in-out 1.6s infinite}
+.play .cta .ic{animation:nudge 1.2s ease-in-out 1.8s infinite}
+@keyframes glow{50%{box-shadow:0 14px 44px -4px rgba(255,118,40,.95)}}
+@keyframes shine{60%,100%{transform:translateX(120%)}}
+@keyframes nudge{50%{transform:translateX(5px)}}
+.cf{position:absolute;z-index:30;width:8px;height:12px;border-radius:2px;pointer-events:none}
 
-/* slide 2 */
-.s2 .vis{flex:1;min-height:0;margin:8px -26px 0;display:flex;justify-content:center}
-.s2 .vis img{height:100%;width:auto;max-width:100%;object-fit:contain;-webkit-mask-image:linear-gradient(#000 88%,transparent);mask-image:linear-gradient(#000 88%,transparent)}
+/* slide 2: live product orbit */
+.s2 .vis{flex:1;min-height:0;margin:8px 0 0;display:grid;place-items:center}
+.s2 .vis>*{grid-area:1/1}
+.ring{--sz:min(62vw,250px);--r:calc(var(--sz)/2 - 18px);position:relative;width:var(--sz);height:var(--sz)}
+.ring::before{content:"";position:absolute;inset:18px;border:1.5px dashed rgba(255,118,40,.5);border-radius:50%}
+.ring span{position:absolute;left:50%;top:50%;width:1.4em;height:1.4em;margin:-.7em 0 0 -.7em;font-size:32px;transform:rotate(var(--a)) translateY(calc(var(--r)*-1))}
+.ring b{display:grid;place-items:center;width:100%;height:100%;font-weight:400;transform:rotate(calc(var(--a)*-1))}
+.play .ring{animation:spin 20s linear infinite}
+.play .ring b{animation:cs 20s linear infinite}
+@keyframes cs{from{transform:rotate(calc(var(--a)*-1))}to{transform:rotate(calc(var(--a)*-1 - 360deg))}}
+.hub{width:72px;height:72px;border-radius:50%;background:var(--or);color:#fff;display:grid;place-items:center;font-size:32px}
+.play .hub{animation:pulse 2s ease-out infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,118,40,.6)}100%{box-shadow:0 0 0 30px rgba(255,118,40,0)}}
 .cats{margin:0 -26px -64px;padding:14px 22px 62px;background:var(--gr);display:grid;grid-template-columns:repeat(3,1fr);gap:12px 8px;color:var(--ch)}
 .cat{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:11.5px;font-weight:500;text-align:center}
-.cat i{width:44px;height:44px;border-radius:50%;background:#fff;display:grid;place-items:center;color:var(--or);font-size:22px;box-shadow:0 4px 12px -4px rgba(0,0,0,.18)}
+.cat i{width:44px;height:44px;border-radius:50%;background:#fff;display:grid;place-items:center;color:var(--or);font-size:22px;box-shadow:0 4px 12px -4px rgba(0,0,0,.18);transition:transform .4s var(--ease),background .3s,color .3s}
+.cat.hl i{background:var(--or);color:#fff;transform:scale(1.18)}
 .play .cat.a{animation-name:pop}
+@media(max-height:700px){.ring{--sz:min(52vw,200px)}}
 
 /* slide 3 */
 .s3 .vis{flex:1;min-height:0;position:relative;display:flex;align-items:center;justify-content:center;container-type:size;margin-top:10px}
@@ -105,23 +131,44 @@ h1 em{font-style:normal;color:var(--or)}
 .card b{font-size:calc(var(--u)*2);font-weight:600}
 .card em{font-style:normal;color:var(--or);font-weight:700;font-size:calc(var(--u)*2)}
 .card u{text-decoration:none;text-align:center;background:var(--or);color:#fff;border-radius:calc(var(--u)*1.6);padding:calc(var(--u)*1) 0;font-weight:600;font-size:calc(var(--u)*1.8)}
+.card u.tap{animation:tapp .55s var(--ease)}
+@keyframes tapp{40%{transform:scale(.86);background:#1faa59}}
 .bn{display:flex;justify-content:space-around;padding:calc(var(--u)*1.4) 0 calc(var(--u)*2.2);border-top:1px solid #eee;font-size:calc(var(--u)*1.7);background:#fff;color:#888}
 .bn span:first-child{color:var(--or);font-weight:600}
 .cartb{position:absolute;z-index:3;right:max(0px,calc(50cqw - 46cqh*.486 - 30px));top:3%;width:clamp(54px,17cqw,72px);aspect-ratio:1;border-radius:50% 50% 50% 12%;background:var(--or);color:#fff;display:grid;place-items:center;font-size:clamp(28px,9cqw,38px);box-shadow:0 12px 24px -8px rgba(255,118,40,.7);opacity:0}
 .s3.play .cartb{animation:cartIn .7s var(--ease) 1.1s forwards,fl 3s ease-in-out 1.8s infinite alternate}
+.cnt{position:absolute;top:-4px;right:-4px;min-width:22px;height:22px;border-radius:11px;background:var(--ch);color:#fff;font:700 12px/22px var(--font);text-align:center;transform:scale(0)}
+.cnt.bump{animation:bump .45s var(--ease) forwards}
+@keyframes bump{0%{transform:scale(0)}60%{transform:scale(1.45)}100%{transform:scale(1)}}
 @keyframes cartIn{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:none}}
 @keyframes fl{to{transform:translateY(-8px)}}
 
-/* slide 4 */
+/* slide 4: live delivery scene */
 .trust{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:20px}
 .trust div{display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center;font-size:11px;line-height:1.25;font-weight:500}
 .trust i{width:46px;height:46px;border-radius:50%;border:1.5px solid rgba(255,118,40,.6);display:grid;place-items:center;color:var(--or);font-size:22px;background:rgba(255,118,40,.08)}
+.play .trust .ic{overflow:visible}
+.play .trust .ic path{stroke-dasharray:200;stroke-dashoffset:200;animation:draw 1.1s ease forwards;animation-delay:calc(var(--d)*1ms + 350ms)}
+@keyframes draw{to{stroke-dashoffset:0}}
 .s4 .img{flex:1;min-height:0;margin:10px -26px -64px;display:flex;align-items:flex-end;justify-content:center;overflow:hidden}
-.s4 .img img{width:100%;height:100%;object-fit:cover;object-position:center bottom;-webkit-mask-image:linear-gradient(transparent,#000 18%);mask-image:linear-gradient(transparent,#000 18%)}
+.scene{width:100%;height:auto;max-height:100%;display:block}
+.lines{opacity:0}
+.wh{transform-box:fill-box;transform-origin:center}
 .play .img.a{animation-name:sl;animation-duration:1s}
+.play .van{animation:drive 1.5s var(--ease) both}
+.play .bob{animation:bob2 .45s ease-in-out 1.5s infinite alternate}
+.play .wh{animation:spin .6s linear infinite}
+.play .dash{animation:dsh .5s linear infinite}
+.play .lines{animation:spd .5s linear 1.3s infinite}
+.play .pkg{animation:hop 1.1s ease-in-out 1.5s infinite alternate}
+@keyframes drive{from{transform:translateX(-430px)}to{transform:none}}
+@keyframes bob2{to{transform:translateY(-2.5px)}}
+@keyframes dsh{to{stroke-dashoffset:40}}
+@keyframes spd{0%{opacity:0;transform:translateX(0)}50%{opacity:1}100%{opacity:0;transform:translateX(-40px)}}
+@keyframes hop{to{transform:translateY(-6px)}}
 
 @media(max-height:640px){.s{padding-top:calc(env(safe-area-inset-top,0px) + 52px)}.sub{margin-top:8px}.cat i{width:38px;height:38px}.cats{gap:8px;padding-top:10px}.logo{width:60%}}
-@media(prefers-reduced-motion:reduce){.s{transition-duration:.01s}.play .a{animation-duration:.01s}}
+@media(prefers-reduced-motion:reduce){.s{transition-duration:.01s}*,*::before,*::after{animation-duration:.01s!important;animation-iteration-count:1!important}}
 </style>
 </head>
 <body>
@@ -151,17 +198,27 @@ h1 em{font-style:normal;color:var(--or)}
     <svg class="deco t" viewBox="0 0 100 36" aria-hidden="true"><use href="#dt"/></svg>
     <svg class="deco b" viewBox="0 0 100 36" aria-hidden="true" style="width:70%;left:0"><use href="#dl"/></svg>
     <svg class="deco b" viewBox="0 0 100 36" aria-hidden="true" style="width:48%;left:auto;right:0"><use href="#db"/></svg>
+    <i class="bub" aria-hidden="true" style="width:90px;height:90px;left:8%;top:30%"></i>
+    <i class="bub" aria-hidden="true" style="width:56px;height:56px;right:10%;top:44%;animation-delay:-2s"></i>
+    <i class="bub" aria-hidden="true" style="width:36px;height:36px;left:18%;bottom:24%;animation-delay:-4s"></i>
     <img class="logo a pop" style="--d:100" src="kampza-logo.png" alt="KAMPZA — Find It. Get It. Love It." width="268" height="246" decoding="async" fetchpriority="high">
-    <h1 class="a" style="--d:500">Welcome to<br><em>KAMPZA</em></h1>
-    <p class="sub a" style="--d:700">Your trusted online store for quality products, great prices and a seamless shopping experience.</p>
+    <h1 class="w" style="--d:500">Welcome to<br><em>KAMPZA</em></h1>
+    <p class="sub a" style="--d:900">Your trusted online store for quality products, great prices and a seamless shopping experience.</p>
   </section>
 
   <!-- 2 -->
   <section class="s s2 dk" aria-label="Slide 2 of 5">
     <svg class="deco t" viewBox="0 0 100 36" aria-hidden="true"><use href="#dt"/></svg>
-    <h1 class="a" style="--d:100">Everything You Need,<br><em>in One Place.</em></h1>
-    <p class="sub a" style="--d:250">Explore products across multiple categories and discover something you love.</p>
-    <div class="vis a" style="--d:400"><img src="kampza-products.png" alt="Laptop, headphones, phone, sneakers, handbag, blender, air fryer, watch and perfume" decoding="async"></div>
+    <h1 class="w" style="--d:100">Everything You Need,<br><em>in One Place.</em></h1>
+    <p class="sub a" style="--d:600">Explore products across multiple categories and discover something you love.</p>
+    <div class="vis a pop" style="--d:400" role="img" aria-label="Products orbiting a shopping cart">
+      <div class="ring" aria-hidden="true">
+        <span style="--a:0deg"><b>💻</b></span><span style="--a:40deg"><b>🎧</b></span><span style="--a:80deg"><b>📱</b></span>
+        <span style="--a:120deg"><b>👟</b></span><span style="--a:160deg"><b>👜</b></span><span style="--a:200deg"><b>🍳</b></span>
+        <span style="--a:240deg"><b>⌚</b></span><span style="--a:280deg"><b>🧴</b></span><span style="--a:320deg"><b>🥤</b></span>
+      </div>
+      <div class="hub" aria-hidden="true"><svg class="ic" style="stroke-width:2"><use href="#i-cart"/></svg></div>
+    </div>
     <div class="cats">
       <div class="cat a pop" style="--d:900"><i><svg class="ic"><use href="#i-mon"/></svg></i>Electronics</div>
       <div class="cat a pop" style="--d:1000"><i><svg class="ic"><use href="#i-hang"/></svg></i>Fashion</div>
@@ -176,8 +233,8 @@ h1 em{font-style:normal;color:var(--or)}
   <section class="s s3" aria-label="Slide 3 of 5">
     <svg class="deco t" viewBox="0 0 100 36" aria-hidden="true"><use href="#dt"/></svg>
     <svg class="deco b" viewBox="0 0 100 36" aria-hidden="true" style="width:48%;left:auto;right:0"><use href="#db"/></svg>
-    <h1 class="a" style="--d:100">Your Shopping,<br><em>Made Simple.</em></h1>
-    <p class="sub a" style="--d:250">Find what you want, compare your options, and shop with ease.</p>
+    <h1 class="w" style="--d:100">Your Shopping,<br><em>Made Simple.</em></h1>
+    <p class="sub a" style="--d:500">Find what you want, compare your options, and shop with ease.</p>
     <div class="vis">
       <div class="tilt" id="tilt">
         <div class="phone" id="phone">
@@ -202,32 +259,49 @@ h1 em{font-style:normal;color:var(--or)}
           <div class="face back" aria-hidden="true"><span></span><b>K</b></div>
         </div>
       </div>
-      <div class="cartb" aria-hidden="true"><svg class="ic"><use href="#i-cart"/></svg></div>
+      <div class="cartb" aria-hidden="true"><svg class="ic"><use href="#i-cart"/></svg><b class="cnt" id="cnt">0</b></div>
     </div>
   </section>
 
   <!-- 4 -->
   <section class="s s4 dk" aria-label="Slide 4 of 5">
     <svg class="deco t" viewBox="0 0 100 36" aria-hidden="true"><use href="#dt"/></svg>
-    <h1 class="a" style="--d:100">Shop with<br><em>Confidence.</em></h1>
-    <p class="sub a" style="--d:250">Discover convenient shopping, reliable service, and delivery options.</p>
+    <h1 class="w" style="--d:100">Shop with<br><em>Confidence.</em></h1>
+    <p class="sub a" style="--d:500">Discover convenient shopping, reliable service, and delivery options.</p>
     <div class="trust">
-      <div class="a pop" style="--d:500"><i><svg class="ic"><use href="#i-shield"/></svg></i>Secure<br>Payments</div>
-      <div class="a pop" style="--d:650"><i><svg class="ic"><use href="#i-truck"/></svg></i>Fast<br>Delivery</div>
-      <div class="a pop" style="--d:800"><i><svg class="ic"><use href="#i-star"/></svg></i>Quality<br>Products</div>
-      <div class="a pop" style="--d:950"><i><svg class="ic"><use href="#i-head"/></svg></i>24/7<br>Support</div>
+      <div class="a pop" style="--d:700"><i><svg class="ic"><use href="#i-shield"/></svg></i>Secure<br>Payments</div>
+      <div class="a pop" style="--d:850"><i><svg class="ic"><use href="#i-truck"/></svg></i>Fast<br>Delivery</div>
+      <div class="a pop" style="--d:1000"><i><svg class="ic"><use href="#i-star"/></svg></i>Quality<br>Products</div>
+      <div class="a pop" style="--d:1150"><i><svg class="ic"><use href="#i-head"/></svg></i>24/7<br>Support</div>
     </div>
-    <div class="img a" style="--d:900"><img src="kampza-delivery.png" alt="KAMPZA delivery van and branded package — Same Great Experience!" decoding="async"></div>
+    <div class="img a" style="--d:900">
+      <svg class="scene" viewBox="0 0 400 190" role="img" aria-label="A KAMPZA delivery van driving down the road">
+        <rect y="150" width="400" height="40" fill="#161616"/>
+        <line class="dash" x1="0" y1="172" x2="400" y2="172" stroke="#5a5a5a" stroke-width="3" stroke-dasharray="22 18"/>
+        <path class="lines" d="M20 100h60M0 118h50M30 134h55" stroke="#FF7628" stroke-width="3" stroke-linecap="round"/>
+        <g class="van"><g class="bob">
+          <rect x="110" y="78" width="140" height="64" rx="8" fill="#FF7628"/>
+          <path d="M250 96h26l22 24v22h-48z" fill="#ff8f4f"/>
+          <path d="M258 102h14l14 16h-28z" fill="#252525" opacity=".85"/>
+          <text x="180" y="122" fill="#fff" font-size="30" font-weight="800" text-anchor="middle" font-family="Poppins,sans-serif">K</text>
+          <text class="pkg" x="180" y="68" font-size="24" text-anchor="middle">📦</text>
+          <g transform="translate(150 146)"><g class="wh"><circle r="15" fill="#111" stroke="#777" stroke-width="3"/><path d="M-9 0h18M0-9v18" stroke="#999" stroke-width="2"/></g></g>
+          <g transform="translate(272 146)"><g class="wh"><circle r="15" fill="#111" stroke="#777" stroke-width="3"/><path d="M-9 0h18M0-9v18" stroke="#999" stroke-width="2"/></g></g>
+        </g></g>
+      </svg>
+    </div>
   </section>
 
   <!-- 5 -->
   <section class="s s5 c" aria-label="Slide 5 of 5">
     <svg class="deco t" viewBox="0 0 100 36" aria-hidden="true"><use href="#dt"/></svg>
     <svg class="deco b" viewBox="0 0 100 36" aria-hidden="true" style="width:100%"><use href="#db"/></svg>
+    <i class="bub" aria-hidden="true" style="width:70px;height:70px;left:10%;top:34%"></i>
+    <i class="bub" aria-hidden="true" style="width:44px;height:44px;right:12%;top:52%;animation-delay:-3s"></i>
     <img class="logo a pop" style="--d:100" src="kampza-logo.png" alt="KAMPZA — Find It. Get It. Love It." width="268" height="246" decoding="async">
-    <h1 class="a" style="--d:450">Ready to Find Your<br><em>Next Favourite?</em></h1>
-    <p class="sub a" style="--d:600">Your next great find is just a click away.</p>
-    <a class="cta a pop" style="--d:800" id="go" href="auth.html">Explore KAMPZA <svg class="ic"><use href="#i-arrow"/></svg></a>
+    <h1 class="w" style="--d:450">Ready to Find Your<br><em>Next Favourite?</em></h1>
+    <p class="sub a" style="--d:1000">Your next great find is just a click away.</p>
+    <a class="cta a pop" style="--d:1200" id="go" href="auth.html">Explore KAMPZA <svg class="ic"><use href="#i-arrow"/></svg></a>
   </section>
 
   <nav class="dots" id="dots" aria-label="Slides"></nav>
@@ -235,20 +309,54 @@ h1 em{font-style:normal;color:var(--or)}
 
 <script>
 (function(){
-  /* ===== CONFIG: set these to your real routes ===== */
-  var HOME_URL = 'auth.html';    // where Skip / Explore KAMPZA go (the Create Account page)
-  var FLAG = 'kampza_onboarded';        // reuse your own flag name if you already have one
-  var DUR = [3200, 3400, 0, 3400, 4500];// ms per slide (slide 3 is timed by its animation)
+  /* ===== CONFIG ===== */
+  var HOME_URL  = 'auth.html';   // Skip / Explore go here for signed-out visitors
+  var STORE_URL = '';            // set to your store page (e.g. 'shop.html'); signed-in users go here. Empty = use HOME_URL
+  var FLAG = 'kampza_onboarded';
+  var DUR = [4000, 4800, 0, 4800, 5600]; // ms per slide (slide 3 is timed by its animation)
 
-  /* safety: never redirect to this same page (that caused a blank screen) */
-  try{ var _t=new URL(HOME_URL,location.href).pathname.replace(/\/index\.html$/,'/'), _c=location.pathname.replace(/\/index\.html$/,'/'); if(_t===_c){ HOME_URL='auth.html'; } }catch(e){}
+  /* signed-in check: Supabase stores its session in localStorage under sb-<ref>-auth-token */
+  function hasSession(){
+    try{
+      for(var i=0;i<localStorage.length;i++){
+        var k=localStorage.key(i);
+        if(/^sb-.+-auth-token$/.test(k)){
+          var v=JSON.parse(localStorage.getItem(k)||'null');
+          if(v&&(v.refresh_token||v.access_token||v.currentSession)) return true;
+        }
+      }
+    }catch(e){}
+    return false;
+  }
+  var SIGNED = hasSession();
+  var DEST = (SIGNED && STORE_URL) ? STORE_URL : HOME_URL;
+
+  /* never redirect to this same page (blank screen) */
+  try{ var _t=new URL(DEST,location.href).pathname.replace(/\/index\.html$/,'/'), _c=location.pathname.replace(/\/index\.html$/,'/'); if(_t===_c){ DEST='auth.html'; } }catch(e){}
   var RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  try{ if(localStorage.getItem(FLAG) && !/[?&]splash=1/.test(location.search)){ location.replace(HOME_URL); return; } }catch(e){}
+  try{ if((SIGNED || localStorage.getItem(FLAG)) && !/[?&]splash=1/.test(location.search)){ location.replace(DEST); return; } }catch(e){}
 
   var stage = document.getElementById('stage'),
       slides = [].slice.call(stage.querySelectorAll('.s')),
+      cats = [].slice.call(stage.querySelectorAll('.cat')),
       dotsEl = document.getElementById('dots'),
-      cur = -1, timer = null, s3 = [], s3done = false, tok = 0, leaveT = [];
+      cur = -1, timer = null, chipT = null, s3 = [], s3t = [], s3done = false, tok = 0, leaveT = [], leaving = false;
+
+  /* headline word-by-word reveal */
+  function split(n, c){
+    [].slice.call(n.childNodes).forEach(function(k){
+      if(k.nodeType === 3){
+        var f = document.createDocumentFragment();
+        k.textContent.split(/(\s+)/).forEach(function(t){
+          if(!t) return;
+          if(!t.trim()){ f.appendChild(document.createTextNode(t)); return; }
+          var s = document.createElement('span'); s.className = 'wd'; s.style.setProperty('--i', c.n++); s.textContent = t; f.appendChild(s);
+        });
+        k.replaceWith(f);
+      }else if(k.nodeType === 1 && k.tagName !== 'BR') split(k, c);
+    });
+  }
+  [].forEach.call(stage.querySelectorAll('h1.w'), function(h){ split(h, {n:0}); });
 
   slides.forEach(function(_, i){
     var b = document.createElement('button');
@@ -261,14 +369,15 @@ h1 em{font-style:normal;color:var(--or)}
   function next(){ cur < 4 ? go(cur + 1) : finish(); }
 
   function finish(){
-    clearTimeout(timer); stopS3(); tok++;
+    if(leaving) return; leaving = true;
+    clearTimeout(timer); clearInterval(chipT); stopS3(); tok++;
     try{ localStorage.setItem(FLAG, '1'); }catch(e){}
-    location.replace(HOME_URL);
+    location.replace(DEST);
   }
 
   function go(n){
     if(n === cur) return;
-    clearTimeout(timer);
+    clearTimeout(timer); clearInterval(chipT);
     if(cur === 2) stopS3();
     cur = n; tok++;
     slides.forEach(function(s, i){
@@ -282,13 +391,20 @@ h1 em{font-style:normal;color:var(--or)}
     });
     stage.classList.toggle('dark', n === 1 || n === 3);
     [].forEach.call(dotsEl.children, function(d, i){ d.setAttribute('aria-current', i === n); });
+    if(n === 1 && !RM){
+      var k = 0;
+      chipT = setInterval(function(){ cats.forEach(function(c){ c.classList.remove('hl'); }); cats[k++ % cats.length].classList.add('hl'); }, 650);
+    }else cats.forEach(function(c){ c.classList.remove('hl'); });
     if(n === 2) runS3(); else schedule(DUR[n]);
   }
 
-  /* ---------- Slide 3: scroll + exactly three 360° flips ---------- */
+  /* ---------- Slide 3: scroll, simulated add-to-cart taps, three 360° flips ---------- */
   function stopS3(){
     s3.forEach(function(a){ try{ a.cancel(); }catch(e){} });
-    s3 = []; s3done = false;
+    s3t.forEach(clearTimeout);
+    s3 = []; s3t = []; s3done = false;
+    var c = document.getElementById('cnt'); c.className = 'cnt'; c.textContent = '0';
+    [].forEach.call(document.querySelectorAll('.card u'), function(u){ u.classList.remove('tap'); });
   }
   function runS3(){
     stopS3();
@@ -297,20 +413,27 @@ h1 em{font-style:normal;color:var(--or)}
     var rest = 'rotate(-3deg)';
     var enter = tilt.animate(
       [{opacity:0, transform:'translateY(26px) scale(.94) ' + rest}, {opacity:1, transform:'translateY(0) scale(1) ' + rest}],
-      {duration:700, easing:'cubic-bezier(.22,.8,.24,1)', fill:'forwards'});
+      {delay:350, duration:700, easing:'cubic-bezier(.22,.8,.24,1)', fill:'forwards'});
     if(RM){
       var sc = tr.animate([{transform:'translateY(0)'},{transform:'translateY(' + (-dist * .6) + 'px)'}], {duration:3500, easing:'ease-in-out', fill:'forwards'});
       s3 = [enter, sc]; finishS3(my, 700); return;
     }
-    /* internal scrolling: starts after entrance, keeps going through flips and after settle (clipped by .vp) */
     var scroll = tr.animate([{transform:'translateY(0)'},{transform:'translateY(' + (-dist) + 'px)'}],
       {delay:700, duration:6300, easing:'cubic-bezier(.4,0,.6,1)', fill:'both'});
-    /* cumulative 0 → 1080° (three full turns), then cancel() so it rests at exactly 0° with scale 1 */
     var flip = ph.animate(
       [{transform:'rotateY(0deg) scale(1)'},{transform:'rotateY(540deg) scale(.93)', offset:.5},{transform:'rotateY(1080deg) scale(1)'}],
       {delay:2000, duration:2800, easing:'cubic-bezier(.45,0,.2,1)', fill:'both'});
     flip.finished.then(function(){ if(my === tok) flip.cancel(); }).catch(function(){});
     s3 = [enter, scroll, flip];
+    /* taps: button squishes, cart badge counts up */
+    var us = document.querySelectorAll('.card u'), cnt = document.getElementById('cnt');
+    [1500, 2100, 4900, 5500].forEach(function(t, i){
+      s3t.push(setTimeout(function(){
+        if(my !== tok) return;
+        var u = us[i === 2 ? 3 : i === 3 ? 4 : i]; if(u){ u.classList.remove('tap'); void u.offsetWidth; u.classList.add('tap'); }
+        cnt.textContent = i + 1; cnt.classList.remove('bump'); void cnt.offsetWidth; cnt.classList.add('bump');
+      }, t));
+    });
     finishS3(my, 800);
   }
   function finishS3(my, tail){
@@ -321,9 +444,50 @@ h1 em{font-style:normal;color:var(--or)}
     }).catch(function(){});
   }
 
-  /* ---------- Controls ---------- */
+  /* ---------- Confetti on the final button ---------- */
+  function burst(){
+    if(RM) return;
+    var b = document.getElementById('go').getBoundingClientRect(), s = stage.getBoundingClientRect(),
+        x = b.left - s.left + b.width / 2, y = b.top - s.top + b.height / 2, C = ['#FF7628','#FFB37A','#252525','#FFD166','#ffffff'];
+    for(var i = 0; i < 30; i++){
+      (function(i){
+        var p = document.createElement('i'); p.className = 'cf';
+        p.style.left = x + 'px'; p.style.top = y + 'px'; p.style.background = C[i % C.length];
+        stage.appendChild(p);
+        var a = Math.random() * Math.PI * 2, d = 80 + Math.random() * 150;
+        p.animate([{transform:'translate(0,0) rotate(0)', opacity:1},{transform:'translate(' + Math.cos(a) * d + 'px,' + (Math.sin(a) * d - 60) + 'px) rotate(' + (Math.random() * 720 - 360) + 'deg)', opacity:0}],
+          {duration:700 + Math.random() * 300, easing:'cubic-bezier(.2,.8,.3,1)', fill:'forwards'}).onfinish = function(){ p.remove(); };
+      })(i);
+    }
+  }
+
+  /* ---------- Controls: swipe, hold to pause, keys ---------- */
+  var held = false, sx = 0;
+  function resume(){
+    s3.forEach(function(a){ try{ a.play(); }catch(e){} });
+    if(cur === 2){ if(s3done) schedule(800); } else schedule(1500);
+  }
+  stage.addEventListener('pointerdown', function(e){
+    if(e.target.closest('button,a')) return;
+    held = true; sx = e.clientX; clearTimeout(timer);
+    s3.forEach(function(a){ try{ a.pause(); }catch(e){} });
+  });
+  stage.addEventListener('pointerup', function(e){
+    if(!held) return; held = false;
+    var dx = e.clientX - sx;
+    if(Math.abs(dx) > 50){
+      if(dx < 0 && cur < 4) return go(cur + 1);
+      if(dx > 0 && cur > 0) return go(cur - 1);
+    }
+    resume();
+  });
+  stage.addEventListener('pointercancel', function(){ if(held){ held = false; resume(); } });
+
   document.getElementById('skip').onclick = finish;
-  document.getElementById('go').addEventListener('click', function(e){ e.preventDefault(); finish(); });
+  document.getElementById('go').addEventListener('click', function(e){
+    e.preventDefault(); if(leaving) return;
+    clearTimeout(timer); burst(); setTimeout(finish, RM ? 0 : 650);
+  });
   addEventListener('keydown', function(e){
     if(e.key === 'ArrowRight' && cur < 4) go(cur + 1);
     else if(e.key === 'ArrowLeft' && cur > 0) go(cur - 1);

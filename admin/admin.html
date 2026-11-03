@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"><head>
+<html lang="en" data-theme="dark"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow"><meta name="description" content="KAMPZA marketplace administration dashboard."><meta name="theme-color" content="#252525">
@@ -206,6 +206,41 @@ details.card summary{cursor:pointer;color:#343a43;font-size:12px}
 .nav-group{margin-bottom:10px}.nav-group button.n{font-size:11.5px}.pill.info{background:#eaf1fb;color:#326db2}.card ul{line-height:1.8}.card .row .btn{white-space:nowrap}#demo-result{white-space:pre-wrap;overflow-wrap:anywhere;background:#f8f9fb;border:1px solid #eceef2;padding:12px;border-radius:10px} @media(max-width:860px){aside#nav{padding-bottom:calc(20px + env(safe-area-inset-bottom))}main{padding-bottom:calc(35px + env(safe-area-inset-bottom))}}
 .sk{height:64px;border-radius:14px;background:linear-gradient(90deg,#eceef1,#f7f8fa,#eceef1);background-size:200% 100%;animation:sk 1.2s infinite;margin-bottom:12px}@keyframes sk{to{background-position:-200% 0}}
 .item{display:flex;gap:8px;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px solid #f0f1f4;flex-wrap:wrap}.item select{width:auto;min-height:34px;padding:4px 8px}
+/* Dark theme (default). Saved per admin in Supabase auth user metadata. */
+html[data-theme=dark]{color-scheme:dark;--g:#16171a;--w:#1c1e22;--line:#2c2f35;--mut:#9aa1ad;--c:#e8e9ec;--sh:none}
+html[data-theme=dark] body{background:#131416;color:#e8e9ec}
+html[data-theme=dark] header{background:rgba(24,25,28,.94);border-bottom-color:#2a2d33;box-shadow:none}
+html[data-theme=dark] h2,html[data-theme=dark] header h1,html[data-theme=dark] .admin-chip b,html[data-theme=dark] details.card summary,html[data-theme=dark] .stat b{color:#f1f2f4}
+html[data-theme=dark] .mut,html[data-theme=dark] label.mut,html[data-theme=dark] .stat .mut{color:#9aa1ad}
+html[data-theme=dark] .header-heading .eyebrow,html[data-theme=dark] .admin-chip small{color:#7c838f}
+html[data-theme=dark] .card,html[data-theme=dark] .stat{background:#1c1e22;border-color:#2c2f35;box-shadow:none}
+html[data-theme=dark] .card:hover{border-color:#3a3e46;box-shadow:none}
+html[data-theme=dark] .stat:after{background:#2b2018}
+html[data-theme=dark] .stat:hover{border-color:#8a4a22;box-shadow:none}
+html[data-theme=dark] input,html[data-theme=dark] select,html[data-theme=dark] textarea{background:#16171a;border-color:#33363d;color:#e8e9ec}
+html[data-theme=dark] input::placeholder,html[data-theme=dark] textarea::placeholder{color:#6f7682}
+html[data-theme=dark] .global-search{background:#16171a;border-color:#2c2f35}
+html[data-theme=dark] .global-search input{background:transparent!important}
+html[data-theme=dark] .admin-avatar{background:#2b2018;color:#ff9a61}
+html[data-theme=dark] th{background:#202226;color:#8d94a0}
+html[data-theme=dark] th,html[data-theme=dark] td{border-bottom-color:#2a2d33}
+html[data-theme=dark] tbody tr:hover{background:#212328}
+html[data-theme=dark] .chip{background:#1c1e22;border-color:#2c2f35;color:#aab0ba}
+html[data-theme=dark] .chip.on{background:#33231a;border-color:#6b3a1c;color:#ff9a61}
+html[data-theme=dark] .btn.alt{background:#202226;color:#dfe1e5;border-color:#33363d}
+html[data-theme=dark] .btn.alt:hover{background:#272a2f;border-color:#454a53}
+html[data-theme=dark] .pill{background:#2a2d33;color:#c9cdd4}
+html[data-theme=dark] .pill.ok{background:#16301f;color:#4fd08a}
+html[data-theme=dark] .pill.warn{background:#35280f;color:#f0b24a}
+html[data-theme=dark] .pill.bad{background:#381c1c;color:#ff8a8a}
+html[data-theme=dark] .pill.info{background:#1a2a3d;color:#7ab4f0}
+html[data-theme=dark] .hb{background:#2a2d33}
+html[data-theme=dark] .item{border-top-color:#2a2d33}
+html[data-theme=dark] .sk{background:linear-gradient(90deg,#1c1e22,#262930,#1c1e22);background-size:200% 100%}
+html[data-theme=dark] .empty{color:#8d94a0}
+html[data-theme=dark] #demo-result{background:#16171a;border-color:#2c2f35;color:#d6d9de}
+html[data-theme=dark] #toast{background:#2f3238;color:#f1f2f4}
+#theme{min-width:40px;font-size:16px;padding:6px 10px}
 </style>
 </head>
 <body class="locked">
@@ -262,7 +297,7 @@ details.card summary{cursor:pointer;color:#343a43;font-size:12px}
   <div class="header-heading"><div class="eyebrow">KAMPZA / ADMINISTRATION</div><h1 id="title">Overview</h1></div>
   <div class="header-tools">
     <div class="global-search"><span>⌕</span><input id="gs" type="search" placeholder="Search orders, products, customers…" aria-label="Search across admin"></div>
-    <div class="admin-chip"><span class="admin-avatar">K</span><span><b>Administrator</b><small>Store management</small></span></div>
+    <button id="theme" class="btn alt sm" aria-label="Switch between dark and light mode" title="Switch theme">☀</button><div class="admin-chip"><span class="admin-avatar">K</span><span><b>Administrator</b><small>Store management</small></span></div>
   </div>
 </header>
 <main id="app"><div class="empty">Loading…</div></main><div id="toast" role="status"></div>
@@ -432,6 +467,8 @@ views.security=async()=>{app.innerHTML=moduleIntro('Security centre','Review acc
 
 views.demo=async()=>{app.innerHTML=`<div class="card"><div class="row sp"><div><div class="mut" style="font-weight:700;letter-spacing:.12em">DATA MAINTENANCE</div><h2 style="font-size:21px;margin:7px 0">Demo Data Centre</h2><p class="mut">Preview and remove records explicitly marked as demo/test data across the KAMPZA marketplace and administration system.</p></div><span class="pill warn">Destructive actions</span></div></div><div class="card"><h2>Before you clear anything</h2><p class="mut">This panel is intentionally fail-closed. It will only delete records through a dedicated, authenticated server-side database function that verifies demo markers and protects genuine users, vendors, orders, financial records and administrator accounts.</p><div class="row" style="margin-top:12px"><button class="btn alt" data-act="demo-preview">Preview demo records</button><button class="btn red" data-act="demo-clear">Clear all demo data</button></div><div id="demo-result" class="mut" style="margin-top:12px">Demo deletion backend is not yet installed. No records have been deleted.</div></div><div class="grid">${[['Customers','Demo customer accounts'],['Vendors','Demo vendor profiles'],['Products','Demo catalogue items'],['Orders','Demo orders and order items'],['Payments','Demo payment test records'],['Wallets','Demo wallet entries'],['Quotes','Demo quote requests'],['Reviews','Demo reviews and ratings'],['Notifications','Demo notification records'],['Admin activity','Demo audit/test events']].map(x=>`<div class="card"><b>${x[0]}</b><p class="mut" style="margin-top:5px">${x[1]}</p><span class="pill info">Preview after backend setup</span></div>`).join('')}</div><div class="card"><b>Data protection policy</b><ul class="mut" style="padding-left:18px;margin-top:8px;line-height:1.9"><li>Only rows explicitly marked as demo/test may be deleted.</li><li>Real financial transactions and payout records are never included in a bulk demo purge.</li><li>Admin accounts, roles, auth users and security settings are protected.</li><li>Deletion runs transactionally with a server-side audit record.</li><li>Preview and exact record counts are required before confirmation.</li></ul></div>`};
 
+const applyTheme=t=>{document.documentElement.dataset.theme=t;$('#theme').textContent=t==='dark'?'☀':'☾';document.querySelector('meta[name=theme-color]')?.setAttribute('content',t==='dark'?'#131416':'#202124')};
+$('#theme').onclick=async()=>{const t=document.documentElement.dataset.theme==='dark'?'light':'dark';applyTheme(t);const {error}=await sb.auth.updateUser({data:{admin_theme:t}});toast(error?'Theme changed here, but could not be saved: '+error.message:(t==='dark'?'Dark':'Light')+' mode saved to your account')};
 async function show(){
  $('#title').textContent=TITLES[tab];document.querySelectorAll('#nav [data-t]').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));
  document.body.classList.remove('open');app.innerHTML=sk;
@@ -483,7 +520,7 @@ async function signOut(){await sb.auth.signOut();location.reload()}$('#out').onc
 let pin='',busy=false;const lsub=$('#lsub'),dots=$('#dots');
 const paint=()=>dots.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('on',i<pin.length));
 const msg=(t,bad)=>{lsub.textContent=t;lsub.classList.toggle('err',!!bad)};
-function unlock(){document.body.classList.remove('locked');$('#lock').hidden=true;show()}
+function unlock(){applyTheme(session?.user?.user_metadata?.admin_theme==='light'?'light':'dark');document.body.classList.remove('locked');$('#lock').hidden=true;show()}
 async function tryPin(){
  busy=true;$('#pad').querySelectorAll('button').forEach(b=>b.disabled=true);msg('Checking…');let r=null,fail=false;
  try{const {data,error}=await sb.functions.invoke('admin-pin-login',{body:{pin}});r=data;if(error&&!data)fail=true;

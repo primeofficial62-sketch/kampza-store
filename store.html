@@ -337,6 +337,8 @@ const NAV=[['home','Home'],['cats','Categories'],['wish','Wishlist'],['cart','Ca
 let U=null,TOKEN='',tab='home',sub=null,pg=null,prod=null,q='',OUT=false;
 const DEF=()=>({notifs:[],ai:[],prefs:{email:true,daily:true},cart:{},wish:[],day:'',orders:[],quotes:[],wallet:{bal:0,tx:[]}});
 let S=DEF();
+let VS=null;
+async function loadVendor(){if(!sb||!U)return;try{const{data,error}=await sb.from('vendors').select('status').eq('user_id',U.id).maybeSingle();if(error)return;VS=data?data.status:'none';if(tab==='account'&&!pg&&!sub)view()}catch{}}
 const jget=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch{return d}};
 const store=()=>{try{U&&localStorage.setItem('kz_n_'+U.id,JSON.stringify(S))}catch{}};
 const cartCount=()=>Object.values(S.cart).reduce((a,b)=>a+b,0);
@@ -404,7 +406,7 @@ function accountView(){
 <h2 class="sh2">Account Settings</h2>
 <div class="box">${row('info','user','Personal Information','Name, email, phone number, address')}${row('security','shield','Security','Change password, verification')}${row('prefs','bell','Notifications','Email alerts and daily deals')}${row('terms','doc','Terms &amp; Conditions','Read our terms and policies')}${row('delete','trash','Delete Account','Permanently remove your account')}</div>
 <button class="li tint" data-ai><span class="ic">${ic('bot')}</span><span><b>Ask KAMPZA AI</b><small>Instant answers about products, orders and payments</small></span><span class="cv">›</span></button>
-<a class="li tint" href="vendor-dashboard.html" style="text-decoration:none;color:inherit"><span class="ic">${ic('tag')}</span><span><b>Sell on KAMPZA</b><small>Open your vendor dashboard or apply to sell</small></span><span class="cv">›</span></a>
+<a class="li tint" href="vendor-dashboard.html" style="text-decoration:none;color:inherit"><span class="ic">${ic('tag')}</span><span><b>${VS==='approved'?'Vendor Dashboard':VS==='pending'?'Vendor Application':VS==='rejected'?'Vendor Application':VS==='suspended'?'Vendor Dashboard':'Become a Vendor'}</b><small>${VS==='approved'?'Manage your products, orders and payouts':VS==='pending'?'Under review. We will notify you once approved':VS==='rejected'?'Not approved. Tap to see details or reapply':VS==='suspended'?'Your vendor account is suspended':'Apply to sell on KAMPZA'}</small></span><span class="cv">›</span></a>
 <button class="li tint" data-pg="help"><span class="ic">${ic('help')}</span><span><b>Help &amp; Support</b><small>Get help, contact us, or visit FAQs</small></span><span class="cv">›</span></button>
 <button class="out" data-signout>${ic('out')}Log Out</button>
 <p class="foot">KAMPZA · Find It. Get It. Love It.<br>v${VERSION}</p>`}
@@ -706,7 +708,7 @@ async function boot(){
  U={id:u.id,email:u.email,verified:!!u.email_confirmed_at,
   name:md.full_name||md.name||(u.email||'').split('@')[0],
   phone:u.phone||md.phone||'',avatar:md.avatar_url||md.picture||'',meta:md};
- loadState();welcome();try{const nv=jget('kz_nav_'+U.id,null);if(nv){tab=nv.tab||'home';sub=nv.sub||null;pg=nv.pg||null;prod=nv.prod||null;TC=nv.tc||null}}catch{}history.replaceState({root:1},'');draw();await Promise.all([loadCatalog(),loadServer()]);live()}
+ loadState();welcome();try{const nv=jget('kz_nav_'+U.id,null);if(nv){tab=nv.tab||'home';sub=nv.sub||null;pg=nv.pg||null;prod=nv.prod||null;TC=nv.tc||null}}catch{}history.replaceState({root:1},'');draw();await Promise.all([loadCatalog(),loadServer(),loadVendor()]);live()}
 /* Only the user's own Log Out signs them out. Other SIGNED_OUT events are re-checked first. */
 sb?.auth.onAuthStateChange((ev,ses)=>{if(ses?.access_token)TOKEN=ses.access_token;
  if(ev==='SIGNED_OUT'&&U){if(OUT){sessionStorage.clear();location.replace(AUTH_URL)}else setTimeout(async()=>{if(!await session()){sessionStorage.clear();location.replace(AUTH_URL)}},800)}});

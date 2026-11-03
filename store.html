@@ -237,7 +237,7 @@ input[readonly]{background:var(--g);color:var(--m);cursor:not-allowed}
 /* ================= CONFIG ================= */
 const SUPABASE_URL='https://fcgvmxkxwgymgqcbtzjd.supabase.co',SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjZ3ZteGt4d2d5bWdxY2J0empkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMwODgyODcsImV4cCI6MjEwODY2NDI4N30.SEROg_J5x2dldpI6buHKYVQbuuyzM4bOJLHPYDWtIbM',AUTH_URL='index.html',MAIL_ENDPOINT=SUPABASE_URL+'/functions/v1/notify',CATALOG_URL='deals.json';
 const PAYSTACK_KEY='pk_live_d9911dcf3fe46d107832d05d71a40221640de093',SUPPORT_EMAIL='kampzastore@gmail.com',WHATSAPP='2349059538257',AI_ENDPOINT=SUPABASE_URL+'/functions/v1/kampza-ai',VERSION='2.1.0';
-const AI_FN=['Kampza-ai','kampza-ai','Kampza-ai-ts','kampza-ai-ts'],MAIL_FN=['notify-ts'];
+const AI_FN=['kampza-ai'],MAIL_FN=['notify-ts'];
 async function callFn(names,body){let last;for(const n of names){try{const r=await fetch(SUPABASE_URL+'/functions/v1/'+n,{method:'POST',headers:{'Content-Type':'application/json',apikey:SUPABASE_ANON_KEY,Authorization:'Bearer '+SUPABASE_ANON_KEY},body:JSON.stringify(body)});if(r.status===404)continue;return await r.json()}catch(e){last=e}}throw last||new Error('function not found')}
 
 /* ================= HELPERS ================= */
@@ -259,6 +259,9 @@ const CATS=[['Electronics','💻','💻📱🎧'],['Fashion','👕','👕👟�
 let P=[],FLASH=[],FEE=500,LOADED=false,SORT='new',INSTOCK=false,ADDR=[],LASTSIG='',PLACING=false;
 let CKEY=(crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random());
 const STEPS=['processing','packed','shipped','delivered'],cap=t=>t?t[0].toUpperCase()+t.slice(1):'';
+/* a customer can cancel only while every live item is still Processing (the database enforces this too) */
+const canCancel=o=>!['cancelled','completed'].includes(o.st)&&o.items.some(i=>i.s==='processing')&&o.items.every(i=>i.s==='processing'||i.s==='cancelled');
+const cancelBtn=o=>canCancel(o)?`<button class="btn full danger" data-cancel="${esc(o.id)}">Cancel order</button>`:'';
 const byId=id=>P.find(x=>x.id===id);
 const flash=()=>FLASH.map(byId).filter(Boolean);
 const recs=()=>P.filter(x=>!FLASH.includes(x.id));
@@ -406,7 +409,7 @@ function accountView(){
 <button class="out" data-signout>${ic('out')}Log Out</button>
 <p class="foot">KAMPZA · Find It. Get It. Love It.<br>v${VERSION}</p>`}
 
-function ordersView(){return pgHead('My Orders')+(S.orders.length?S.orders.map(o=>`<div class="nt"><div class="oh"><b>${esc(o.id)}</b><span class="st">${esc(o.status)}</span></div><small>${dt(o.at)} · ${{wallet:'Wallet',cod:'Pay on delivery',card:'Card'}[o.pay]}${o.pay!=='cod'?(o.paid?' · Paid':' · Awaiting payment'):''}</small>${o.items.map(i=>`<div class="oh"><span>${i.q}× ${esc(i.n)}</span><span class="st">${cap(i.s)}</span></div>${i.s==='cancelled'?'':`<div class="steps">${STEPS.map((x,k)=>`<i class="${k<=STEPS.indexOf(i.s)?'on':''}"></i>`).join('')}</div>`}${i.s==='delivered'&&i.pid&&byId(i.pid)?`<button class="rm" data-rev="${i.pid}">Rate this item</button>`:''}`).join('')}<div class="oh"><small>Delivery</small><small>${fmt(o.fee)}</small></div><div class="oh tot"><span>Total</span><b>${fmt(o.total)}</b></div><button class="btn full ghost" data-track="${esc(o.id)}">Track order</button>${o.pay==='card'&&!o.paid&&o.st!=='cancelled'?`<button class="btn full" data-payord="${esc(o.id)}">Pay now · ${fmt(o.total)}</button>`:''}</div>`).join(''):empty('📦','No orders yet.',shop))}
+function ordersView(){return pgHead('My Orders')+(S.orders.length?S.orders.map(o=>`<div class="nt"><div class="oh"><b>${esc(o.id)}</b><span class="st">${esc(o.status)}</span></div><small>${dt(o.at)} · ${{wallet:'Wallet',cod:'Pay on delivery',card:'Card'}[o.pay]}${o.pay!=='cod'?(o.paid?' · Paid':' · Awaiting payment'):''}</small>${o.items.map(i=>`<div class="oh"><span>${i.q}× ${esc(i.n)}</span><span class="st">${cap(i.s)}</span></div>${i.s==='cancelled'?'':`<div class="steps">${STEPS.map((x,k)=>`<i class="${k<=STEPS.indexOf(i.s)?'on':''}"></i>`).join('')}</div>`}${i.s==='delivered'&&i.pid&&byId(i.pid)?`<button class="rm" data-rev="${i.pid}">Rate this item</button>`:''}`).join('')}<div class="oh"><small>Delivery</small><small>${fmt(o.fee)}</small></div><div class="oh tot"><span>Total</span><b>${fmt(o.total)}</b></div><button class="btn full ghost" data-track="${esc(o.id)}">Track order</button>${o.pay==='card'&&!o.paid&&o.st!=='cancelled'?`<button class="btn full" data-payord="${esc(o.id)}">Pay now · ${fmt(o.total)}</button>`:''}${cancelBtn(o)}</div>`).join(''):empty('📦','No orders yet.',shop))}
 function checkoutView(){
  const ids=Object.keys(S.cart).filter(byId);if(!ids.length)return pgHead('Checkout')+empty('🛒','Your cart is empty.',shop);
  const a=ADDR[0]||{},sub=cartTotal(),tot=sub+FEE;
@@ -505,7 +508,7 @@ async function rev(lat,lng){
 function trackView(){
  const o=S.orders.find(k=>k.id===TC);
  if(!o)return pgHead('Track order')+empty('📦','Order not found.');
- return pgHead('Track '+esc(o.id))+`<div class="nt"><div class="oh"><b>${esc(o.status)}</b><span class="st">${o.paid?'Paid':o.pay==='cod'?'Pay on delivery':'Awaiting payment'}</span></div><small>${dt(o.at)} · Total ${fmt(o.total)}</small></div><h2 class="sh2">Progress</h2><div class="tl" id="tl"><small>Loading…</small></div><h2 class="sh2">Items</h2>${o.items.map(i=>`<div class="oh nt"><span>${i.q}× ${esc(i.n)}</span><span class="st">${cap(i.s)}</span></div>`).join('')}`}
+ return pgHead('Track '+esc(o.id))+`<div class="nt"><div class="oh"><b>${esc(o.status)}</b><span class="st">${o.paid?'Paid':o.pay==='cod'?'Pay on delivery':'Awaiting payment'}</span></div><small>${dt(o.at)} · Total ${fmt(o.total)}</small></div><h2 class="sh2">Progress</h2><div class="tl" id="tl"><small>Loading…</small></div><h2 class="sh2">Items</h2>${o.items.map(i=>`<div class="oh nt"><span>${i.q}× ${esc(i.n)}</span><span class="st">${cap(i.s)}</span></div>`).join('')}${cancelBtn(o)}`}
 async function trackLoad(){
  const el=$('#tl');if(!el||!sb)return;
  const{data,error}=await sb.from('order_events').select('*').eq('order_code',TC).order('created_at');
@@ -580,6 +583,19 @@ document.addEventListener('click',async e=>{
  if(x=g('[data-rvsave]')){const rt=+$('#rate').dataset.v;if(!rt){toast('Pick a star rating');return}
   const{error}=await sb.from('reviews').upsert({product_id:x.dataset.rvsave,user_id:U.id,rating:rt,comment:v('rvc')||null},{onConflict:'product_id,user_id'});
   if(error){toast('Could not save your review');return}toast('Thanks for your review!');await loadCatalog();return}
+ if(x=g('[data-cancel]')){
+  const code=x.dataset.cancel,o=S.orders.find(k=>k.id===code);
+  if(!o||!canCancel(o)){toast('This order can no longer be cancelled');return}
+  if(!confirm('Cancel order '+code+'?'+(o.paid?' The amount you paid will be refunded to your KAMPZA wallet.':'')))return;
+  x.disabled=true;x.textContent='Cancelling…';
+  try{
+   const{data,error}=await sb.rpc('cancel_order',{p_code:code});
+   if(error)throw error;
+   notif('Order cancelled',code+(data?.refund?' · '+fmt(data.refund)+' refunded to wallet':''));
+   toast(data?.refund?'Cancelled. '+fmt(data.refund)+' refunded to your wallet':'Order cancelled');
+   await Promise.all([loadServer(),loadCatalog()]);view();
+  }catch(err){toast(err.message||'Could not cancel this order');x.disabled=false;x.textContent='Cancel order';await loadServer()}
+  return}
  if(x=g('[data-payord]')){const o=S.orders.find(k=>k.id===x.dataset.payord);if(o)payOrder(o.id,o.total);return}
  if(x=g('[data-place]')){
   if(PLACING)return;

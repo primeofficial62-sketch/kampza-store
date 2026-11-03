@@ -11,31 +11,49 @@
 *{box-sizing:border-box;margin:0;min-width:0;-webkit-tap-highlight-color:transparent}
 html{-webkit-text-size-adjust:100%}
 html,body{max-width:100%;overflow-x:clip}
-body{font:400 14px/1.4 Inter,system-ui,sans-serif;color:var(--c);background:var(--bg);padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
+body{font:400 14px/1.4 Inter,system-ui,sans-serif;color:var(--c);background:var(--bg);padding-bottom:calc(40px + env(safe-area-inset-bottom,0px))}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:25}
+body.menu{overflow:hidden}
 h1,h2,h3{font-family:Sora,sans-serif}
 button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
 img{max-width:100%;display:block}
+svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
 .wrap{width:100%;max-width:900px;margin:0 auto;padding:0 var(--pad)}
-header{position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);z-index:20;padding:10px 0;border-bottom:1px solid var(--b)}
-.hrow{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.hrow b{font:700 18px Sora}.hrow small{color:var(--m);display:block;overflow-wrap:anywhere}
+header{position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);z-index:20;padding:8px 0;border-bottom:1px solid var(--b)}
+.hrow{display:flex;align-items:center;gap:10px}
+.hrow .ttl{flex:1;min-width:0}
+.hrow b{font:700 17px Sora;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hrow small{color:var(--m);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ib{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:var(--g);position:relative;flex:none}
+.ib .dot{position:absolute;top:6px;right:6px;min-width:16px;height:16px;border-radius:8px;background:var(--o);color:#fff;font:700 10px Inter;display:grid;place-items:center;padding:0 4px}
 .btn{background:var(--o);color:#fff;font-weight:600;border-radius:10px;padding:9px 14px;transition:transform .1s;text-align:center;text-decoration:none;display:inline-block}
 .btn:active{transform:scale(.97)}
 .btn.ghost{background:var(--g);color:var(--c)}.btn.danger{background:#d92d20}.btn.sm{padding:7px 11px;font-size:13px}
 .btn.full{display:block;width:100%;padding:13px;margin-top:10px}
 .btn[disabled]{opacity:.5;pointer-events:none}
-nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px solid var(--b);z-index:30;padding:6px 6px calc(8px + env(safe-area-inset-bottom,0px))}
-nav div{display:flex;max-width:520px;margin:0 auto}
-nav button{flex:1 1 0;padding:10px 0;font:500 12px Inter;color:var(--m);position:relative}
-nav .on{color:var(--o);font-weight:700}
-nav .cb{position:absolute;top:2px;left:calc(50% + 6px);background:var(--o);color:#fff;font:700 10px Inter;min-width:16px;height:16px;border-radius:8px;display:grid;place-items:center;padding:0 4px}
+.dr{position:fixed;inset:0;z-index:60;pointer-events:none}
+.dr .ov{position:absolute;inset:0;background:#0007;opacity:0;transition:opacity .2s}
+.dr aside{position:absolute;top:0;bottom:0;left:0;width:min(84vw,310px);background:var(--bg);transform:translateX(-102%);transition:transform .25s;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);box-shadow:4px 0 24px #0002}
+body.menu .dr{pointer-events:auto}body.menu .dr .ov{opacity:1}body.menu .dr aside{transform:none}
+.dh{padding:16px;background:var(--c);color:#fff;display:flex;gap:12px;align-items:center}
+.dh .av{width:44px;height:44px;border-radius:50%;background:var(--o);display:grid;place-items:center;font:700 18px Sora;flex:none}
+.dh b{display:block;font:700 15px Sora;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.dh small{color:#ffffffb3}
+.dh .x{margin-left:auto;color:#fff}
+.dn{flex:1;overflow-y:auto;padding:8px;overscroll-behavior:contain}
+.dn button,.dn a{display:flex;align-items:center;gap:12px;width:100%;padding:12px;border-radius:12px;font-weight:500;color:var(--c);text-decoration:none;text-align:left}
+.dn .on{background:#FF762818;color:var(--o);font-weight:700}
+.dn .bd{margin-left:auto;background:var(--o);color:#fff;font:700 11px Inter;min-width:20px;height:20px;border-radius:10px;display:grid;place-items:center;padding:0 6px}
+.dn hr{border:0;border-top:1px solid var(--b);margin:8px 4px}
 .top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:16px 0 12px}.top h1{font-size:21px}
-.sh2{font-size:15px;margin:20px 0 10px}
+.sh2{font-size:15px;margin:20px 0 10px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.sh2 a,.sh2 button{font:600 13px Inter;color:var(--o);text-decoration:none}
 .stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 @media(min-width:640px){.stats{grid-template-columns:repeat(4,minmax(0,1fr))}}
-.stat{border:1px solid var(--b);border-radius:var(--r);padding:12px}.stat small{color:var(--m);display:block}.stat b{font:700 20px Sora;overflow-wrap:anywhere}
+.stat{border:1px solid var(--b);border-radius:var(--r);padding:12px}.stat small{color:var(--m);display:block}.stat b{font:700 19px Sora;overflow-wrap:anywhere}
 .stat.hl{background:var(--o);border-color:var(--o);color:#fff}.stat.hl small{color:#fff;opacity:.85}
+.qa{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}
+.qa button{border:1px solid var(--b);border-radius:var(--r);padding:12px 6px;display:grid;gap:6px;justify-items:center;font-weight:600;font-size:12.5px;text-align:center}
+.qa svg{color:var(--o)}
 .box{border:1px solid var(--b);border-radius:var(--r);padding:12px;margin-bottom:10px;display:grid;gap:8px;background:var(--bg)}
 .oh{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .st{background:#FF762822;color:var(--o);font:600 11px Inter;padding:3px 9px;border-radius:99px;white-space:nowrap}
@@ -50,19 +68,30 @@ small,.mut{color:var(--m)}
 input,textarea,select{font:inherit;font-size:16px;color:var(--c);border:1px solid var(--b);border-radius:10px;padding:11px 12px;background:var(--bg);width:100%;outline:0}
 input:focus,textarea:focus,select:focus{border-color:var(--o);box-shadow:0 0 0 3px #FF762826}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.chk{display:flex;gap:8px;align-items:center}.chk input{width:auto;accent-color:var(--o)}
+.chk{display:flex;gap:8px;align-items:flex-start}.chk input{width:auto;margin-top:2px;accent-color:var(--o)}
 .imgs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
 .imgs .im{position:relative;width:64px;height:64px;border-radius:10px;overflow:hidden;background:var(--g)}
 .imgs img{width:100%;height:100%;object-fit:cover}
 .imgs .x{position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;background:#000a;color:#fff;font-size:14px;line-height:1}
 .soon{text-align:center;padding:48px 16px;color:var(--m)}.soon b{display:block;font-size:36px;margin-bottom:8px}
-.warn{background:#fff4e5;color:#8a4b00;border-radius:var(--r);padding:12px;margin-bottom:12px}
+.warn{background:#fff4e5;color:#8a4b00;border-radius:var(--r);padding:12px;margin:12px 0}
 .warn.bad{background:#fde8e6;color:#9b1c14}
 .steps{display:flex;gap:4px;margin:2px 0}.steps i{flex:1;height:4px;border-radius:3px;background:var(--b)}.steps i.on{background:var(--o)}
 .tabs{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin-bottom:12px}
 .tabs button{border:1px solid var(--b);border-radius:99px;padding:7px 14px;font-weight:500;white-space:nowrap}.tabs .on{background:var(--o);border-color:var(--o);color:#fff}
-body.chk header,body.chk main,body.chk nav{visibility:hidden}
-#toast{position:fixed;left:50%;bottom:calc(88px + env(safe-area-inset-bottom,0px));transform:translate(-50%,16px);background:#252525;color:#fff;padding:9px 14px;border-radius:10px;font-size:13px;opacity:0;transition:.25s;z-index:90;pointer-events:none;max-width:90vw;text-align:center}
+.bars{display:flex;align-items:flex-end;gap:4px;height:130px;padding:8px 0 0}
+.bars .col{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;gap:4px}
+.bars .bar{width:100%;max-width:34px;background:var(--o);border-radius:6px 6px 0 0;min-height:2px}
+.bars .col span{font-size:10px;color:var(--m);white-space:nowrap}
+.bars.dense .col span:not(.sh){visibility:hidden}
+.rank{display:flex;align-items:center;gap:10px}.rank i{font:700 13px Sora;color:var(--o);width:18px;font-style:normal}
+.meter{height:6px;border-radius:4px;background:var(--b);overflow:hidden}.meter div{height:100%;background:var(--o)}
+.stars{color:#f5a300;letter-spacing:1px}
+.faq summary{font-weight:600;cursor:pointer;padding:4px 0}.faq p{color:var(--m);margin-top:6px}
+.sp{margin-top:10px}
+.steps2{display:flex;gap:6px;margin:6px 0 14px}.steps2 i{flex:1;height:4px;border-radius:3px;background:var(--b)}.steps2 i.on{background:var(--o)}
+body.chk header,body.chk main{visibility:hidden}
+#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translate(-50%,16px);background:#252525;color:#fff;padding:9px 14px;border-radius:10px;font-size:13px;opacity:0;transition:.25s;z-index:90;pointer-events:none;max-width:90vw;text-align:center}
 #toast.s{opacity:1;transform:translate(-50%,0)}
 .sk{background:linear-gradient(90deg,var(--g) 25%,#ececec 37%,var(--g) 63%);background-size:400% 100%;animation:shim 1.3s infinite;border-radius:var(--r);height:84px;margin-bottom:10px}
 @keyframes shim{0%{background-position:100% 50%}100%{background-position:0 50%}}
@@ -70,55 +99,101 @@ body.chk header,body.chk main,body.chk nav{visibility:hidden}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 </head>
 <body class="chk">
-<header><div class="wrap hrow"><div><b id="hn">Vendor dashboard</b><small id="hs">KAMPZA</small></div><a class="btn ghost sm" href="store.html">← Store</a></div></header>
+<header><div class="wrap hrow">
+ <button class="ib" id="mb" aria-label="Open menu" hidden></button>
+ <div class="ttl"><b id="hn">Vendor dashboard</b><small id="hs">KAMPZA</small></div>
+ <a class="btn ghost sm" id="hb" href="store.html">← Store</a>
+</div></header>
 <main class="wrap" id="app"><div style="padding-top:16px"><div class="sk"></div><div class="sk"></div></div></main>
-<nav id="nav" hidden><div></div></nav>
+<div class="dr" id="dr" aria-hidden="true"><div class="ov" data-close></div><aside id="side" role="dialog" aria-label="Menu"></aside></div>
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script>
-const SUPABASE_URL='https://fcgvmxkxwgymgqcbtzjd.supabase.co',SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjZ3ZteGt4d2d5bWdxY2J0empkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMwODgyODcsImV4cCI6MjEwODY2NDI4N30.SEROg_J5x2dldpI6buHKYVQbuuyzM4bOJLHPYDWtIbM',AUTH_URL='index.html',STORE_URL='store.html',BUCKET='products';
+const SUPABASE_URL='https://fcgvmxkxwgymgqcbtzjd.supabase.co',SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjZ3ZteGt4d2d5bWdxY2J0empkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMwODgyODcsImV4cCI6MjEwODY2NDI4N30.SEROg_J5x2dldpI6buHKYVQbuuyzM4bOJLHPYDWtIbM',AUTH_URL='index.html',STORE_URL='store.html',BUCKET='products',SUPPORT_EMAIL='kampzastore@gmail.com',WHATSAPP='2349059538257';
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true,storage:window.localStorage}});
 const $=s=>document.querySelector(s),fmt=n=>'₦'+Number(n||0).toLocaleString('en-NG');
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const dt=t=>new Date(t).toLocaleDateString('en-NG',{day:'numeric',month:'short',year:'numeric'});
 const cap=t=>t?t[0].toUpperCase()+t.slice(1):'';
-const toast=m=>{const t=$('#toast');t.textContent=m;t.className='s';clearTimeout(t._t);t._t=setTimeout(()=>t.className='',2600)};
+const toast=m=>{const t=$('#toast');t.textContent=m;t.className='s';clearTimeout(t._t);t._t=setTimeout(()=>t.className='',2800)};
 const STEPS=['processing','packed','shipped','delivered'];
-const CATS=['Electronics','Fashion','Home & Living','Beauty','Appliances','Groceries','Sports & Outdoors','Books & Stationery'];
-let UID=null,V=null,tab='home',BAL={earned:0,paid:0,pending:0,available:0},PR=[],ITEMS=[],ORD={},PAY=[],EDIT=null,OF='open',BUSY=false,IMGS=[];
+const CATS=['Electronics','Fashion','Home & Living','Beauty','Appliances','Groceries','Sports & Outdoors','Books & Stationery','Food & Snacks','Services','Other'];
+const IC={menu:'M4 6h16M4 12h16M4 18h16',close:'M6 6l12 12M18 6L6 18',home:'M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',box:'M21 8l-9-5-9 5v8l9 5 9-5zM3 8l9 5 9-5M12 13v8',orders:'M9 4h6v3H9zM7 5H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-2M8 12h8M8 16h5',chart:'M4 20V10M10 20V4M16 20v-7M22 20H2',star:'M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z',wallet:'M3 7a2 2 0 0 1 2-2h13v4M3 7v11a2 2 0 0 0 2 2h15V9H5a2 2 0 0 1-2-2zM16 14.5h2',user:'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0',help:'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.5M12 17h.01',store:'M4 9l1-5h14l1 5M4 9v11h16V9M4 9a3 3 0 0 0 5.3 1.9A3 3 0 0 0 12 12a3 3 0 0 0 2.7-1.1A3 3 0 0 0 20 9M10 20v-5h4v5',out:'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9',plus:'M12 5v14M5 12h14'};
+const ic=n=>`<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="${IC[n]}"/></svg>`;
+const PAGES={home:['Overview','home'],products:['Products','box'],orders:['Orders','orders'],analytics:['Analytics','chart'],reviews:['Reviews','star'],payouts:['Payouts','wallet'],profile:['Store profile','user'],help:['Help & support','help']};
+let UID=null,UPHONE='',V=null,tab='home',BAL={earned:0,paid:0,pending:0,available:0},PR=[],ITEMS=[],ORD={},PAY=[],REV=[],EDIT=null,OF='open',OQ='',PF='all',PQ='',AR=7,BUSY=false,IMGS=[];
+
+/* ---------- menu ---------- */
+$('#mb').innerHTML=ic('menu');
+const openMenu=()=>{document.body.classList.add('menu');$('#dr').setAttribute('aria-hidden','false')};
+const closeMenu=()=>{document.body.classList.remove('menu');$('#dr').setAttribute('aria-hidden','true')};
+addEventListener('keydown',e=>{if(e.key==='Escape')closeMenu()});
+function side(){
+ const n=openItems().length;
+ $('#side').innerHTML=`<div class="dh"><span class="av">${esc((V.business_name[0]||'K').toUpperCase())}</span><span style="min-width:0"><b>${esc(V.business_name)}</b><small>Approved vendor</small></span><button class="x" data-close aria-label="Close menu">${ic('close')}</button></div>
+<div class="dn">${Object.entries(PAGES).filter(([k])=>k!=='help').map(([k,[t,i]])=>`<button data-t="${k}" class="${k===tab?'on':''}">${ic(i)}${t}${k==='orders'&&n?`<span class="bd">${n>99?'99+':n}</span>`:''}</button>`).join('')}<hr>
+<button data-t="help" class="${tab==='help'?'on':''}">${ic('help')}Help &amp; support</button>
+<a href="${STORE_URL}">${ic('store')}Back to store</a>
+<button data-logout>${ic('out')}Log out</button></div>`}
 
 /* ---------- boot ---------- */
 async function session(){for(let i=0;i<3;i++){try{const{data}=await sb.auth.getSession();if(data.session)return data.session}catch{}await new Promise(r=>setTimeout(r,400))}return null}
+const loadVendor=async()=>{const{data}=await sb.from('vendors').select('*').eq('user_id',UID).maybeSingle();return data};
 async function boot(){
  const ses=await session();
  if(!ses){location.replace(AUTH_URL);return}
- UID=ses.user.id;
- let{data:v}=await sb.from('vendors').select('*').eq('user_id',UID).maybeSingle();
- if(!v&&ses.user.user_metadata?.vendor_application){
+ UID=ses.user.id;const md=ses.user.user_metadata||{};UPHONE=ses.user.phone||md.phone||'';
+ let v=await loadVendor();
+ if(!v&&md.vendor_application){
   const{error}=await sb.rpc('register_vendor');
-  if(error){gate('Could not finish your application',error.message,true);return}
-  ({data:v}=await sb.from('vendors').select('*').eq('user_id',UID).maybeSingle())}
- if(!v){location.replace(STORE_URL);return}
- V=v;$('#hn').textContent=v.business_name;$('#hs').textContent=cap(v.status)+' vendor';
- if(v.status==='pending'){gate('Application under review','Thanks for applying. We will approve your store shortly. Check back soon.');return}
- if(v.status==='rejected'){gate('Application not approved','Your vendor application was not approved. Contact KAMPZA support for details.',true);return}
- if(v.status==='suspended'){gate('Account suspended','Your vendor account is suspended. Contact KAMPZA support.',true);return}
- document.body.classList.remove('chk');$('#nav').hidden=false;draw();await refresh();
- setInterval(()=>{if(!document.hidden&&!EDIT)refresh()},60000)}
-function gate(t,m,bad=false,apply=false){document.body.classList.remove('chk');$('#nav').hidden=true;$('#app').innerHTML=`<div class="soon"><b>${bad?'⛔':'⏳'}</b><h2 style="color:var(--c)">${esc(t)}</h2><p style="margin:8px 0 16px">${esc(m)}</p>${apply?`<a class="btn" href="${AUTH_URL}">Go to sign up</a> `:''}<a class="btn ghost" href="${STORE_URL}">Back to store</a></div>`}
+  if(error){gate('Could not finish your application',error.message,'bad');return}
+  v=await loadVendor()}
+ V=v;
+ if(!v){applyForm();return}
+ enter()}
+function enter(){
+ $('#hn').textContent=V.business_name;$('#hs').textContent=cap(V.status)+' vendor';
+ if(V.status==='pending'){gate('Application under review','Thanks for applying, '+V.business_name+'. An admin is reviewing your application. Your dashboard unlocks automatically once it is approved.','wait');return}
+ if(V.status==='rejected'){gate('Application not approved','Your vendor application was not approved. You can update your details and apply again, or contact KAMPZA support.','bad',`<button class="btn" data-reapply>Update &amp; reapply</button> `);return}
+ if(V.status==='suspended'){gate('Account suspended','Your vendor account is suspended. Contact KAMPZA support to resolve this.','bad');return}
+ document.body.classList.remove('chk');$('#mb').hidden=false;$('#hb').hidden=true;draw();refresh();
+ if(!window._poll)window._poll=setInterval(()=>{if(!document.hidden&&!EDIT&&V?.status==='approved')refresh()},60000)}
+function gate(t,m,kind,extra=''){
+ document.body.classList.remove('chk');$('#mb').hidden=true;$('#hb').hidden=false;$('#hn').textContent=V?V.business_name:'Vendor dashboard';
+ $('#app').innerHTML=`<div class="soon"><b>${kind==='bad'?'⛔':kind==='wait'?'⏳':'ℹ️'}</b><h2 style="color:var(--c)">${esc(t)}</h2><p style="margin:8px 0 16px">${esc(m)}</p>${extra}${kind==='wait'?`<button class="btn ghost" data-check>Check status</button> `:''}<a class="btn ghost" href="${STORE_URL}">Back to store</a></div>`;scrollTo(0,0)}
+
+/* ---------- vendor application ---------- */
+function applyForm(p={}){
+ document.body.classList.remove('chk');$('#mb').hidden=true;$('#hb').hidden=false;$('#hn').textContent='Become a vendor';$('#hs').textContent='Apply to sell on KAMPZA';
+ $('#app').innerHTML=`<div class="top"><h1>Vendor application</h1></div>
+<p class="mut" style="margin-bottom:14px">Tell us about your business. An admin reviews every application, and your dashboard opens as soon as you are approved.</p>
+<div class="fld"><label for="a_n">Business / store name</label><input id="a_n" maxlength="60" value="${esc(p.business_name||'')}" placeholder="e.g. Ada's Gadgets"></div>
+<div class="fld"><label for="a_c">What do you sell?</label><select id="a_c">${CATS.map(c=>`<option ${p.category===c?'selected':''}>${esc(c)}</option>`).join('')}</select></div>
+<div class="fld"><label for="a_l">Location</label><input id="a_l" maxlength="120" value="${esc(p.location||'')}" placeholder="Hostel / campus / area"></div>
+<div class="fld"><label for="a_p">Phone number</label><input id="a_p" type="tel" inputmode="tel" maxlength="20" value="${esc(p.phone||UPHONE||'')}" placeholder="080..."></div>
+<div class="fld"><label for="a_d">About your business (optional)</label><textarea id="a_d" rows="3" maxlength="200">${esc(p.description||'')}</textarea></div>
+<h2 class="sh2">Payout account</h2>
+<div class="fld"><label for="a_b">Bank name</label><input id="a_b" maxlength="60" value="${esc(p.bank_name||'')}" placeholder="e.g. GTBank"></div>
+<div class="two"><div class="fld"><label for="a_a">Account number</label><input id="a_a" inputmode="numeric" maxlength="10" value="${esc(p.account_number||'')}" placeholder="10 digits"></div><div class="fld"><label for="a_m">Account name</label><input id="a_m" maxlength="80" value="${esc(p.account_name||'')}"></div></div>
+<label class="chk"><input type="checkbox" id="a_t"><span>I agree to the KAMPZA vendor terms and the commission on each sale.</span></label>
+<button class="btn full" data-apply>Submit application</button>`;scrollTo(0,0)}
+
+/* ---------- data ---------- */
 async function refresh(){
  try{
-  const{data:vs}=await sb.from('vendors').select('status').eq('user_id',UID).maybeSingle();
-  if(!vs||vs.status!=='approved'){location.reload();return}
+  const vs=await loadVendor();
+  if(!vs||vs.status!=='approved'){V=vs;vs?enter():applyForm();return}
+  V=vs;
   const[p,i,pay,b]=await Promise.all([
    sb.from('products').select('*').eq('vendor_id',UID).order('created_at',{ascending:false}),
-   sb.from('order_items').select('*').eq('vendor_id',UID).order('id',{ascending:false}).limit(200),
+   sb.from('order_items').select('*').eq('vendor_id',UID).order('id',{ascending:false}).limit(300),
    sb.from('payouts').select('*').eq('vendor_id',UID).order('created_at',{ascending:false}).limit(50),
    sb.rpc('vendor_balance')]);
   if(!p.error)PR=p.data;if(!i.error)ITEMS=i.data;if(!pay.error)PAY=pay.data;if(!b.error&&b.data)BAL=b.data;
   const ids=[...new Set(ITEMS.map(x=>x.order_id))];
   if(ids.length){const{data}=await sb.from('orders').select('id,code,pay_method,paid,phone,address,created_at,status').in('id',ids);if(data)ORD=Object.fromEntries(data.map(o=>[o.id,o]))}
-  nav();if(!EDIT)view()
+  if(PR.length){const{data}=await sb.from('reviews').select('*').in('product_id',PR.map(x=>x.id)).order('created_at',{ascending:false}).limit(100);if(data)REV=data}
+  side();if(!EDIT&&!document.activeElement?.matches('input,textarea,select'))view()
  }catch(e){console.error(e);toast('Could not refresh. Check your connection.')}}
 
 /* ---------- derived ---------- */
@@ -126,23 +201,31 @@ const live=i=>i.status!=='delivered'&&i.status!=='cancelled';
 const openItems=()=>ITEMS.filter(live);
 const nextOf=s=>STEPS[STEPS.indexOf(s)+1];
 const nextLabel={packed:'Mark packed',shipped:'Mark shipped',delivered:'Mark delivered'};
-function blocked(i){const o=ORD[i.order_id];return o&&o.pay_method!=='cod'&&!o.paid}
+const blocked=i=>{const o=ORD[i.order_id];return o&&o.pay_method!=='cod'&&!o.paid};
+const pname=id=>PR.find(p=>p.id===id)?.name||'Product';
 
 /* ---------- views ---------- */
-const NAV=[['home','Overview'],['products','Products'],['orders','Orders'],['payouts','Payouts']];
-function nav(){const n=openItems().length;$('#nav div').innerHTML=NAV.map(x=>`<button data-t="${x[0]}" class="${x[0]===tab?'on':''}">${x[1]}${x[0]==='orders'&&n?`<span class="cb">${n>99?'99+':n}</span>`:''}</button>`).join('')}
-function draw(){nav();view();scrollTo(0,0)}
-function view(){const f={home:homeV,products:EDIT?formV:prodV,orders:ordV,payouts:payV}[tab];$('#app').innerHTML=f()}
+function draw(){side();$('#hn').textContent=PAGES[tab][0];$('#hs').textContent=V.business_name;view();scrollTo(0,0)}
+function view(){const f={home:homeV,products:EDIT?formV:prodV,orders:ordV,analytics:anaV,reviews:revV,payouts:payV,profile:profV,help:helpV}[tab];$('#app').innerHTML=f();if(tab==='products'&&!EDIT)fillP();if(tab==='orders')fillO()}
 const empty=(i,m)=>`<div class="soon"><b>${i}</b>${m}</div>`;
+const money=i=>i.price*i.qty;
 function homeV(){
- const low=PR.filter(p=>p.active&&p.stock<=3);
- return `<div class="top"><h1>Overview</h1></div>
+ const low=PR.filter(p=>p.active&&p.stock<=3),days=series(7),mx=Math.max(1,...days.map(d=>d.v)),wk=days.reduce((a,d)=>a+d.v,0);
+ return `<div class="top"><h1>Hi, ${esc(V.business_name)}</h1></div>
 <div class="stats"><div class="stat hl"><small>Available to withdraw</small><b>${fmt(BAL.available)}</b></div><div class="stat"><small>Total earned</small><b>${fmt(BAL.earned)}</b></div><div class="stat"><small>Open items</small><b>${openItems().length}</b></div><div class="stat"><small>Products</small><b>${PR.length}</b></div></div>
-${!V.payout_verified?`<div class="warn" style="margin-top:12px">Your bank details are not verified yet, so payouts are on hold. Contact KAMPZA support to get verified.</div>`:''}
-${low.length?`<h2 class="sh2">Low stock</h2>${low.map(p=>`<div class="box"><div class="oh"><b>${esc(p.name)}</b><span class="st no">${p.stock===0?'Out of stock':p.stock+' left'}</span></div></div>`).join('')}`:''}
-<h2 class="sh2">Latest orders</h2>${openItems().slice(0,4).map(itemCard).join('')||empty('📦','No open orders right now.')}`}
+<div class="qa"><button data-new>${ic('plus')}Add product</button><button data-t="orders">${ic('orders')}View orders</button><button data-t="payouts">${ic('wallet')}Withdraw</button></div>
+${!V.payout_verified?`<div class="warn">Your bank details are not verified yet, so payouts are on hold. Contact KAMPZA support to get verified.</div>`:''}
+<h2 class="sh2">Sales, last 7 days<small>${fmt(wk)}</small></h2><div class="box"><div class="bars">${days.map(d=>`<div class="col"><div class="bar" style="height:${Math.round(d.v/mx*100)}%" title="${fmt(d.v)}"></div><span>${d.l}</span></div>`).join('')}</div></div>
+${low.length?`<h2 class="sh2">Low stock<button data-t="products">Manage</button></h2>${low.map(p=>`<div class="box"><div class="oh"><b>${esc(p.name)}</b><span class="st no">${p.stock===0?'Out of stock':p.stock+' left'}</span></div></div>`).join('')}`:''}
+<h2 class="sh2">Latest open orders<button data-t="orders">See all</button></h2>${openItems().slice(0,4).map(itemCard).join('')||empty('📦','No open orders right now.')}`}
 function prodV(){
- return `<div class="top"><h1>Products</h1><button class="btn sm" data-new>+ Add product</button></div>`+(PR.length?PR.map(p=>`<div class="box"><div class="prow"><div class="pth">${p.images?.[0]?`<img src="${esc(p.images[0])}" alt="">`:esc(p.emoji||'🛍️')}</div><div class="pmid"><b>${esc(p.name)}</b><span>${fmt(p.price)}${p.old_price&&p.old_price>p.price?` <small style="text-decoration:line-through">${fmt(p.old_price)}</small>`:''}</span><small>${esc(p.category||'General')} · ${p.stock} in stock</small></div><span class="st ${p.active?'ok':'no'}">${p.active?'Live':'Hidden'}</span></div><div class="acts"><button class="btn ghost sm" data-edit="${p.id}">Edit</button><button class="btn ghost sm" data-tog="${p.id}">${p.active?'Hide':'Show'}</button><button class="btn ghost sm" data-stk="${p.id}">Set stock</button></div></div>`).join(''):empty('🛍️','No products yet. Add your first one.'))}
+ return `<div class="top"><h1>Products</h1><button class="btn sm" data-new>+ Add product</button></div>
+<div class="fld" style="margin-bottom:10px"><input id="pq" type="search" placeholder="Search your products" value="${esc(PQ)}"></div>
+<div class="tabs">${[['all','All'],['live','Live'],['hidden','Hidden'],['low','Low stock'],['out','Out of stock']].map(([k,t])=>`<button data-pf="${k}" class="${PF===k?'on':''}">${t}</button>`).join('')}</div><div id="plist"></div>`}
+function fillP(){
+ const q=PQ.toLowerCase();
+ const l=PR.filter(p=>(!q||(p.name+' '+(p.category||'')+' '+(p.brand||'')).toLowerCase().includes(q))&&({all:1,live:p.active,hidden:!p.active,low:p.stock>0&&p.stock<=3,out:p.stock===0}[PF]));
+ $('#plist').innerHTML=l.length?l.map(p=>`<div class="box"><div class="prow"><div class="pth">${p.images?.[0]?`<img src="${esc(p.images[0])}" alt="">`:esc(p.emoji||'🛍️')}</div><div class="pmid"><b>${esc(p.name)}</b><span>${fmt(p.price)}${p.old_price&&p.old_price>p.price?` <small style="text-decoration:line-through">${fmt(p.old_price)}</small>`:''}</span><small>${esc(p.category||'General')} · ${p.stock} in stock</small></div><span class="st ${p.active?'ok':'no'}">${p.active?'Live':'Hidden'}</span></div><div class="acts"><button class="btn ghost sm" data-edit="${p.id}">Edit</button><button class="btn ghost sm" data-tog="${p.id}">${p.active?'Hide':'Show'}</button><button class="btn ghost sm" data-stk="${p.id}">Set stock</button><button class="btn ghost sm" data-dup="${p.id}">Duplicate</button><button class="btn ghost sm" style="color:#b42318" data-del="${p.id}">Delete</button></div></div>`).join(''):empty('🛍️',PR.length?'No products match.':'No products yet. Add your first one.')}
 function formV(){
  const p=EDIT==='new'?{}:PR.find(x=>x.id===EDIT)||{};
  const spec=Object.entries(p.specs||{}).map(([k,v])=>k+': '+v).join('\n');
@@ -161,20 +244,75 @@ const imgHtml=()=>IMGS.map((u,i)=>`<div class="im"><img src="${esc(u)}" alt=""><
 function itemCard(i){
  const o=ORD[i.order_id]||{},nx=nextOf(i.status),bl=blocked(i);
  return `<div class="box"><div class="oh"><b>${esc(o.code||'Order')}</b><span class="st ${i.status==='delivered'?'ok':i.status==='cancelled'?'no':''}">${cap(i.status)}</span></div>
-<div class="oh"><span>${i.qty}× ${esc(i.name)}</span><b>${fmt(i.price*i.qty)}</b></div>
+<div class="oh"><span>${i.qty}× ${esc(i.name)}</span><b>${fmt(money(i))}</b></div>
 <small>${o.created_at?dt(o.created_at)+' · ':''}${{wallet:'Wallet',cod:'Pay on delivery',card:'Card'}[o.pay_method]||''}${o.pay_method&&o.pay_method!=='cod'?(o.paid?' · Paid':' · Awaiting payment'):''}</small>
 ${i.status!=='cancelled'?`<div class="steps">${STEPS.map((x,k)=>`<i class="${k<=STEPS.indexOf(i.status)?'on':''}"></i>`).join('')}</div>`:''}
 ${live(i)&&o.address?`<small>Deliver to: ${esc(o.address)}${o.phone?' · '+esc(o.phone):''}</small>`:''}
-${live(i)?`<div class="acts">${nx?`<button class="btn sm" data-step="${i.id}|${nx}" ${bl?'disabled':''}>${nextLabel[nx]}</button>`:''}${i.status==='processing'?`<button class="btn danger sm" data-step="${i.id}|cancelled">Cancel item</button>`:''}</div>${bl?'<small>Waiting for the buyer to pay before you can pack this.</small>':''}`:''}
+${live(i)?`<div class="acts">${nx?`<button class="btn sm" data-step="${i.id}|${nx}" ${bl?'disabled':''}>${nextLabel[nx]}</button>`:''}${o.phone?`<a class="btn ghost sm" href="tel:${esc(o.phone)}">Call buyer</a>`:''}${i.status==='processing'?`<button class="btn danger sm" data-step="${i.id}|cancelled">Cancel item</button>`:''}</div>${bl?'<small>Waiting for the buyer to pay before you can pack this.</small>':''}`:''}
 ${i.status==='delivered'?`<small>Your payout: ${o.pay_method==='cod'?'after COD is settled · ':''}${fmt(i.payout)}</small>`:''}</div>`}
 function ordV(){
- const list=OF==='open'?ITEMS.filter(live):ITEMS.filter(i=>!live(i));
- return `<div class="top"><h1>Orders</h1></div><div class="tabs"><button data-of="open" class="${OF==='open'?'on':''}">Open (${openItems().length})</button><button data-of="done" class="${OF==='done'?'on':''}">Closed</button></div>`+(list.length?list.map(itemCard).join(''):empty('📦',OF==='open'?'No open orders.':'Nothing closed yet.'))}
+ const c=s=>ITEMS.filter(i=>i.status===s).length;
+ const T=[['open','Open ('+openItems().length+')'],['processing','New ('+c('processing')+')'],['packed','Packed ('+c('packed')+')'],['shipped','Shipped ('+c('shipped')+')'],['delivered','Delivered'],['cancelled','Cancelled'],['all','All']];
+ return `<div class="top"><h1>Orders</h1></div><div class="fld" style="margin-bottom:10px"><input id="oq" type="search" placeholder="Search order code or product" value="${esc(OQ)}"></div><div class="tabs">${T.map(([k,t])=>`<button data-of="${k}" class="${OF===k?'on':''}">${t}</button>`).join('')}</div><div id="olist"></div>`}
+function fillO(){
+ const q=OQ.toLowerCase();
+ const l=ITEMS.filter(i=>(OF==='all'||(OF==='open'?live(i):i.status===OF))&&(!q||(i.name+' '+(ORD[i.order_id]?.code||'')).toLowerCase().includes(q)));
+ $('#olist').innerHTML=l.length?l.map(itemCard).join(''):empty('📦','No orders here.')}
+/* analytics */
+function series(n){
+ const out=[],now=new Date();now.setHours(0,0,0,0);
+ for(let k=n-1;k>=0;k--){const d=new Date(now);d.setDate(d.getDate()-k);out.push({key:d.toDateString(),l:n>10?(d.getDate()%5===0||k===0?d.getDate()+'/'+(d.getMonth()+1):''):d.toLocaleDateString('en-NG',{weekday:'short'}),v:0})}
+ const m=Object.fromEntries(out.map(x=>[x.key,x]));
+ ITEMS.forEach(i=>{if(i.status==='cancelled')return;const o=ORD[i.order_id];if(!o)return;const k=new Date(o.created_at).toDateString();if(m[k])m[k].v+=money(i)});
+ return out}
+function anaV(){
+ const days=series(AR),mx=Math.max(1,...days.map(d=>d.v)),tot=days.reduce((a,d)=>a+d.v,0);
+ const valid=ITEMS.filter(i=>i.status!=='cancelled'),orders=new Set(valid.map(i=>i.order_id)).size,gross=valid.reduce((a,i)=>a+money(i),0);
+ const done=ITEMS.filter(i=>i.status==='delivered').length,canc=ITEMS.filter(i=>i.status==='cancelled').length;
+ const by={};valid.forEach(i=>{const k=i.product_id||i.name;by[k]=by[k]||{n:i.name,q:0,v:0};by[k].q+=i.qty;by[k].v+=money(i)});
+ const top=Object.values(by).sort((a,b)=>b.v-a.v).slice(0,5),tm=Math.max(1,...top.map(t=>t.v));
+ return `<div class="top"><h1>Analytics</h1></div>
+<div class="stats"><div class="stat hl"><small>Gross sales</small><b>${fmt(gross)}</b></div><div class="stat"><small>Orders</small><b>${orders}</b></div><div class="stat"><small>Avg. order value</small><b>${fmt(orders?Math.round(gross/orders):0)}</b></div><div class="stat"><small>Delivered rate</small><b>${ITEMS.length?Math.round(done/ITEMS.length*100):0}%</b></div></div>
+<h2 class="sh2">Sales trend<small>${fmt(tot)}</small></h2><div class="tabs">${[7,30].map(n=>`<button data-ar="${n}" class="${AR===n?'on':''}">Last ${n} days</button>`).join('')}</div>
+<div class="box"><div class="bars ${AR>10?'dense':''}">${days.map(d=>`<div class="col"><div class="bar" style="height:${Math.round(d.v/mx*100)}%" title="${fmt(d.v)}"></div><span class="${d.l?'sh':''}">${d.l}</span></div>`).join('')}</div></div>
+<h2 class="sh2">Top products</h2>${top.length?top.map((t,k)=>`<div class="box"><div class="rank"><i>${k+1}</i><div style="flex:1;display:grid;gap:6px"><div class="oh"><b>${esc(t.n)}</b><span>${fmt(t.v)}</span></div><div class="meter"><div style="width:${Math.round(t.v/tm*100)}%"></div></div><small>${t.q} sold</small></div></div></div>`).join(''):empty('📈','Sales will show here once you get orders.')}
+<h2 class="sh2">Order status</h2><div class="box">${STEPS.concat(['cancelled']).map(s=>{const n=ITEMS.filter(i=>i.status===s).length;return `<div class="oh"><span>${cap(s)}</span><b>${n}</b></div>`}).join('')}<small>${canc?canc+' cancelled item(s) are not counted in sales.':'No cancellations.'}</small></div>`}
+/* reviews */
+function revV(){
+ const avg=REV.length?REV.reduce((a,r)=>a+r.rating,0)/REV.length:0;
+ return `<div class="top"><h1>Reviews</h1></div><div class="stats"><div class="stat hl"><small>Average rating</small><b>${REV.length?avg.toFixed(1)+' / 5':'—'}</b></div><div class="stat"><small>Total reviews</small><b>${REV.length}</b></div></div><h2 class="sh2">Customer feedback</h2>`+(REV.length?REV.map(r=>`<div class="box"><div class="oh"><b>${esc(pname(r.product_id))}</b><span class="stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</span></div>${r.comment?`<span>${esc(r.comment)}</span>`:'<small>No comment left.</small>'}<small>${dt(r.created_at)}</small></div>`).join(''):empty('⭐','No reviews yet. They appear after buyers rate delivered items.'))}
+/* payouts */
 function payV(){
+ const can=V.payout_verified&&BAL.available>=1000;
  return `<div class="top"><h1>Payouts</h1></div><div class="stats"><div class="stat hl"><small>Available</small><b>${fmt(BAL.available)}</b></div><div class="stat"><small>Pending</small><b>${fmt(BAL.pending)}</b></div><div class="stat"><small>Paid out</small><b>${fmt(BAL.paid)}</b></div><div class="stat"><small>Total earned</small><b>${fmt(BAL.earned)}</b></div></div>
-<h2 class="sh2">Payout account</h2><div class="box"><b>${esc(V.bank_name||'—')}</b><span>${esc(V.account_number?'•••• '+V.account_number.slice(-4):'—')}${V.account_name?' · '+esc(V.account_name):''}</span><span class="st ${V.payout_verified?'ok':'no'}" style="justify-self:start">${V.payout_verified?'Verified':'Not verified'}</span></div>
+<h2 class="sh2">Withdraw</h2><div class="box"><div class="fld" style="margin:0"><label for="w_a">Amount (₦, minimum 1,000)</label><input id="w_a" type="number" inputmode="numeric" min="1000" max="${BAL.available}" placeholder="${BAL.available>=1000?BAL.available:'1000'}"></div><div class="acts"><button class="btn" data-withdraw ${can?'':'disabled'}>Request withdrawal</button><button class="btn ghost" data-all ${BAL.available>=1000?'':'disabled'}>Withdraw all</button></div>${!V.payout_verified?'<small>Withdrawals open once KAMPZA verifies your bank details.</small>':BAL.available<1000?'<small>You need at least ₦1,000 available.</small>':''}</div>
+<h2 class="sh2">Payout account<button data-t="profile">Edit</button></h2><div class="box"><b>${esc(V.bank_name||'—')}</b><span>${esc(V.account_number?'•••• '+V.account_number.slice(-4):'—')}${V.account_name?' · '+esc(V.account_name):''}</span><span class="st ${V.payout_verified?'ok':'no'}" style="justify-self:start">${V.payout_verified?'Verified':'Not verified'}</span></div>
 <small style="display:block;margin:6px 0">Earnings are credited after an item is delivered, minus KAMPZA commission. Pay-on-delivery items count once KAMPZA settles the cash.</small>
 <h2 class="sh2">History</h2>`+(PAY.length?PAY.map(x=>`<div class="box"><div class="oh"><b>${fmt(x.amount)}</b><span class="st ${x.status==='paid'?'ok':''}">${cap(x.status)}</span></div><small>${dt(x.created_at)}${x.ref?' · '+esc(x.ref):''}</small></div>`).join(''):empty('💸','No payouts yet.'))}
+/* profile */
+function profV(){
+ return `<div class="top"><h1>Store profile</h1></div>
+<div class="fld"><label for="p_n">Business / store name</label><input id="p_n" maxlength="60" value="${esc(V.business_name)}"></div>
+<div class="fld"><label for="p_c">Category</label><select id="p_c">${[...new Set([V.category,...CATS])].map(c=>`<option ${V.category===c?'selected':''}>${esc(c)}</option>`).join('')}</select></div>
+<div class="fld"><label for="p_l">Location</label><input id="p_l" maxlength="120" value="${esc(V.location||'')}"></div>
+<div class="fld"><label for="p_p">Phone</label><input id="p_p" type="tel" inputmode="tel" maxlength="20" value="${esc(V.phone||'')}"></div>
+<div class="fld"><label for="p_d">About your business</label><textarea id="p_d" rows="3" maxlength="200">${esc(V.description||'')}</textarea></div>
+<h2 class="sh2">Payout account</h2>
+<div class="fld"><label for="p_b">Bank name</label><input id="p_b" maxlength="60" value="${esc(V.bank_name||'')}"></div>
+<div class="two"><div class="fld"><label for="p_a">Account number</label><input id="p_a" inputmode="numeric" maxlength="10" value="${esc(V.account_number||'')}"></div><div class="fld"><label for="p_m">Account name</label><input id="p_m" maxlength="80" value="${esc(V.account_name||'')}"></div></div>
+<small style="display:block;margin-bottom:6px">Changing your bank details puts payouts on hold until KAMPZA verifies them again.</small>
+<button class="btn full" data-saveprof>Save changes</button>`}
+/* help */
+function helpV(){
+ const wa='https://wa.me/'+WHATSAPP+'?text='+encodeURIComponent('Hello KAMPZA, I am a vendor ('+V.business_name+'). I need help with: ');
+ return `<div class="top"><h1>Help &amp; support</h1></div>
+<div class="box"><b>Contact KAMPZA support</b><div class="acts"><a class="btn" href="${wa}" target="_blank" rel="noopener">WhatsApp</a><a class="btn ghost" href="mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('Vendor support: '+V.business_name)}">Email</a></div></div>
+<h2 class="sh2">Quick answers</h2>
+<div class="box faq"><details><summary>How do I get paid?</summary><p>When you mark an item delivered, your earnings (minus commission) are added to your balance. Request a withdrawal from Payouts once your bank details are verified.</p></details></div>
+<div class="box faq"><details><summary>Why can't I pack an order?</summary><p>For wallet and card orders, the buyer must pay first. Pay-on-delivery orders can be packed right away.</p></details></div>
+<div class="box faq"><details><summary>Can I cancel an order?</summary><p>Yes, but only while it is still New (processing). The buyer is refunded and your stock is restored.</p></details></div>
+<div class="box faq"><details><summary>How do I hide a product?</summary><p>Open Products and tap Hide. You can show it again any time without losing its details.</p></details></div>
+<div class="box faq"><details><summary>How do I get verified?</summary><p>Make sure your bank name, account number and account name are correct in Store profile, then contact support.</p></details></div>`}
 
 /* ---------- actions ---------- */
 const g=(e,s)=>e.target.closest(s);
@@ -190,11 +328,22 @@ async function upload(files){
   IMGS.push(sb.storage.from(BUCKET).getPublicUrl(path).data.publicUrl)}
  const el=$('#imgs');if(el)el.innerHTML=imgHtml()}
 document.addEventListener('change',e=>{if(e.target.id==='file'){upload(e.target.files);e.target.value=''}});
+document.addEventListener('input',e=>{
+ if(e.target.id==='pq'){PQ=e.target.value;fillP()}
+ if(e.target.id==='oq'){OQ=e.target.value;fillO()}});
+const val=id=>($('#'+id)?.value||'').trim();
 document.addEventListener('click',async e=>{
  let x;
- if(x=g(e,'[data-t]')){tab=x.dataset.t;EDIT=null;draw();return}
+ if(g(e,'#mb')){openMenu();return}
+ if(g(e,'[data-close]')){closeMenu();return}
+ if(g(e,'[data-logout]')){closeMenu();await sb.auth.signOut();location.replace(AUTH_URL);return}
+ if(x=g(e,'[data-t]')){tab=x.dataset.t;EDIT=null;closeMenu();draw();return}
  if(x=g(e,'[data-of]')){OF=x.dataset.of;view();return}
- if(g(e,'[data-new]')){EDIT='new';IMGS=[];view();scrollTo(0,0);return}
+ if(x=g(e,'[data-pf]')){PF=x.dataset.pf;view();return}
+ if(x=g(e,'[data-ar]')){AR=+x.dataset.ar;view();return}
+ if(g(e,'[data-check]')){await refresh();if(V?.status==='pending')toast('Still under review');return}
+ if(g(e,'[data-reapply]')){applyForm(V||{});return}
+ if(g(e,'[data-new]')){tab='products';EDIT='new';IMGS=[];draw();return}
  if(x=g(e,'[data-edit]')){EDIT=x.dataset.edit;IMGS=[...(PR.find(p=>p.id===EDIT)?.images||[])];view();scrollTo(0,0);return}
  if(g(e,'[data-cancelform]')){EDIT=null;view();return}
  if(x=g(e,'[data-rmimg]')){IMGS.splice(+x.dataset.rmimg,1);$('#imgs').innerHTML=imgHtml();return}
@@ -208,6 +357,16 @@ document.addEventListener('click',async e=>{
   const n=Math.floor(Number(a));if(!(n>=0)){toast('Enter a valid number');return}
   const{error}=await sb.from('products').update({stock:n}).eq('id',p.id).eq('vendor_id',UID);
   if(error){toast(error.message);return}toast('Stock updated');await refresh();return}
+ if(x=g(e,'[data-dup]')){
+  const p=PR.find(k=>k.id===x.dataset.dup);if(!p)return;
+  const{id,created_at,...rest}=p;
+  const{error}=await sb.from('products').insert({...rest,name:(p.name+' (copy)').slice(0,100),active:false,vendor_id:UID});
+  if(error){toast(error.message);return}toast('Duplicated as a hidden product');await refresh();return}
+ if(x=g(e,'[data-del]')){
+  const p=PR.find(k=>k.id===x.dataset.del);if(!p)return;
+  if(!confirm('Delete "'+p.name+'" permanently?'))return;
+  const{error}=await sb.from('products').delete().eq('id',p.id).eq('vendor_id',UID);
+  if(error){toast('This product has orders, so hide it instead.');return}toast('Product deleted');await refresh();return}
  if(x=g(e,'[data-step]')){
   const[id,st]=x.dataset.step.split('|');
   if(st==='cancelled'&&!confirm('Cancel this item? The buyer will be refunded if they paid.'))return;
@@ -215,15 +374,48 @@ document.addEventListener('click',async e=>{
   const{error}=await sb.rpc('vendor_set_item',{p_item:id,p_status:st});
   if(error){toast(error.message);x.disabled=false;return}
   toast(st==='cancelled'?'Item cancelled':'Updated to '+cap(st));await refresh();return}
+ if(g(e,'[data-all]')){const w=$('#w_a');if(w)w.value=BAL.available;return}
+ if(x=g(e,'[data-withdraw]')){
+  const n=Math.floor(Number(val('w_a')));
+  if(!(n>=1000)){toast('Minimum withdrawal is ₦1,000');return}
+  if(n>BAL.available){toast('That is more than your available balance');return}
+  if(!confirm('Withdraw '+fmt(n)+' to '+(V.bank_name||'your bank')+' •••• '+(V.account_number||'').slice(-4)+'?'))return;
+  x.disabled=true;
+  const{error}=await sb.rpc('request_payout',{p_amount:n});
+  if(error){toast(error.message);x.disabled=false;return}
+  toast('Withdrawal requested');await refresh();return}
+ if(x=g(e,'[data-saveprof]')){
+  if(BUSY)return;
+  const a={p_business_name:val('p_n'),p_category:val('p_c'),p_location:val('p_l'),p_description:val('p_d'),p_phone:val('p_p'),p_bank_name:val('p_b'),p_account_number:val('p_a'),p_account_name:val('p_m')};
+  if(a.p_business_name.length<2){toast('Enter your business name');return}
+  if(a.p_location.length<3){toast('Enter your location');return}
+  if(!/^\d{10}$/.test(a.p_account_number)){toast('Account number must be 10 digits');return}
+  BUSY=true;x.disabled=true;x.textContent='Saving…';
+  const{error}=await sb.rpc('vendor_update_profile',a);BUSY=false;x.disabled=false;x.textContent='Save changes';
+  if(error){toast(error.message);return}
+  V=await loadVendor()||V;toast('Profile updated');draw();return}
+ if(x=g(e,'[data-apply]')){
+  if(BUSY)return;
+  const a={p_business_name:val('a_n'),p_category:val('a_c'),p_location:val('a_l'),p_description:val('a_d'),p_phone:val('a_p'),p_bank_name:val('a_b'),p_account_number:val('a_a'),p_account_name:val('a_m')};
+  if(a.p_business_name.length<2){toast('Enter your business name');return}
+  if(a.p_location.length<3){toast('Enter your location');return}
+  if(a.p_phone.replace(/\D/g,'').length<10){toast('Enter a valid phone number');return}
+  if(a.p_bank_name.length<2){toast('Enter your bank name');return}
+  if(!/^\d{10}$/.test(a.p_account_number)){toast('Account number must be 10 digits');return}
+  if(!$('#a_t').checked){toast('Please accept the vendor terms');return}
+  BUSY=true;x.disabled=true;x.textContent='Submitting…';
+  const{error}=await sb.rpc('apply_vendor',a);BUSY=false;
+  if(error){toast(error.message);x.disabled=false;x.textContent='Submit application';return}
+  V=await loadVendor();toast('Application submitted');V?enter():boot();return}
  if(x=g(e,'[data-saveprod]')){
   if(BUSY)return;
-  const v=id=>($('#'+id)?.value||'').trim(),name=v('f_n'),price=Math.floor(Number(v('f_p'))),old=Math.floor(Number(v('f_o')))||null,stock=Math.floor(Number(v('f_s')));
+  const name=val('f_n'),price=Math.floor(Number(val('f_p'))),old=Math.floor(Number(val('f_o')))||null,stock=Math.floor(Number(val('f_s')));
   if(name.length<2){toast('Enter a product name');return}
   if(!(price>0)){toast('Enter a valid price');return}
   if(!(stock>=0)){toast('Enter the stock quantity');return}
   if(old&&old<=price){toast('Old price must be higher than the price');return}
-  const specs={};v('f_sp').split('\n').forEach(l=>{const i=l.indexOf(':');if(i>0){const k=l.slice(0,i).trim(),val=l.slice(i+1).trim();if(k&&val)specs[k]=val}});
-  const row={name,price,old_price:old,stock,emoji:v('f_e')||null,category:v('f_c'),brand:v('f_b')||null,description:v('f_d')||null,specs,images:IMGS,active:$('#f_a').checked};
+  const specs={};val('f_sp').split('\n').forEach(l=>{const i=l.indexOf(':');if(i>0){const k=l.slice(0,i).trim(),v=l.slice(i+1).trim();if(k&&v)specs[k]=v}});
+  const row={name,price,old_price:old,stock,emoji:val('f_e')||null,category:val('f_c'),brand:val('f_b')||null,description:val('f_d')||null,specs,images:IMGS,active:$('#f_a').checked};
   BUSY=true;x.disabled=true;x.textContent='Saving…';
   const q=EDIT==='new'?sb.from('products').insert({...row,vendor_id:UID}):sb.from('products').update(row).eq('id',EDIT).eq('vendor_id',UID);
   const{error}=await q;BUSY=false;

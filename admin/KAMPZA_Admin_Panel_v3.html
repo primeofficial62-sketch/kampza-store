@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow"><meta name="description" content="KAMPZA marketplace administration dashboard."><meta name="theme-color" content="#252525">
+<title>KAMPZA Admin | Marketplace Control Centre</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<style>
+:root{--o:#FF7628;--o2:#e5600f;--c:#252525;--g:#F4F4F4;--w:#fff;--line:#e4e4e4;--mut:#777;--ok:#1f9d55;--bad:#d64545;--warn:#b86e00;--info:#2b6cb0;--sb:236px;--sh:0 1px 3px rgba(0,0,0,.06),0 6px 16px rgba(0,0,0,.04)}
+*{box-sizing:border-box;margin:0}
+body{font:14px/1.45 Inter,system-ui,sans-serif;background:var(--g);color:var(--c);min-height:100dvh}
+h1,h2,h3,.sora{font-family:Sora,Inter,sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}button{cursor:pointer;border:0}
+:focus-visible{outline:2px solid var(--o);outline-offset:2px}
+.logo{width:36px;height:36px;border-radius:10px;object-fit:cover;display:block}
+aside{position:fixed;inset:0 auto 0 0;width:var(--sb);background:var(--c);color:#fff;display:flex;flex-direction:column;padding:16px 10px calc(14px + env(safe-area-inset-bottom));z-index:60;transition:transform .2s;overflow-y:auto}
+.bd{display:flex;align-items:center;gap:10px;padding:2px 8px 16px;font:700 19px Sora}
+aside button.n{display:flex;gap:10px;align-items:center;width:100%;background:none;color:#bdbdbd;text-align:left;padding:11px 12px;border-radius:10px;font-weight:600;min-height:44px}
+aside button.n:hover{background:#303030}aside button.n.on{background:var(--o);color:#fff}
+aside .g{font-size:11px;color:#777;text-transform:uppercase;letter-spacing:.06em;padding:14px 12px 4px}
+aside .out{margin-top:auto;color:#ff9a9a}
+header{position:fixed;top:0;left:var(--sb);right:0;height:60px;background:var(--w);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;padding:0 20px;padding-top:env(safe-area-inset-top);z-index:40;box-sizing:content-box}
+header h1{font-size:17px}#burger{display:none;background:none;font-size:22px;padding:8px;min-width:44px;min-height:44px}
+header .gs{margin-left:auto;max-width:260px;width:40%}
+main{margin-left:var(--sb);padding:80px 20px 40px;padding-top:calc(80px + env(safe-area-inset-top));max-width:1180px}
+#scrim{display:none}
+.card{background:var(--w);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px;box-shadow:var(--sh)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.sp{justify-content:space-between}.mut{color:var(--mut);font-size:12px}
+.stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-bottom:14px}
+.stat{background:var(--w);border:1px solid var(--line);border-radius:14px;padding:14px;text-align:left;box-shadow:var(--sh);transition:transform .15s,border-color .15s}
+.stat:hover{transform:translateY(-2px);border-color:var(--o)}.stat b{display:block;font:700 22px Sora;margin-top:4px}
+.two{display:grid;grid-template-columns:2fr 1fr;gap:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+input,select,textarea{width:100%;border:1px solid var(--line);border-radius:9px;padding:10px;background:var(--w);min-height:42px}
+.btn{background:var(--o);color:#fff;border-radius:9px;padding:10px 14px;font-weight:600;min-height:42px}.btn:hover{background:var(--o2)}
+.btn.alt{background:var(--w);color:var(--c);border:1px solid var(--line)}.btn.red{background:var(--bad)}.btn.sm{padding:6px 10px;min-height:34px;font-size:13px}.btn:disabled{opacity:.5}
+.chips{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px}
+.chip{background:var(--w);border:1px solid var(--line);border-radius:999px;padding:7px 14px;white-space:nowrap;font-weight:600;font-size:13px}.chip.on{background:var(--o);border-color:var(--o);color:#fff}
+.pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:600;background:var(--g);white-space:nowrap}
+.pill.ok{background:#e3f6ea;color:var(--ok)}.pill.warn{background:#fff1dc;color:var(--warn)}.pill.bad{background:#fde8e8;color:var(--bad)}.pill.info{background:#e6effa;color:var(--info)}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:640px}th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}th{font-size:12px;color:var(--mut)}
+.empty{text-align:center;color:var(--mut);padding:36px 12px}h2{font-size:18px;margin:2px 0 12px}
+.bars{display:flex;align-items:flex-end;gap:4px;height:150px;margin-top:10px}.bars i{flex:1;background:var(--o);border-radius:4px 4px 0 0;min-height:2px;opacity:.9}.bars i:hover{opacity:1}
+.hb{height:8px;background:var(--g);border-radius:9px;overflow:hidden;margin:3px 0 9px}.hb i{display:block;height:100%;background:var(--o)}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--c);color:#fff;padding:10px 16px;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:200;max-width:90vw}#toast.show{opacity:1}
+.lock{position:fixed;inset:0;background:var(--c);color:#fff;display:grid;place-items:center;padding:24px;z-index:100;overflow-y:auto}.lock[hidden]{display:none}
+.lock-in{display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;max-width:320px}.lock .logo{width:84px;height:84px;border-radius:20px;margin-bottom:10px}
+.lock h2{margin:0;font-size:22px}.lock .sub{color:#bbb;min-height:1.4em;text-align:center}.lock .sub.err{color:#ff9a9a}
+.dots{display:flex;gap:16px;margin:22px 0}.dot{width:15px;height:15px;border-radius:50%;border:2px solid rgba(255,255,255,.4)}.dot.on{background:var(--o);border-color:var(--o)}.dots.shake{animation:shake .35s}
+@keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.pad{display:grid;grid-template-columns:repeat(3,72px);gap:14px}.pad button{width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.16);color:#fff;font-size:24px}
+.pad button:active{background:var(--o)}.pad button:disabled{opacity:.4}.pad .ghost{background:none;border-color:transparent;font-size:17px;color:#bbb}
+body.locked>aside,body.locked>header,body.locked>main{display:none}
+@media(max-width:860px){
+ aside{transform:translateX(-100%);width:270px}body.open aside{transform:none}
+ body.open #scrim{display:block;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:55}
+ header{left:0;padding:0 12px;padding-top:env(safe-area-inset-top)}#burger{display:block}header .gs{width:50%}
+ main{margin-left:0;padding-left:12px;padding-right:12px}.two{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}
+}
+@media print{aside,header,.noprint{display:none!important}main{margin:0;padding:0}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* =========================================================
+   KAMPZA ADMIN 2.0 — visual system and responsive structure
+   ========================================================= */
+:root{
+ --o:#ff7628;--o2:#e96518;--c:#252525;--g:#f5f6f8;--w:#fff;
+ --line:#e9ebef;--mut:#7b8492;--ok:#168653;--bad:#d74747;--warn:#b97816;--info:#326db2;
+ --sb:258px;--sh:0 2px 8px rgba(24,32,45,.035),0 12px 30px rgba(24,32,45,.045);
+ --radius:16px;
+}
+html{scroll-behavior:smooth}
+body{background:#f5f6f8;color:#252a31;font-size:13.5px;letter-spacing:-.01em}
+h1,h2,h3,.sora{font-family:Sora,Inter,sans-serif;letter-spacing:-.035em}
+button,input,select,textarea{font-family:Inter,system-ui,sans-serif}
+aside#nav{
+ width:var(--sb);padding:24px 15px 16px;background:#202124;color:#fff;
+ border-right:1px solid rgba(255,255,255,.06);box-shadow:8px 0 28px rgba(22,24,28,.04);
+}
+.brand-lockup{display:flex;align-items:center;gap:12px;padding:0 10px 28px}
+.brand-lockup .logo{width:42px;height:42px;border-radius:13px;object-fit:cover;background:#fff}
+.brand-name{font:700 18px Sora,sans-serif;letter-spacing:-.04em;color:#fff}
+.brand-caption{font:600 8px Inter,sans-serif;letter-spacing:.16em;color:#92959b;margin-top:3px}
+.nav-group{margin-bottom:13px}
+aside .g{font-size:9px;font-weight:700;color:#858990;letter-spacing:.15em;padding:10px 12px 8px}
+aside button.n{
+ position:relative;gap:12px;padding:11px 12px;margin:2px 0;min-height:44px;border-radius:10px;
+ color:#b9bdc4;font-size:12.5px;font-weight:550;transition:background .18s,color .18s,transform .18s;
+}
+aside button.n:hover{background:rgba(255,255,255,.07);color:#fff;transform:translateX(2px)}
+aside button.n.on{background:rgba(255,118,40,.16);color:#ff9a61;box-shadow:inset 3px 0 #ff7628}
+.nav-ico{width:20px;height:20px;display:grid;place-items:center;font-size:17px;flex:none}
+.nav-hint{margin-left:auto;font-size:9px;color:#858990;font-weight:600}
+.sidebar-bottom{margin-top:auto;padding-top:18px}
+.sidebar-note{display:flex;align-items:center;gap:10px;margin:0 5px 12px;padding:12px;border:1px solid rgba(255,255,255,.09);border-radius:12px;background:rgba(255,255,255,.035)}
+.status-dot{width:8px;height:8px;border-radius:50%;background:#39bd79;box-shadow:0 0 0 4px rgba(57,189,121,.12)}
+.sidebar-note b,.sidebar-note small{display:block}
+.sidebar-note b{font-size:10px;color:#e8e9eb}
+.sidebar-note small{font-size:9px;color:#858990;margin-top:3px}
+aside .out{color:#ffaaa4!important;margin-top:5px}
+.sidebar-version{font-size:8px;letter-spacing:.12em;color:#696d74;padding:14px 10px 0}
+header{
+ left:var(--sb);height:76px;padding:0 34px;background:rgba(255,255,255,.94);
+ border-bottom:1px solid #e9ebef;backdrop-filter:blur(16px);box-shadow:0 3px 15px rgba(25,32,45,.025);
+}
+.header-heading{display:flex;flex-direction:column;gap:3px}
+.header-heading .eyebrow{font-size:9px;font-weight:700;letter-spacing:.14em;color:#a0a6b0}
+header h1{font-size:18px;font-weight:700;color:#252a31}
+.header-tools{margin-left:auto;display:flex;align-items:center;gap:22px}
+.global-search{width:min(330px,34vw);height:39px;border:1px solid #e9ebef;background:#f8f9fb;border-radius:10px;display:flex;align-items:center;padding:0 12px;gap:8px}
+.global-search span{font-size:22px;color:#9299a4;line-height:1}
+.global-search input{border:0!important;background:transparent!important;min-height:34px!important;padding:0!important;font-size:11px!important;outline:none!important}
+.admin-chip{display:flex;align-items:center;gap:9px}
+.admin-avatar{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:#fff0e8;color:#e96518;font:700 13px Sora}
+.admin-chip b,.admin-chip small{display:block}
+.admin-chip b{font-size:10px;color:#343942}
+.admin-chip small{font-size:9px;color:#9299a4;margin-top:3px}
+#burger{display:none}
+main{
+ margin-left:var(--sb);max-width:none;width:auto;padding:108px 34px 50px;
+}
+#app{max-width:1440px;margin:0 auto}
+.card,.stat{
+ background:#fff;border:1px solid #eaecf0;border-radius:15px;padding:19px;
+ box-shadow:0 2px 7px rgba(24,32,45,.025);margin-bottom:14px;
+}
+.card{transition:border-color .18s,box-shadow .18s}
+.card:hover{border-color:#e0e3e9;box-shadow:0 5px 18px rgba(24,32,45,.045)}
+.stats{grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;margin-bottom:17px}
+.stat{text-align:left;min-height:112px;position:relative;overflow:hidden;cursor:pointer}
+.stat:after{content:"";position:absolute;width:54px;height:54px;border-radius:18px;background:#fff1e9;right:15px;top:15px}
+.stat:hover{transform:translateY(-2px);border-color:#ffc39f;box-shadow:0 8px 22px rgba(255,118,40,.08)}
+.stat .mut{font-size:10px;font-weight:600;color:#8b929d}
+.stat b{font:700 23px Sora;margin-top:13px;color:#262a31;position:relative;z-index:1}
+.two{grid-template-columns:minmax(0,1.7fr) minmax(280px,1fr);gap:14px}
+h2{font-size:15px;margin:2px 0 13px;color:#292e36}
+.mut{color:#858d99;font-size:10.5px}
+.row{gap:10px}
+.btn{background:#ff7628;border-radius:9px;padding:10px 15px;font-size:11px;font-weight:700;box-shadow:0 3px 8px rgba(255,118,40,.12);transition:background .18s,transform .18s}
+.btn:hover{background:#e96518;transform:translateY(-1px)}
+.btn.alt{background:#fff;color:#454b55;border:1px solid #e4e7ec;box-shadow:none}
+.btn.alt:hover{background:#f8f9fb;border-color:#cfd4dc}
+.btn.red{background:#d74747;box-shadow:none}
+input,select,textarea{border:1px solid #e4e7ec;border-radius:9px;padding:10px 12px;background:#fff;min-height:40px;font-size:11px}
+input:focus,select:focus,textarea:focus{border-color:#ff9a61;box-shadow:0 0 0 3px rgba(255,118,40,.09);outline:none}
+label.mut{font-size:10px;font-weight:600;color:#707987}
+label.mut input,label.mut textarea{margin-top:6px}
+.chips{gap:7px;margin:12px 0}
+.chip{padding:8px 13px;border-color:#e7e9ee;font-size:10px;color:#69717d}
+.chip.on{background:#fff0e8;border-color:#ffd2bb;color:#e96518}
+.pill{font-size:9px;padding:4px 9px}
+.tw{border-radius:14px}
+table{min-width:700px}
+th,td{padding:13px 11px;border-bottom:1px solid #f0f1f4;font-size:10.5px}
+th{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#939aa5;background:#fafbfc}
+tbody tr:hover{background:#fcfcfd}
+td b{font-size:10.5px}
+.bars{height:170px;gap:7px;padding-top:10px}
+.bars i{background:linear-gradient(180deg,#ff9a61,#ff7628);border-radius:6px 6px 2px 2px;min-width:5px}
+.hb{height:6px;background:#f0f1f4}
+.hb i{background:#ff7628;border-radius:8px}
+.empty{padding:42px 15px;color:#9299a4;font-size:11px}
+details.card summary{cursor:pointer;color:#343a43;font-size:12px}
+#toast{font-size:11px;box-shadow:0 8px 25px rgba(0,0,0,.18)}
+.lock{background:radial-gradient(circle at 50% 35%,#38302b 0,#202124 48%,#171819 100%)}
+.lock-in{max-width:340px}
+.lock .logo{box-shadow:0 10px 35px rgba(255,118,40,.16)}
+.lock h2{font-size:23px}
+.lock .sub{font-size:11px}
+.pad{gap:12px}
+.pad button{background:rgba(255,255,255,.075);border-color:rgba(255,255,255,.13);transition:background .15s,transform .15s}
+.pad button:hover{background:rgba(255,118,40,.25);transform:scale(1.04)}
+@media(min-width:1200px){main{padding-left:46px;padding-right:46px}}
+@media(max-width:1050px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.two{grid-template-columns:1fr}}
+@media(max-width:860px){
+ aside#nav{width:278px;padding-top:22px}
+ header{left:0;height:68px;padding:0 14px}
+ #burger{display:block;border-radius:9px;color:#454b55;font-size:19px}
+ .header-heading .eyebrow{font-size:8px}
+ header h1{font-size:15px}
+ .header-tools{gap:10px}
+ .global-search{width:min(42vw,230px);height:36px;padding:0 9px}
+ .global-search input{font-size:10px!important}
+ .admin-chip{display:none}
+ main{margin-left:0;padding:88px 14px 32px}
+ .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .stat{padding:14px;min-height:98px}
+ .stat b{font-size:19px;margin-top:10px}
+ .card{padding:15px;border-radius:13px}
+ .two{grid-template-columns:1fr;gap:8px}
+ .row.sp{gap:8px}
+}
+@media(max-width:420px){
+ .global-search{width:38vw}
+ .global-search input::placeholder{color:transparent}
+ .header-heading .eyebrow{display:none}
+ .stats{gap:8px}
+ .stat:after{width:36px;height:36px;border-radius:12px;right:10px;top:10px}
+ .stat b{font-size:17px}
+}
+@media print{main{margin:0;padding:0} .card,.stat{box-shadow:none}}
+</style>
+<style>
+/* Admin 3.0 additions */
+.nav-group{margin-bottom:10px}.nav-group button.n{font-size:11.5px}.pill.info{background:#eaf1fb;color:#326db2}.card ul{line-height:1.8}.card .row .btn{white-space:nowrap}#demo-result{white-space:pre-wrap;overflow-wrap:anywhere;background:#f8f9fb;border:1px solid #eceef2;padding:12px;border-radius:10px} @media(max-width:860px){aside#nav{padding-bottom:calc(20px + env(safe-area-inset-bottom))}main{padding-bottom:calc(35px + env(safe-area-inset-bottom))}}
+</style>
+</head>
+<body class="locked">
+<div class="lock" id="lock"><div class="lock-in"><img class="logo" alt="KAMPZA"><h2>KAMPZA Admin</h2><div class="sub" id="lsub">Enter your PIN</div>
+<div class="dots" id="dots"><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i></div>
+<div class="pad" id="pad"><button>1</button><button>2</button><button>3</button><button>4</button><button>5</button><button>6</button><button>7</button><button>8</button><button>9</button><button class="ghost" id="pback" aria-label="Delete">⌫</button><button>0</button><span></span></div></div></div>
+<aside id="nav" aria-label="Main navigation">
+  <div class="brand-lockup">
+    <img class="logo" alt="KAMPZA">
+    <div><div class="brand-name">KAMPZA</div><div class="brand-caption">MARKETPLACE CONTROL</div></div>
+  </div>
+  <div class="nav-group">
+    <div class="g">Workspace</div>
+    <button class="n on" data-t="dash"><span class="nav-ico">▦</span><span>Overview</span></button>
+  </div>
+  <div class="nav-group">
+    <div class="g">Commerce</div>
+    <button class="n" data-t="orders"><span class="nav-ico">▤</span><span>Orders</span><span class="nav-hint">Manage</span></button>
+    <button class="n" data-t="quotes"><span class="nav-ico">◇</span><span>Quote requests</span></button>
+  </div>
+  <div class="nav-group">
+    <div class="g">Store management</div>
+    <button class="n" data-t="products"><span class="nav-ico">▣</span><span>Products</span></button>
+    <button class="n" data-t="stock"><span class="nav-ico">▥</span><span>Inventory</span></button>
+  </div>
+  <div class="nav-group">
+    <div class="g">Customers & growth</div>
+    <button class="n" data-t="people"><span class="nav-ico">♙</span><span>Customers</span></button>
+    <button class="n" data-t="mail"><span class="nav-ico">✉</span><span>Email campaigns</span></button>
+  </div>
+  <div class="nav-group"><div class="g">Marketplace</div>
+    <button class="n" data-t="vendors"><span class="nav-ico">♧</span><span>Vendors</span></button>
+    <button class="n" data-t="finance"><span class="nav-ico">₦</span><span>Finance & payouts</span></button>
+    <button class="n" data-t="wallets"><span class="nav-ico">◈</span><span>Wallets</span></button>
+    <button class="n" data-t="promotions"><span class="nav-ico">✦</span><span>Promotions</span></button>
+    <button class="n" data-t="content"><span class="nav-ico">▧</span><span>Store content</span></button>
+  </div>
+  <div class="nav-group"><div class="g">Administration</div>
+    <button class="n" data-t="staff"><span class="nav-ico">♙</span><span>Staff & permissions</span></button>
+    <button class="n" data-t="security"><span class="nav-ico">⬡</span><span>Security centre</span></button>
+    <button class="n" data-t="activity"><span class="nav-ico">◷</span><span>Activity & audit</span></button>
+    <button class="n" data-t="settings"><span class="nav-ico">⚙</span><span>Settings</span></button>
+    <button class="n" data-t="demo"><span class="nav-ico">▤</span><span>Demo data centre</span></button>
+  </div>
+  <div class="sidebar-bottom">
+    <div class="sidebar-note"><span class="status-dot"></span><span><b>Store systems</b><small>Connected and ready</small></span></div>
+    <button class="n out" id="out"><span class="nav-ico">↪</span><span>Lock admin panel</span></button>
+    <div class="sidebar-version">KAMPZA ADMIN · VERSION 3.0</div>
+  </div>
+</aside>
+<div id="scrim"></div>
+<header>
+  <button id="burger" aria-label="Open navigation">☰</button>
+  <div class="header-heading"><div class="eyebrow">KAMPZA / ADMINISTRATION</div><h1 id="title">Overview</h1></div>
+  <div class="header-tools">
+    <div class="global-search"><span>⌕</span><input id="gs" type="search" placeholder="Search orders, products, customers…" aria-label="Search across admin"></div>
+    <div class="admin-chip"><span class="admin-avatar">K</span><span><b>Administrator</b><small>Store management</small></span></div>
+  </div>
+</header>
+<main id="app"><div class="empty">Loading…</div></main><div id="toast" role="status"></div>
+<script>
+const LOGO="icon-512.png";
+document.querySelectorAll('.logo').forEach(i=>i.src=LOGO);
+// PIN-only login (unchanged flow): PIN -> admin-pin-login edge function -> verifyOtp -> is_admin(). Session lives in this tab only.
+const sb=supabase.createClient('https://fcgvmxkxwgymgqcbtzjd.supabase.co','sb_publishable_capYRQsCeia4hlfO4Fqdow_kDn2uy5M',{auth:{storage:window.sessionStorage,autoRefreshToken:true,persistSession:true}});
+const $=s=>document.querySelector(s),app=$('#app');
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const naira=n=>'₦'+Number(n||0).toLocaleString('en-NG');
+const when=d=>new Date(d).toLocaleString('en-NG',{dateStyle:'medium',timeStyle:'short'});
+const ORDER_ST=['Processing','Confirmed','Out for delivery','Delivered','Cancelled'],QUOTE_ST=['Pending','Quoted','Accepted','Declined'];
+const TITLES={dash:'Overview',orders:'Orders',quotes:'Quote requests',products:'Products',stock:'Inventory',people:'Customers',mail:'Email campaigns'};
+const opts=(l,c)=>l.map(s=>`<option${s===c?' selected':''}>${esc(s)}</option>`).join('');
+const stCls=s=>({Delivered:'ok',Accepted:'ok',Quoted:'info',Confirmed:'info','Out for delivery':'info',Cancelled:'bad',Declined:'bad',Pending:'warn',Processing:'warn'}[s]||'');
+const err=(w,e)=>`<div class="empty">Could not load ${w}: ${esc(e.message)}</div>`;
+const wa=(p,t)=>'https://wa.me/'+String(p||'').replace(/\D/g,'').replace(/^0/,'234')+(t?'?text='+encodeURIComponent(t):'');
+let tab='dash',ofilter='All',q='',range='30',session=null,users=[];
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),2600)}
+const chips=(l,c,k)=>`<div class="chips">${l.map(s=>`<button class="chip${s===c?' on':''}" data-${k}="${esc(s)}">${esc(s)}</button>`).join('')}</div>`;
+const search=ph=>`<input id="q" type="search" placeholder="${ph}" value="${esc(q)}" style="margin-bottom:12px">`;
+const uname=id=>{const u=users.find(x=>x.id===id);return u?(u.name||u.email):'Customer'};
+const csv=(name,rows)=>{const b=new Blob([rows.map(r=>r.map(c=>'"'+String(c??'').replace(/"/g,'""')+'"').join(',')).join('\n')],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;a.click()};
+async function loadUsers(){if(!users.length){const {data}=await sb.rpc('admin_users');users=data||[]}}
+const summ=o=>(o.items||[]).map(i=>`${i.q}× ${i.n}`).join(', ');
+const orderRow=o=>`<tr data-id="${esc(o.id)}"><td><b>${esc(o.id)}</b><div class="mut">${when(o.created_at)}</div></td><td>${esc(uname(o.user_id))}<div class="mut">${esc(o.phone)}</div></td><td>${esc(summ(o))}</td><td>${naira(o.total)}<div class="mut">${o.pay==='wallet'?'Wallet':'Pay on delivery'}</div></td>
+<td><select data-act="ost" style="min-width:140px">${opts(ORDER_ST,o.status)}</select></td><td class="row noprint"><a class="btn alt sm" target="_blank" rel="noopener" href="${wa(o.phone,'Hello, about your KAMPZA order '+o.id)}">WhatsApp</a><button class="btn alt sm" data-act="inv">Invoice</button></td></tr>`;
+const ordTable=l=>l.length?`<div class="card tw"><table><thead><tr><th>Order</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th><th></th></tr></thead><tbody>${l.map(orderRow).join('')}</tbody></table></div>`:'<div class="empty">No orders found.</div>';
+const RANGES={'1':'Today','7':'Last 7 days','30':'Last 30 days','90':'Last 90 days','365':'This year'};
+const views={
+ async dash(){
+  const since=new Date();since.setDate(since.getDate()-(range==='1'?0:Number(range)));since.setHours(0,0,0,0);
+  const [s,o,p]=await Promise.all([sb.rpc('admin_stats'),sb.from('orders').select('*').gte('created_at',since.toISOString()).order('created_at',{ascending:false}).limit(1000),sb.from('products').select('id,name,stock,active')]);
+  if(s.error)return app.innerHTML=err('stats',s.error);await loadUsers();
+  const d=s.data,ords=o.data||[],prods=p.data||[],live=ords.filter(x=>x.status!=='Cancelled');
+  const st=(l,v,t,hot)=>`<button class="stat" data-t="${t}" style="${hot?'border-color:var(--o)':''}"><span class="mut">${l}</span><b>${v}</b></button>`;
+  const days={};live.forEach(x=>{const k=x.created_at.slice(0,10);days[k]=(days[k]||0)+Number(x.total)});
+  const ks=Object.keys(days).sort(),mx=Math.max(1,...Object.values(days));
+  const byS={};ords.forEach(x=>byS[x.status]=(byS[x.status]||0)+1);
+  const top={};live.forEach(x=>(x.items||[]).forEach(i=>top[i.n]=(top[i.n]||0)+Number(i.q)));
+  const tp=Object.entries(top).sort((a,b)=>b[1]-a[1]).slice(0,5),tm=Math.max(1,...tp.map(x=>x[1]));
+  const low=prods.filter(x=>x.active&&x.stock!=null&&x.stock<=3);
+  app.innerHTML=`<div class="row sp" style="margin-bottom:12px"><div><h2 style="margin:0">Good to see you, Admin</h2><div class="mut">Here is what is happening across your marketplace today · ${new Date().toLocaleDateString('en-NG',{dateStyle:'full'})}</div></div>
+  <select id="rng" style="width:auto">${Object.entries(RANGES).map(([k,v])=>`<option value="${k}"${k===range?' selected':''}>${v}</option>`).join('')}</select></div>
+  <div class="stats">${st('Orders today',d.orders_today,'orders')}${st('Open orders',d.open_orders,'orders',d.open_orders>0)}${st('Pending quotes',d.pending_quotes,'quotes',d.pending_quotes>0)}${st('Total revenue',naira(d.revenue),'orders')}${st('Customers',d.customers,'people')}${st('Low stock',d.low_stock,'stock',d.low_stock>0)}${st('Products',prods.length,'products')}${st('Wallet balances held',naira(d.wallet_total),'people')}</div>
+  <div class="two"><div class="card"><b>Sales — ${RANGES[range]}</b><div class="mut">${naira(live.reduce((a,x)=>a+Number(x.total),0))} from ${live.length} order${live.length===1?'':'s'}</div>
+  ${ks.length?`<div class="bars">${ks.map(k=>`<i title="${k}: ${naira(days[k])}" style="height:${Math.max(2,days[k]/mx*100)}%"></i>`).join('')}</div>`:'<div class="empty">No sales in this period.</div>'}</div>
+  <div class="card"><b>Order status</b><div style="margin-top:10px">${Object.keys(byS).length?Object.entries(byS).map(([k,v])=>`<div class="row sp"><span>${esc(k)}</span><b>${v}</b></div><div class="hb"><i style="width:${v/ords.length*100}%"></i></div>`).join(''):'<div class="empty">No orders.</div>'}</div></div></div>
+  <div class="two"><div class="card"><b>Top-selling products</b><div style="margin-top:10px">${tp.length?tp.map(([n,v])=>`<div class="row sp"><span>${esc(n)}</span><b>${v} sold</b></div><div class="hb"><i style="width:${v/tm*100}%"></i></div>`).join(''):'<div class="empty">No sales yet.</div>'}</div></div>
+  <div class="card"><b>Running low</b><div style="margin-top:10px">${low.length?low.map(x=>`<div class="row sp"><span>${esc(x.name)}</span><span class="pill bad">${x.stock} left</span></div>`).join(''):'<div class="empty">All stocked.</div>'}</div></div></div>
+  <div class="row sp"><h2>Recent orders</h2><button class="btn alt sm" data-t="orders">View all</button></div>${ordTable(ords.slice(0,5))}
+  <div class="row noprint"><button class="btn" data-t="products">+ Add product</button><button class="btn alt" data-t="quotes">Manage quotes</button><button class="btn alt" data-t="stock">Inventory</button></div>`;
+ },
+ async orders(){
+  await loadUsers();let r=sb.from('orders').select('*').order('created_at',{ascending:false}).limit(500);if(ofilter!=='All')r=r.eq('status',ofilter);
+  const {data,error}=await r;if(error)return app.innerHTML=err('orders',error);
+  const l=data.filter(o=>!q||(o.id+' '+uname(o.user_id)+' '+o.phone+' '+summ(o)).toLowerCase().includes(q.toLowerCase()));
+  app.innerHTML=`<div class="row sp"><div style="flex:1;min-width:200px">${search('Search orders')}</div><button class="btn alt noprint" data-act="oexp">Export CSV</button></div>`+chips(['All',...ORDER_ST],ofilter,'of')+ordTable(l);app._o=l;
+ },
+ async quotes(){
+  await loadUsers();const {data,error}=await sb.from('quotes').select('*').order('created_at',{ascending:false}).limit(300);if(error)return app.innerHTML=err('quotes',error);
+  app.innerHTML=data.length?data.map(x=>`<div class="card" data-id="${esc(x.id)}"><div class="row sp"><b>${esc(x.item)} × ${esc(x.qty)}</b><span class="pill ${stCls(x.status)}">${esc(x.status)}</span></div>
+  <div class="mut">${esc(uname(x.user_id))} · Budget ${x.budget?naira(x.budget):'not set'} · ${when(x.created_at)}${x.note?'<br>'+esc(x.note):''}</div>
+  <div class="grid" style="margin-top:10px"><input type="number" min="0" placeholder="Your price (₦)" value="${esc(x.reply_price??'')}" data-f="price"><select data-f="status">${opts(QUOTE_ST,x.status)}</select></div>
+  <textarea data-f="note" rows="2" placeholder="Reply to the customer" style="margin-top:8px">${esc(x.reply_note??'')}</textarea><button class="btn" data-act="qsave" style="margin-top:8px">Save reply</button></div>`).join(''):'<div class="empty">No quote requests yet.</div>';
+ },
+ async products(){
+  const {data,error}=await sb.from('products').select('*').order('created_at',{ascending:false});if(error)return app.innerHTML=err('products',error);
+  const f=(k,l,v,t='text')=>`<label class="mut">${l}<input type="${t}" ${t==='number'?'min="0"':''} value="${esc(v??'')}" data-f="${k}"></label>`;
+  const l=data.filter(p=>!q||(p.name+' '+(p.category||'')+' '+p.id).toLowerCase().includes(q.toLowerCase()));
+  app.innerHTML=`<div class="stats"><div class="stat"><span class="mut">Total</span><b>${data.length}</b></div><div class="stat"><span class="mut">Active</span><b>${data.filter(x=>x.active).length}</b></div><div class="stat"><span class="mut">Hidden</span><b>${data.filter(x=>!x.active).length}</b></div><div class="stat"><span class="mut">Out of stock</span><b>${data.filter(x=>x.stock===0).length}</b></div></div>
+  <details class="card"><summary><b>+ Add a product</b></summary><div class="grid" style="margin-top:10px">${f('id','ID (e.g. p8)','')}${f('name','Name','')}${f('emoji','Emoji','')}${f('price','Price ₦','','number')}${f('old_price','Old price ₦','','number')}${f('category','Category','')}${f('brand','Brand','')}${f('stock','Stock','','number')}${f('image','Image URL','')}</div>
+  <label class="mut" style="margin-top:8px;display:block">Description<textarea rows="2" data-f="description"></textarea></label><button class="btn" data-act="padd" style="margin-top:8px">Add product</button></details>${search('Search products')}`+
+  (l.length?l.map(p=>`<div class="card" data-id="${esc(p.id)}"><div class="row sp"><b>${esc(p.emoji||'')} ${esc(p.name)}</b><span class="mut">${esc(p.id)}</span></div>
+  <div class="grid" style="margin-top:8px">${f('name','Name',p.name)}${f('price','Price ₦',p.price,'number')}${f('old_price','Old price ₦',p.old_price,'number')}${f('stock','Stock (blank = unlimited)',p.stock,'number')}${f('category','Category',p.category)}${f('brand','Brand',p.brand)}${f('emoji','Emoji',p.emoji)}${f('image','Image URL',p.image)}</div>
+  <label class="mut" style="margin-top:8px;display:block">Description<textarea rows="2" data-f="description">${esc(p.description??'')}</textarea></label>
+  <div class="row" style="margin-top:8px"><label><input type="checkbox" style="width:auto;min-height:0" data-f="active"${p.active?' checked':''}> Visible in store</label><label><input type="checkbox" style="width:auto;min-height:0" data-f="flash"${p.flash?' checked':''}> Flash deal</label>
+  <span style="margin-left:auto" class="row"><button class="btn alt" data-act="pdup">Duplicate</button><button class="btn red" data-act="pdel">Delete</button><button class="btn" data-act="psave">Save</button></span></div></div>`).join(''):'<div class="empty">No products match.</div>');
+ },
+ async stock(){
+  const {data,error}=await sb.from('products').select('id,name,stock,active,emoji').order('stock',{ascending:true,nullsFirst:false});if(error)return app.innerHTML=err('inventory',error);
+  const l=data.filter(p=>p.stock!=null).filter(p=>!q||p.name.toLowerCase().includes(q.toLowerCase()));
+  app.innerHTML=search('Search inventory')+(l.length?`<div class="card tw"><table><thead><tr><th>Product</th><th>Stock</th><th>Status</th><th>Set stock</th></tr></thead><tbody>${l.map(p=>`<tr data-id="${esc(p.id)}"><td>${esc(p.emoji||'')} ${esc(p.name)}</td><td><b>${p.stock}</b></td><td><span class="pill ${p.stock===0?'bad':p.stock<=3?'warn':'ok'}">${p.stock===0?'Out of stock':p.stock<=3?'Low':'In stock'}</span></td><td class="row"><input type="number" min="0" value="${p.stock}" data-f="stock" style="width:90px"><button class="btn sm" data-act="ssave">Update</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No tracked stock.</div>');
+ },
+ async people(){
+  users=[];await loadUsers();const l=users.filter(u=>!q||((u.email||'')+' '+(u.name||'')).toLowerCase().includes(q.toLowerCase()));
+  app.innerHTML=`<div class="row sp"><div style="flex:1;min-width:200px">${search('Search by name or email')}</div><button class="btn alt" data-act="cexp">Export CSV</button></div>`+(l.length?l.map(u=>`<div class="card" data-id="${esc(u.id)}"><div class="row sp"><b>${esc(u.name||u.email)}</b><span class="pill ok">${naira(u.balance)}</span></div>
+  <div class="mut">${esc(u.email)} · joined ${when(u.joined)}</div><div style="margin-top:8px"><button class="btn alt" data-act="wadj">Adjust wallet</button></div></div>`).join(''):'<div class="empty">No customers match.</div>');
+ },
+ async mail(){
+  app.innerHTML=`<div class="card"><p class="mut" style="margin-bottom:10px">Sends to every customer with a confirmed email who has not turned update emails off. Send a test to yourself first.</p>
+  <label class="mut">Subject<input id="m-sub" maxlength="120"></label><label class="mut" style="margin-top:8px;display:block">Message<textarea id="m-msg" rows="7" maxlength="4000"></textarea></label>
+  <div class="row" style="margin-top:10px"><button class="btn alt" data-act="mtest">Send test to me</button><button class="btn" data-act="mall">Send to all customers</button></div></div>`;
+ }};
+
+// KAMPZA Admin 3.0 extension modules. Existing Supabase auth and working modules remain intact.
+Object.assign(TITLES,{vendors:'Vendor management',finance:'Finance & payouts',wallets:'Wallet management',promotions:'Promotions',content:'Store content',staff:'Staff & permissions',security:'Security centre',activity:'Activity & audit',settings:'Marketplace settings',demo:'Demo data centre'});
+const moduleIntro=(title,desc,items)=>`<div class="card"><div class="row sp"><div><div class="mut" style="font-weight:700;letter-spacing:.12em;text-transform:uppercase">KAMPZA CONTROL CENTRE</div><h2 style="font-size:20px;margin:7px 0">${title}</h2><div class="mut">${desc}</div></div><span class="pill info">Integration stage</span></div></div><div class="grid">${items.map(x=>`<div class="card"><div style="font-size:20px;margin-bottom:10px">${x[0]}</div><b>${x[1]}</b><p class="mut" style="margin-top:7px">${x[2]}</p></div>`).join('')}</div>`;
+const pendingNote=`<div class="card"><b>Database connection required</b><p class="mut" style="margin-top:7px">This section is prepared in the admin interface. Its live data operations will be connected after we inspect your Supabase tables, relationships, policies and existing functions. No database structure has been guessed or overwritten.</p></div>`;
+views.vendors=async()=>{app.innerHTML=moduleIntro('Vendor management','Monitor vendor onboarding, store performance, compliance and individual commercial terms.',[['♧','Vendor directory','Search vendors, view store profiles and monitor account status.'],['✓','Automatic registration','New vendor applications follow the automatic registration policy you selected.'],['₦','Individual commissions','Each vendor can have their own commission percentage or agreed rate.'],['↗','Vendor performance','Track orders, sales, cancellations, ratings and fulfilment.'],['⇄','Payout profile','Review verified payout details and transfer eligibility.'],['⚑','Vendor support','Record complaints, policy issues and account restrictions.']]) + pendingNote};
+views.finance=async()=>{app.innerHTML=moduleIntro('Finance & payouts','Financial control with traceable records and safe payout processing.',[['₦','Marketplace revenue','Track gross sales, net sales and platform commission.'],['⇄','Automatic payouts','Scheduled vendor transfers with eligibility checks and idempotency.'],['◈','Commission ledger','Reconcile each vendor’s individual commission rate.'],['↩','Refunds & disputes','Review refunds, chargebacks and payment disputes.'],['✓','Reconciliation','Compare Paystack transactions, orders and payout records.'],['⚠','Failed transfers','Retry only after checking the original transfer state.']])+`<div class="card"><b>Financial safety</b><p class="mut" style="margin-top:7px">Payout execution must be performed by a trusted server-side function. Never expose a Paystack secret key or allow the browser to mark a transfer as paid.</p></div>`+pendingNote};
+views.wallets=async()=>{app.innerHTML=moduleIntro('Wallet management','Review customer balances and wallet ledger activity.',[['◈','Customer balances','View available and pending balances.'],['＋','Credit / debit','Require reason, permission checks and an immutable ledger entry.'],['▤','Wallet history','Trace every credit, debit and reversal.']])+pendingNote};
+views.promotions=async()=>{app.innerHTML=moduleIntro('Promotions','Manage offers and marketplace growth campaigns.',[['％','Discount codes','Create, schedule, pause and expire coupon codes.'],['✦','Campaigns','Organise promotions by audience and product category.'],['▣','Featured products','Control featured placements and merchandising.'],['↗','Performance','Measure redemptions, revenue and campaign conversion.']])+pendingNote};
+views.content=async()=>{app.innerHTML=moduleIntro('Store content','Manage the public-facing marketplace experience.',[['▧','Homepage banners','Create and schedule hero banners and promotional tiles.'],['▤','Categories','Organise marketplace categories and display order.'],['✎','Pages & policies','Edit About, FAQ, Terms, Privacy and vendor policies.'],['⌕','SEO','Manage page titles, descriptions and social previews.']])+pendingNote};
+views.staff=async()=>{app.innerHTML=moduleIntro('Staff & permissions','Manage authorised people who operate KAMPZA.',[['♙','Staff accounts','Invite, activate and deactivate admin staff.'],['⬡','Role-based access','Configure Super Admin, Operations, Finance, Support and Marketing permissions.'],['◷','Staff activity','Review sensitive actions by staff member.']])+`<div class="card"><b>Security rule</b><p class="mut" style="margin-top:7px">Do not grant roles from client-side code. Role changes must be authorised and enforced by Supabase RLS or trusted server functions. Only Super Admin should manage privileged roles.</p></div>`+pendingNote};
+views.security=async()=>{app.innerHTML=moduleIntro('Security centre','Review access, sessions and sensitive account activity.',[['⬡','Authentication','Preserve the existing PIN-to-Supabase authentication flow.'],['◷','Login history','Review successful and failed admin sign-ins.'],['▣','Active sessions','Inspect and revoke sessions where supported.'],['⚑','Sensitive actions','Require confirmation and server-side authorisation.']])+pendingNote};
+views.activity=async()=>{const r=await sb.from('admin_audit_log').select('*').order('created_at',{ascending:false}).limit(100);if(r.error){app.innerHTML=moduleIntro('Activity & audit','Track administrative activity and sensitive changes.',[['◷','Audit trail','Search and review administrator actions.']])+`<div class="card"><b>Could not load audit log</b><p class="mut">${esc(r.error.message)}</p></div>`;return}const rows=r.data||[];app.innerHTML=`<div class="row sp"><div><h2>Activity & audit</h2><p class="mut">Latest 100 records available from the existing audit table.</p></div><button class="btn alt" data-act="audit-export">Export CSV</button></div><div class="card tw"><table><thead><tr><th>Time</th><th>Actor</th><th>Action</th><th>Details</th></tr></thead><tbody>${rows.map(x=>`<tr><td>${esc(x.created_at||'')}</td><td>${esc(x.admin_id||x.actor_id||'—')}</td><td>${esc(x.action||x.event||'—')}</td><td>${esc(JSON.stringify(x.details||x.metadata||{}))}</td></tr>`).join('')||'<tr><td colspan="4">No audit records found.</td></tr>'}</tbody></table></div>`;app._audit=rows};
+views.settings=async()=>{app.innerHTML=moduleIntro('Marketplace settings','Centralise the operating rules and public identity of KAMPZA.',[['◎','General & branding','Marketplace name, logo, support contacts, currency and brand assets.'],['♧','Vendor policy','Automatic registration, vendor rules and individual commission defaults.'],['₦','Finance policy','Payout frequency, minimum payout and reconciliation preferences.'],['▧','Catalogue','Product approval, stock and category settings.'],['✉','Notifications','Email, push and in-app notification templates.'],['⚙','Integrations','Paystack, email provider, webhooks and delivery integrations.'],['◈','Legal & SEO','Policies, metadata and social links.']])+`<div class="card"><b>Existing configuration preserved</b><p class="mut" style="margin-top:7px">Settings will be mapped to your existing settings table and verified columns. This screen will not write guessed keys or overwrite current configuration.</p></div>`+pendingNote};
+views.demo=async()=>{app.innerHTML=`<div class="card"><div class="row sp"><div><div class="mut" style="font-weight:700;letter-spacing:.12em">DATA MAINTENANCE</div><h2 style="font-size:21px;margin:7px 0">Demo Data Centre</h2><p class="mut">Preview and remove records explicitly marked as demo/test data across the KAMPZA marketplace and administration system.</p></div><span class="pill warn">Destructive actions</span></div></div><div class="card"><h2>Before you clear anything</h2><p class="mut">This panel is intentionally fail-closed. It will only delete records through a dedicated, authenticated server-side database function that verifies demo markers and protects genuine users, vendors, orders, financial records and administrator accounts.</p><div class="row" style="margin-top:12px"><button class="btn alt" data-act="demo-preview">Preview demo records</button><button class="btn red" data-act="demo-clear">Clear all demo data</button></div><div id="demo-result" class="mut" style="margin-top:12px">Demo deletion backend is not yet installed. No records have been deleted.</div></div><div class="grid">${[['Customers','Demo customer accounts'],['Vendors','Demo vendor profiles'],['Products','Demo catalogue items'],['Orders','Demo orders and order items'],['Payments','Demo payment test records'],['Wallets','Demo wallet entries'],['Quotes','Demo quote requests'],['Reviews','Demo reviews and ratings'],['Notifications','Demo notification records'],['Admin activity','Demo audit/test events']].map(x=>`<div class="card"><b>${x[0]}</b><p class="mut" style="margin-top:5px">${x[1]}</p><span class="pill info">Preview after backend setup</span></div>`).join('')}</div><div class="card"><b>Data protection policy</b><ul class="mut" style="padding-left:18px;margin-top:8px;line-height:1.9"><li>Only rows explicitly marked as demo/test may be deleted.</li><li>Real financial transactions and payout records are never included in a bulk demo purge.</li><li>Admin accounts, roles, auth users and security settings are protected.</li><li>Deletion runs transactionally with a server-side audit record.</li><li>Preview and exact record counts are required before confirmation.</li></ul></div>`};
+async function show(){
+ $('#title').textContent=TITLES[tab];document.querySelectorAll('#nav [data-t]').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));
+ document.body.classList.remove('open');app.innerHTML='<div class="empty">Loading…</div>';
+ try{await views[tab]()}catch(e){app.innerHTML=err('this page',e)}
+}
+async function run(p,ok){const r=await p;toast(r.error?r.error.message:ok);return r}
+const val=(c,k)=>c.querySelector(`[data-f=${k}]`),num=v=>v===''||v==null?null:Number(v);
+let t1;document.addEventListener('input',e=>{
+ if(e.target.id==='q'||e.target.id==='gs'){const g=e.target.id==='gs';q=e.target.value;clearTimeout(t1);t1=setTimeout(async()=>{if(g&&!['orders','products','people'].includes(tab)){tab='orders';await show()}else await views[tab]();const el=g?$('#gs'):$('#q');if(el&&!g){el.focus();el.setSelectionRange(q.length,q.length)}},300)}});
+document.addEventListener('change',async e=>{
+ if(e.target.id==='rng'){range=e.target.value;return show()}
+ if(e.target.dataset.act!=='ost')return;const id=e.target.closest('tr').dataset.id;
+ if(e.target.value==='Cancelled'&&!confirm('Cancel this order? Wallet payments are refunded and stock is returned.'))return show();
+ await run(sb.from('orders').update({status:e.target.value}).eq('id',id),'Order updated');show();
+});
+$('#burger').onclick=()=>document.body.classList.toggle('open');$('#scrim').onclick=()=>document.body.classList.remove('open');
+document.addEventListener('click',async e=>{
+ const b=e.target.closest('button');if(!b)return;
+ if(b.dataset.t){tab=b.dataset.t;q='';$('#gs').value='';return show()}
+ if(b.dataset.of){ofilter=b.dataset.of;return show()}
+ const act=b.dataset.act,card=b.closest('.card')||b.closest('tr');if(!act)return;b.disabled=true;
+ try{
+  if(act==='audit-export'){const rows=app._audit||[];csv('kampza-admin-audit.csv',[['Created','Admin','Action','Details'],...rows.map(x=>[x.created_at,x.admin_id||x.actor_id,x.action||x.event,JSON.stringify(x.details||x.metadata||{})])]);}
+  else if(act==='demo-preview'){const out=$('#demo-result');out.textContent='Checking secure demo-data preview function…';const {data,error}=await sb.rpc('admin_preview_demo_data');if(error){out.textContent='Not ready: '+error.message+'. No data was changed. Install the verified demo-data database functions after schema review.'}else{out.textContent=JSON.stringify(data,null,2)}}
+  else if(act==='demo-clear'){const out=$('#demo-result');const preview=await sb.rpc('admin_preview_demo_data');if(preview.error){out.textContent='Cannot clear data: secure preview function is not installed. No data was changed.';return}const summary=JSON.stringify(preview.data);if(!confirm('You are about to delete ONLY records marked as demo/test. Preview: '+summary+' Continue?'))return;const phrase=prompt('Type CLEAR DEMO DATA to confirm');if(phrase!=='CLEAR DEMO DATA')return toast('Confirmation did not match');out.textContent='Requesting secure deletion…';const {data,error}=await sb.rpc('admin_clear_demo_data',{p_confirmation:'CLEAR DEMO DATA'});if(error){out.textContent='Deletion was not completed: '+error.message}else{out.textContent='Server response: '+JSON.stringify(data);toast('Demo data cleanup request completed')}}
+  else if(act==='qsave')await run(sb.from('quotes').update({status:val(card,'status').value,reply_price:num(val(card,'price').value),reply_note:val(card,'note').value.trim()||null}).eq('id',card.dataset.id),'Reply saved');
+  else if(act==='psave'||act==='padd'||act==='pdup'){
+   const g=k=>val(card,k),name=g('name').value.trim(),price=g('price').value;if(!name||price==='')return toast('Name and price are required');
+   const row={name,price:Number(price),old_price:num(g('old_price').value),stock:num(g('stock').value),category:g('category').value.trim()||null,brand:g('brand').value.trim()||null,emoji:g('emoji').value.trim()||null,image:g('image').value.trim()||null,description:g('description').value.trim()||null};
+   if(act==='psave'){Object.assign(row,{active:g('active').checked,flash:g('flash').checked});await run(sb.from('products').update(row).eq('id',card.dataset.id),'Product saved')}
+   else if(act==='pdup'){const {error}=await run(sb.from('products').insert({id:card.dataset.id+'-copy'+Date.now().toString(36).slice(-3),...row,name:name+' (copy)',active:false}),'Duplicated (hidden until you enable it)');if(!error)show()}
+   else{const id=g('id').value.trim();if(!id)return toast('Give the product an ID');const {error}=await run(sb.from('products').insert({id,...row}),'Product added');if(!error)show()}
+  }else if(act==='pdel'){if(!confirm('Delete this product for good? To hide it instead, untick "Visible in store".'))return;const {error}=await run(sb.from('products').delete().eq('id',card.dataset.id),'Product deleted');if(!error)show()}
+  else if(act==='ssave'){const v=num(val(card,'stock').value);if(v==null||v<0)return toast('Enter a valid stock number');const {error}=await run(sb.from('products').update({stock:v}).eq('id',card.dataset.id),'Stock updated');if(!error)show()}
+  else if(act==='wadj'){const amt=Number(prompt('Amount in ₦ (use a minus to deduct, e.g. -500)',''));if(!amt)return;const note=prompt('Reason (shown in their wallet history)','')||'';const {error}=await run(sb.rpc('admin_adjust_wallet',{p_user:card.dataset.id,p_amount:amt,p_note:note}),'Wallet updated');if(!error){users=[];show()}}
+  else if(act==='oexp')csv('kampza-orders.csv',[['Order','Customer','Phone','Items','Total','Payment','Status','Date'],...(app._o||[]).map(o=>[o.id,uname(o.user_id),o.phone,summ(o),o.total,o.pay,o.status,o.created_at])]);
+  else if(act==='cexp')csv('kampza-customers.csv',[['Name','Email','Wallet','Joined'],...users.map(u=>[u.name,u.email,u.balance,u.joined])]);
+  else if(act==='inv'){const {data:o}=await sb.from('orders').select('*').eq('id',card.dataset.id).single();const w=window.open('','_blank');if(w){w.document.write(`<title>Invoice ${esc(o.id)}</title><body style="font:14px Inter,sans-serif;max-width:640px;margin:30px auto"><img src="${LOGO}" width="56" style="border-radius:12px"><h2>KAMPZA — Invoice ${esc(o.id)}</h2><p>${esc(uname(o.user_id))} · ${esc(o.phone)}<br>${esc(o.address)}<br>${when(o.created_at)}</p><table width="100%" cellpadding="6" border="1" style="border-collapse:collapse">${(o.items||[]).map(i=>`<tr><td>${esc(i.n)}</td><td>${esc(i.q)}</td><td>${naira(i.p*i.q)}</td></tr>`).join('')}<tr><td colspan="2"><b>Total</b></td><td><b>${naira(o.total)}</b></td></tr></table><p>Payment: ${o.pay==='wallet'?'Paid with wallet':'Pay on delivery'} · Status: ${esc(o.status)}</p><script>onload=()=>print()<\/script>`);w.document.close()}}
+  else if(act==='mtest'||act==='mall'){const subject=$('#m-sub').value.trim(),message=$('#m-msg').value.trim();if(subject.length<3||message.length<5)return toast('Add a subject and a message');if(act==='mall'&&!confirm('Send this to ALL customers now? This cannot be undone.'))return;
+   const {data,error}=await sb.functions.invoke('admin-broadcast',{body:{token:session.access_token,subject,message,test:act==='mtest'}});toast(error||!data?.ok?(data?.error||error?.message||'Could not send'):`Sent to ${data.sent} of ${data.total}`)}
+ }finally{b.disabled=false}
+});
+async function signOut(){await sb.auth.signOut();location.reload()}$('#out').onclick=signOut;
+let pin='',busy=false;const lsub=$('#lsub'),dots=$('#dots');
+const paint=()=>dots.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('on',i<pin.length));
+const msg=(t,bad)=>{lsub.textContent=t;lsub.classList.toggle('err',!!bad)};
+function unlock(){document.body.classList.remove('locked');$('#lock').hidden=true;show()}
+async function tryPin(){
+ busy=true;$('#pad').querySelectorAll('button').forEach(b=>b.disabled=true);msg('Checking…');let r=null,fail=false;
+ try{const {data,error}=await sb.functions.invoke('admin-pin-login',{body:{pin}});r=data;if(error&&!data)fail=true;
+  if(r?.ok){let v=await sb.auth.verifyOtp({token_hash:r.token_hash,type:'email'});if(v.error)v=await sb.auth.verifyOtp({token_hash:r.token_hash,type:'magiclink'});
+   if(v.error||!v.data?.session)fail=true;else{session=v.data.session;const {data:ok}=await sb.rpc('is_admin');if(ok){sb.auth.onAuthStateChange((_e,s)=>{if(s)session=s});return unlock()}fail=true}}
+ }catch(e){fail=true}
+ busy=false;$('#pad').querySelectorAll('button').forEach(b=>b.disabled=false);pin='';paint();dots.classList.remove('shake');void dots.offsetWidth;dots.classList.add('shake');
+ if(fail||!r)msg('Could not log in. Check your connection and try again.',true);else if(r.locked)msg('Too many wrong tries. Wait '+Math.ceil(r.seconds/60)+' min.',true);else msg('Wrong PIN. '+r.left+' '+(r.left===1?'try':'tries')+' left.',true);
+}
+function press(d){if(busy||pin.length>=4)return;pin+=d;paint();if(pin.length===4)tryPin()}
+$('#pad').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.id==='pback')return;press(b.textContent.trim())});
+$('#pback').onclick=()=>{if(!busy){pin=pin.slice(0,-1);paint()}};
+document.addEventListener('keydown',e=>{if($('#lock').hidden)return;if(/^[0-9]$/.test(e.key))press(e.key);else if(e.key==='Backspace'&&!busy){pin=pin.slice(0,-1);paint()}});
+(async()=>{const {data:{session:cur}}=await sb.auth.getSession();if(cur){session=cur;const {data:ok}=await sb.rpc('is_admin');if(ok){sb.auth.onAuthStateChange((_e,s)=>{if(s)session=s});return unlock()}await sb.auth.signOut()}})();
+</script></body></html>

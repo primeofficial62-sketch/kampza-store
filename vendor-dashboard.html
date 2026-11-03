@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>KAMPZA Vendor Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--o:#FF7628;--c:#252525;--bg:#fff;--g:#F4F4F4;--m:#6b6b6b;--b:#e8e8e8;--r:14px;--pad:14px;color-scheme:light}
+@media(min-width:768px){:root{--pad:22px}}
+*{box-sizing:border-box;margin:0;min-width:0;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+html,body{max-width:100%;overflow-x:clip}
+body{font:400 14px/1.4 Inter,system-ui,sans-serif;color:var(--c);background:var(--bg);padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:25}
+h1,h2,h3{font-family:Sora,sans-serif}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+img{max-width:100%;display:block}
+.wrap{width:100%;max-width:900px;margin:0 auto;padding:0 var(--pad)}
+header{position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);z-index:20;padding:10px 0;border-bottom:1px solid var(--b)}
+.hrow{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.hrow b{font:700 18px Sora}.hrow small{color:var(--m);display:block;overflow-wrap:anywhere}
+.btn{background:var(--o);color:#fff;font-weight:600;border-radius:10px;padding:9px 14px;transition:transform .1s;text-align:center;text-decoration:none;display:inline-block}
+.btn:active{transform:scale(.97)}
+.btn.ghost{background:var(--g);color:var(--c)}.btn.danger{background:#d92d20}.btn.sm{padding:7px 11px;font-size:13px}
+.btn.full{display:block;width:100%;padding:13px;margin-top:10px}
+.btn[disabled]{opacity:.5;pointer-events:none}
+nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px solid var(--b);z-index:30;padding:6px 6px calc(8px + env(safe-area-inset-bottom,0px))}
+nav div{display:flex;max-width:520px;margin:0 auto}
+nav button{flex:1 1 0;padding:10px 0;font:500 12px Inter;color:var(--m);position:relative}
+nav .on{color:var(--o);font-weight:700}
+nav .cb{position:absolute;top:2px;left:calc(50% + 6px);background:var(--o);color:#fff;font:700 10px Inter;min-width:16px;height:16px;border-radius:8px;display:grid;place-items:center;padding:0 4px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:16px 0 12px}.top h1{font-size:21px}
+.sh2{font-size:15px;margin:20px 0 10px}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media(min-width:640px){.stats{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.stat{border:1px solid var(--b);border-radius:var(--r);padding:12px}.stat small{color:var(--m);display:block}.stat b{font:700 20px Sora;overflow-wrap:anywhere}
+.stat.hl{background:var(--o);border-color:var(--o);color:#fff}.stat.hl small{color:#fff;opacity:.85}
+.box{border:1px solid var(--b);border-radius:var(--r);padding:12px;margin-bottom:10px;display:grid;gap:8px;background:var(--bg)}
+.oh{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.st{background:#FF762822;color:var(--o);font:600 11px Inter;padding:3px 9px;border-radius:99px;white-space:nowrap}
+.st.ok{background:#e6f6ec;color:#1a7f43}.st.no{background:#fde8e6;color:#b42318}
+small,.mut{color:var(--m)}
+.prow{display:flex;gap:10px;align-items:center}
+.pth{width:60px;height:60px;border-radius:10px;background:var(--g);display:grid;place-items:center;font-size:28px;overflow:hidden;flex:none}
+.pth img{width:100%;height:100%;object-fit:cover}
+.pmid{flex:1;display:grid;gap:2px}.pmid b{overflow-wrap:anywhere}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.fld{display:grid;gap:6px;margin-bottom:12px}.fld label{font-weight:600;font-size:13px}
+input,textarea,select{font:inherit;font-size:16px;color:var(--c);border:1px solid var(--b);border-radius:10px;padding:11px 12px;background:var(--bg);width:100%;outline:0}
+input:focus,textarea:focus,select:focus{border-color:var(--o);box-shadow:0 0 0 3px #FF762826}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chk{display:flex;gap:8px;align-items:center}.chk input{width:auto;accent-color:var(--o)}
+.imgs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.imgs .im{position:relative;width:64px;height:64px;border-radius:10px;overflow:hidden;background:var(--g)}
+.imgs img{width:100%;height:100%;object-fit:cover}
+.imgs .x{position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;background:#000a;color:#fff;font-size:14px;line-height:1}
+.soon{text-align:center;padding:48px 16px;color:var(--m)}.soon b{display:block;font-size:36px;margin-bottom:8px}
+.warn{background:#fff4e5;color:#8a4b00;border-radius:var(--r);padding:12px;margin-bottom:12px}
+.warn.bad{background:#fde8e6;color:#9b1c14}
+.steps{display:flex;gap:4px;margin:2px 0}.steps i{flex:1;height:4px;border-radius:3px;background:var(--b)}.steps i.on{background:var(--o)}
+.tabs{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin-bottom:12px}
+.tabs button{border:1px solid var(--b);border-radius:99px;padding:7px 14px;font-weight:500;white-space:nowrap}.tabs .on{background:var(--o);border-color:var(--o);color:#fff}
+#toast{position:fixed;left:50%;bottom:calc(88px + env(safe-area-inset-bottom,0px));transform:translate(-50%,16px);background:#252525;color:#fff;padding:9px 14px;border-radius:10px;font-size:13px;opacity:0;transition:.25s;z-index:90;pointer-events:none;max-width:90vw;text-align:center}
+#toast.s{opacity:1;transform:translate(-50%,0)}
+.sk{background:linear-gradient(90deg,var(--g) 25%,#ececec 37%,var(--g) 63%);background-size:400% 100%;animation:shim 1.3s infinite;border-radius:var(--r);height:84px;margin-bottom:10px}
+@keyframes shim{0%{background-position:100% 50%}100%{background-position:0 50%}}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+<header><div class="wrap hrow"><div><b id="hn">Vendor dashboard</b><small id="hs">KAMPZA</small></div><a class="btn ghost sm" href="store.html">← Store</a></div></header>
+<main class="wrap" id="app"><div style="padding-top:16px"><div class="sk"></div><div class="sk"></div></div></main>
+<nav id="nav" hidden><div></div></nav>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const SUPABASE_URL='https://fcgvmxkxwgymgqcbtzjd.supabase.co',SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjZ3ZteGt4d2d5bWdxY2J0empkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMwODgyODcsImV4cCI6MjEwODY2NDI4N30.SEROg_J5x2dldpI6buHKYVQbuuyzM4bOJLHPYDWtIbM',AUTH_URL='index.html',STORE_URL='store.html',BUCKET='products';
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true,storage:window.localStorage}});
+const $=s=>document.querySelector(s),fmt=n=>'₦'+Number(n||0).toLocaleString('en-NG');
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const dt=t=>new Date(t).toLocaleDateString('en-NG',{day:'numeric',month:'short',year:'numeric'});
+const cap=t=>t?t[0].toUpperCase()+t.slice(1):'';
+const toast=m=>{const t=$('#toast');t.textContent=m;t.className='s';clearTimeout(t._t);t._t=setTimeout(()=>t.className='',2600)};
+const STEPS=['processing','packed','shipped','delivered'];
+const CATS=['Electronics','Fashion','Home & Living','Beauty','Appliances','Groceries','Sports & Outdoors','Books & Stationery'];
+let UID=null,V=null,tab='home',BAL={earned:0,paid:0,pending:0,available:0},PR=[],ITEMS=[],ORD={},PAY=[],EDIT=null,OF='open',BUSY=false,IMGS=[];
+
+/* ---------- boot ---------- */
+async function session(){for(let i=0;i<3;i++){try{const{data}=await sb.auth.getSession();if(data.session)return data.session}catch{}await new Promise(r=>setTimeout(r,400))}return null}
+async function boot(){
+ const ses=await session();
+ if(!ses){location.replace(AUTH_URL);return}
+ UID=ses.user.id;
+ let{data:v}=await sb.from('vendors').select('*').eq('user_id',UID).maybeSingle();
+ if(!v&&ses.user.user_metadata?.vendor_application){
+  const{error}=await sb.rpc('register_vendor');
+  if(error){gate('Could not finish your application',error.message,true);return}
+  ({data:v}=await sb.from('vendors').select('*').eq('user_id',UID).maybeSingle())}
+ if(!v){gate('Sell on KAMPZA','You have not applied to become a vendor yet. Create a vendor application from the sign-up page, then come back here.',false,true);return}
+ V=v;$('#hn').textContent=v.business_name;$('#hs').textContent=cap(v.status)+' vendor';
+ if(v.status==='pending'){gate('Application under review','Thanks for applying. We will approve your store shortly. Check back soon.');return}
+ if(v.status==='rejected'){gate('Application not approved','Your vendor application was not approved. Contact KAMPZA support for details.',true);return}
+ if(v.status==='suspended'){gate('Account suspended','Your vendor account is suspended. Contact KAMPZA support.',true);return}
+ $('#nav').hidden=false;draw();await refresh();
+ setInterval(()=>{if(!document.hidden&&!EDIT)refresh()},60000)}
+function gate(t,m,bad=false,apply=false){$('#app').innerHTML=`<div class="soon"><b>${bad?'⛔':'⏳'}</b><h2 style="color:var(--c)">${esc(t)}</h2><p style="margin:8px 0 16px">${esc(m)}</p>${apply?`<a class="btn" href="${AUTH_URL}">Go to sign up</a> `:''}<a class="btn ghost" href="${STORE_URL}">Back to store</a></div>`}
+async function refresh(){
+ try{
+  const[p,i,pay,b]=await Promise.all([
+   sb.from('products').select('*').eq('vendor_id',UID).order('created_at',{ascending:false}),
+   sb.from('order_items').select('*').eq('vendor_id',UID).order('id',{ascending:false}).limit(200),
+   sb.from('payouts').select('*').eq('vendor_id',UID).order('created_at',{ascending:false}).limit(50),
+   sb.rpc('vendor_balance')]);
+  if(!p.error)PR=p.data;if(!i.error)ITEMS=i.data;if(!pay.error)PAY=pay.data;if(!b.error&&b.data)BAL=b.data;
+  const ids=[...new Set(ITEMS.map(x=>x.order_id))];
+  if(ids.length){const{data}=await sb.from('orders').select('id,code,pay_method,paid,phone,address,created_at,status').in('id',ids);if(data)ORD=Object.fromEntries(data.map(o=>[o.id,o]))}
+  nav();if(!EDIT)view()
+ }catch(e){console.error(e);toast('Could not refresh. Check your connection.')}}
+
+/* ---------- derived ---------- */
+const live=i=>i.status!=='delivered'&&i.status!=='cancelled';
+const openItems=()=>ITEMS.filter(live);
+const nextOf=s=>STEPS[STEPS.indexOf(s)+1];
+const nextLabel={packed:'Mark packed',shipped:'Mark shipped',delivered:'Mark delivered'};
+function blocked(i){const o=ORD[i.order_id];return o&&o.pay_method!=='cod'&&!o.paid}
+
+/* ---------- views ---------- */
+const NAV=[['home','Overview'],['products','Products'],['orders','Orders'],['payouts','Payouts']];
+function nav(){const n=openItems().length;$('#nav div').innerHTML=NAV.map(x=>`<button data-t="${x[0]}" class="${x[0]===tab?'on':''}">${x[1]}${x[0]==='orders'&&n?`<span class="cb">${n>99?'99+':n}</span>`:''}</button>`).join('')}
+function draw(){nav();view();scrollTo(0,0)}
+function view(){const f={home:homeV,products:EDIT?formV:prodV,orders:ordV,payouts:payV}[tab];$('#app').innerHTML=f()}
+const empty=(i,m)=>`<div class="soon"><b>${i}</b>${m}</div>`;
+function homeV(){
+ const low=PR.filter(p=>p.active&&p.stock<=3);
+ return `<div class="top"><h1>Overview</h1></div>
+<div class="stats"><div class="stat hl"><small>Available to withdraw</small><b>${fmt(BAL.available)}</b></div><div class="stat"><small>Total earned</small><b>${fmt(BAL.earned)}</b></div><div class="stat"><small>Open items</small><b>${openItems().length}</b></div><div class="stat"><small>Products</small><b>${PR.length}</b></div></div>
+${!V.payout_verified?`<div class="warn" style="margin-top:12px">Your bank details are not verified yet, so payouts are on hold. Contact KAMPZA support to get verified.</div>`:''}
+${low.length?`<h2 class="sh2">Low stock</h2>${low.map(p=>`<div class="box"><div class="oh"><b>${esc(p.name)}</b><span class="st no">${p.stock===0?'Out of stock':p.stock+' left'}</span></div></div>`).join('')}`:''}
+<h2 class="sh2">Latest orders</h2>${openItems().slice(0,4).map(itemCard).join('')||empty('📦','No open orders right now.')}`}
+function prodV(){
+ return `<div class="top"><h1>Products</h1><button class="btn sm" data-new>+ Add product</button></div>`+(PR.length?PR.map(p=>`<div class="box"><div class="prow"><div class="pth">${p.images?.[0]?`<img src="${esc(p.images[0])}" alt="">`:esc(p.emoji||'🛍️')}</div><div class="pmid"><b>${esc(p.name)}</b><span>${fmt(p.price)}${p.old_price&&p.old_price>p.price?` <small style="text-decoration:line-through">${fmt(p.old_price)}</small>`:''}</span><small>${esc(p.category||'General')} · ${p.stock} in stock</small></div><span class="st ${p.active?'ok':'no'}">${p.active?'Live':'Hidden'}</span></div><div class="acts"><button class="btn ghost sm" data-edit="${p.id}">Edit</button><button class="btn ghost sm" data-tog="${p.id}">${p.active?'Hide':'Show'}</button><button class="btn ghost sm" data-stk="${p.id}">Set stock</button></div></div>`).join(''):empty('🛍️','No products yet. Add your first one.'))}
+function formV(){
+ const p=EDIT==='new'?{}:PR.find(x=>x.id===EDIT)||{};
+ const spec=Object.entries(p.specs||{}).map(([k,v])=>k+': '+v).join('\n');
+ return `<div class="top"><h1>${EDIT==='new'?'Add product':'Edit product'}</h1><button class="btn ghost sm" data-cancelform>Cancel</button></div>
+<div class="fld"><label>Photos (up to 5)</label><div class="imgs" id="imgs">${imgHtml()}</div><input type="file" id="file" accept="image/*" multiple></div>
+<div class="fld"><label for="f_n">Name</label><input id="f_n" maxlength="100" value="${esc(p.name||'')}"></div>
+<div class="two"><div class="fld"><label for="f_p">Price (₦)</label><input id="f_p" type="number" inputmode="numeric" min="1" value="${p.price||''}"></div><div class="fld"><label for="f_o">Old price (optional)</label><input id="f_o" type="number" inputmode="numeric" min="0" value="${p.old_price||''}"></div></div>
+<div class="two"><div class="fld"><label for="f_s">Stock</label><input id="f_s" type="number" inputmode="numeric" min="0" value="${p.stock??''}"></div><div class="fld"><label for="f_e">Emoji</label><input id="f_e" maxlength="4" value="${esc(p.emoji||'')}" placeholder="🛍️"></div></div>
+<div class="fld"><label for="f_c">Category</label><select id="f_c">${CATS.map(c=>`<option ${p.category===c?'selected':''}>${esc(c)}</option>`).join('')}</select></div>
+<div class="fld"><label for="f_b">Brand (optional)</label><input id="f_b" maxlength="60" value="${esc(p.brand||'')}"></div>
+<div class="fld"><label for="f_d">Description</label><textarea id="f_d" rows="4" maxlength="1500">${esc(p.description||'')}</textarea></div>
+<div class="fld"><label for="f_sp">Specifications (one per line, "Name: value")</label><textarea id="f_sp" rows="3">${esc(spec)}</textarea></div>
+<label class="chk"><input type="checkbox" id="f_a" ${p.active===false?'':'checked'}>Visible in the store</label>
+<button class="btn full" data-saveprod>Save product</button>`}
+const imgHtml=()=>IMGS.map((u,i)=>`<div class="im"><img src="${esc(u)}" alt=""><button class="x" data-rmimg="${i}" aria-label="Remove photo">×</button></div>`).join('');
+function itemCard(i){
+ const o=ORD[i.order_id]||{},nx=nextOf(i.status),bl=blocked(i);
+ return `<div class="box"><div class="oh"><b>${esc(o.code||'Order')}</b><span class="st ${i.status==='delivered'?'ok':i.status==='cancelled'?'no':''}">${cap(i.status)}</span></div>
+<div class="oh"><span>${i.qty}× ${esc(i.name)}</span><b>${fmt(i.price*i.qty)}</b></div>
+<small>${o.created_at?dt(o.created_at)+' · ':''}${{wallet:'Wallet',cod:'Pay on delivery',card:'Card'}[o.pay_method]||''}${o.pay_method&&o.pay_method!=='cod'?(o.paid?' · Paid':' · Awaiting payment'):''}</small>
+${i.status!=='cancelled'?`<div class="steps">${STEPS.map((x,k)=>`<i class="${k<=STEPS.indexOf(i.status)?'on':''}"></i>`).join('')}</div>`:''}
+${live(i)&&o.address?`<small>Deliver to: ${esc(o.address)}${o.phone?' · '+esc(o.phone):''}</small>`:''}
+${live(i)?`<div class="acts">${nx?`<button class="btn sm" data-step="${i.id}|${nx}" ${bl?'disabled':''}>${nextLabel[nx]}</button>`:''}${i.status==='processing'?`<button class="btn danger sm" data-step="${i.id}|cancelled">Cancel item</button>`:''}</div>${bl?'<small>Waiting for the buyer to pay before you can pack this.</small>':''}`:''}
+${i.status==='delivered'?`<small>Your payout: ${o.pay_method==='cod'?'after COD is settled · ':''}${fmt(i.payout)}</small>`:''}</div>`}
+function ordV(){
+ const list=OF==='open'?ITEMS.filter(live):ITEMS.filter(i=>!live(i));
+ return `<div class="top"><h1>Orders</h1></div><div class="tabs"><button data-of="open" class="${OF==='open'?'on':''}">Open (${openItems().length})</button><button data-of="done" class="${OF==='done'?'on':''}">Closed</button></div>`+(list.length?list.map(itemCard).join(''):empty('📦',OF==='open'?'No open orders.':'Nothing closed yet.'))}
+function payV(){
+ return `<div class="top"><h1>Payouts</h1></div><div class="stats"><div class="stat hl"><small>Available</small><b>${fmt(BAL.available)}</b></div><div class="stat"><small>Pending</small><b>${fmt(BAL.pending)}</b></div><div class="stat"><small>Paid out</small><b>${fmt(BAL.paid)}</b></div><div class="stat"><small>Total earned</small><b>${fmt(BAL.earned)}</b></div></div>
+<h2 class="sh2">Payout account</h2><div class="box"><b>${esc(V.bank_name||'—')}</b><span>${esc(V.account_number?'•••• '+V.account_number.slice(-4):'—')}${V.account_name?' · '+esc(V.account_name):''}</span><span class="st ${V.payout_verified?'ok':'no'}" style="justify-self:start">${V.payout_verified?'Verified':'Not verified'}</span></div>
+<small style="display:block;margin:6px 0">Earnings are credited after an item is delivered, minus KAMPZA commission. Pay-on-delivery items count once KAMPZA settles the cash.</small>
+<h2 class="sh2">History</h2>`+(PAY.length?PAY.map(x=>`<div class="box"><div class="oh"><b>${fmt(x.amount)}</b><span class="st ${x.status==='paid'?'ok':''}">${cap(x.status)}</span></div><small>${dt(x.created_at)}${x.ref?' · '+esc(x.ref):''}</small></div>`).join(''):empty('💸','No payouts yet.'))}
+
+/* ---------- actions ---------- */
+const g=(e,s)=>e.target.closest(s);
+async function upload(files){
+ const room=5-IMGS.length;if(room<=0){toast('Maximum 5 photos');return}
+ const list=[...files].slice(0,room);toast('Uploading…');
+ for(const f of list){
+  if(f.size>5*1024*1024){toast('Each photo must be under 5 MB');continue}
+  const ext=(f.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,5)||'jpg';
+  const path=UID+'/'+Date.now()+Math.random().toString(36).slice(2,7)+'.'+ext;
+  const{error}=await sb.storage.from(BUCKET).upload(path,f,{contentType:f.type||'image/jpeg',upsert:false});
+  if(error){toast('Upload failed: '+error.message);continue}
+  IMGS.push(sb.storage.from(BUCKET).getPublicUrl(path).data.publicUrl)}
+ const el=$('#imgs');if(el)el.innerHTML=imgHtml()}
+document.addEventListener('change',e=>{if(e.target.id==='file'){upload(e.target.files);e.target.value=''}});
+document.addEventListener('click',async e=>{
+ let x;
+ if(x=g(e,'[data-t]')){tab=x.dataset.t;EDIT=null;draw();return}
+ if(x=g(e,'[data-of]')){OF=x.dataset.of;view();return}
+ if(g(e,'[data-new]')){EDIT='new';IMGS=[];view();scrollTo(0,0);return}
+ if(x=g(e,'[data-edit]')){EDIT=x.dataset.edit;IMGS=[...(PR.find(p=>p.id===EDIT)?.images||[])];view();scrollTo(0,0);return}
+ if(g(e,'[data-cancelform]')){EDIT=null;view();return}
+ if(x=g(e,'[data-rmimg]')){IMGS.splice(+x.dataset.rmimg,1);$('#imgs').innerHTML=imgHtml();return}
+ if(x=g(e,'[data-tog]')){
+  const p=PR.find(k=>k.id===x.dataset.tog);if(!p)return;
+  const{error}=await sb.from('products').update({active:!p.active}).eq('id',p.id).eq('vendor_id',UID);
+  if(error){toast(error.message);return}toast(p.active?'Hidden from store':'Now visible in store');await refresh();return}
+ if(x=g(e,'[data-stk]')){
+  const p=PR.find(k=>k.id===x.dataset.stk);if(!p)return;
+  const a=prompt('New stock for "'+p.name+'"',p.stock);if(a===null)return;
+  const n=Math.floor(Number(a));if(!(n>=0)){toast('Enter a valid number');return}
+  const{error}=await sb.from('products').update({stock:n}).eq('id',p.id).eq('vendor_id',UID);
+  if(error){toast(error.message);return}toast('Stock updated');await refresh();return}
+ if(x=g(e,'[data-step]')){
+  const[id,st]=x.dataset.step.split('|');
+  if(st==='cancelled'&&!confirm('Cancel this item? The buyer will be refunded if they paid.'))return;
+  x.disabled=true;
+  const{error}=await sb.rpc('vendor_set_item',{p_item:id,p_status:st});
+  if(error){toast(error.message);x.disabled=false;return}
+  toast(st==='cancelled'?'Item cancelled':'Updated to '+cap(st));await refresh();return}
+ if(x=g(e,'[data-saveprod]')){
+  if(BUSY)return;
+  const v=id=>($('#'+id)?.value||'').trim(),name=v('f_n'),price=Math.floor(Number(v('f_p'))),old=Math.floor(Number(v('f_o')))||null,stock=Math.floor(Number(v('f_s')));
+  if(name.length<2){toast('Enter a product name');return}
+  if(!(price>0)){toast('Enter a valid price');return}
+  if(!(stock>=0)){toast('Enter the stock quantity');return}
+  if(old&&old<=price){toast('Old price must be higher than the price');return}
+  const specs={};v('f_sp').split('\n').forEach(l=>{const i=l.indexOf(':');if(i>0){const k=l.slice(0,i).trim(),val=l.slice(i+1).trim();if(k&&val)specs[k]=val}});
+  const row={name,price,old_price:old,stock,emoji:v('f_e')||null,category:v('f_c'),brand:v('f_b')||null,description:v('f_d')||null,specs,images:IMGS,active:$('#f_a').checked};
+  BUSY=true;x.disabled=true;x.textContent='Saving…';
+  const q=EDIT==='new'?sb.from('products').insert({...row,vendor_id:UID}):sb.from('products').update(row).eq('id',EDIT).eq('vendor_id',UID);
+  const{error}=await q;BUSY=false;
+  if(error){toast(error.message);x.disabled=false;x.textContent='Save product';return}
+  toast('Product saved');EDIT=null;await refresh();draw();return}
+});
+boot();
+</script>
+</body>
+</html>

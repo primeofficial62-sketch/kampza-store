@@ -518,8 +518,17 @@ $('#burger').onclick=()=>document.body.classList.toggle('open');$('#scrim').oncl
 const friendly=m=>/FORBIDDEN|Not allowed/i.test(m)?'Your admin role isn’t allowed to do this.':m;
 // Runs a write. rows=true means a table write that must return at least one row (otherwise row security blocked it silently).
 const done=async(p,ok,log,rows)=>{const r=await p;if(r.error){toast(friendly(r.error.message));return false}if(rows&&!(r.data&&r.data.length)){toast('Not saved. Your admin role may not be allowed to change this.');return false}toast(ok);if(log)audit(...log);return true};
-const dl=(name,type,text)=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click()};
-const typed=(msg,word)=>prompt(msg+'\nType '+word+' to confirm')===word||(toast('Cancelled. Nothing was deleted.'),false);
+const dl=(name,type,text)=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click()};const typed=(msg,word)=>new Promise(res=>{
+ const o=document.createElement('div');
+ o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);display:grid;place-items:center;padding:16px;z-index:300';
+ o.innerHTML=`<div class="card" style="max-width:380px;width:100%;margin:0"><h2>Are you sure?</h2><p class="mut" style="margin-bottom:10px">${esc(msg)}</p><p style="margin-bottom:8px">Type <b>${esc(word)}</b> to confirm</p><input id="tc" autocomplete="off" autocapitalize="characters"><div class="row" style="margin-top:12px;justify-content:flex-end"><button class="btn alt" id="tn">Cancel</button><button class="btn red" id="ty" disabled>Confirm</button></div></div>`;
+ document.body.appendChild(o);
+ const i=o.querySelector('#tc'),y=o.querySelector('#ty'),close=v=>{o.remove();if(!v)toast('Cancelled. Nothing was deleted.');res(v)};
+ i.oninput=()=>{y.disabled=i.value.trim().toUpperCase()!==word};
+ y.onclick=()=>close(true);
+ o.querySelector('#tn').onclick=()=>close(false);
+ i.focus();
+});
 document.addEventListener('click',async e=>{
  const b=e.target.closest('button');if(!b)return;
  if(b.dataset.t){tab=b.dataset.t;q='';$('#gs').value='';return show()}

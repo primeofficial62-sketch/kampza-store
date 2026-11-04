@@ -236,7 +236,7 @@ function formV(){
 <div class="two"><div class="fld"><label for="f_s">Stock</label><input id="f_s" type="number" inputmode="numeric" min="0" value="${p.stock??''}"></div><div class="fld"><label for="f_e">Emoji</label><input id="f_e" maxlength="4" value="${esc(p.emoji||'')}" placeholder="🛍️"></div></div>
 <div class="fld"><label for="f_c">Category</label><select id="f_c">${CATS.map(c=>`<option ${p.category===c?'selected':''}>${esc(c)}</option>`).join('')}</select></div>
 <div class="fld"><label for="f_b">Brand (optional)</label><input id="f_b" maxlength="60" value="${esc(p.brand||'')}"></div>
-<div class="fld"><label for="f_d">Description</label><textarea id="f_d" rows="4" maxlength="1500">${esc(p.description||'')}</textarea></div>
+<div class="fld"><label for="f_d">Description</label><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px"><button type="button" class="btn ghost sm" data-aiwrite>✨ Write it for me</button><small style="color:var(--m,#777)">Add a photo, name and brand first. You can edit the result or type your own.</small></div><textarea id="f_d" rows="4" maxlength="1500">${esc(p.description||'')}</textarea></div>
 <div class="fld"><label for="f_sp">Specifications (one per line, "Name: value")</label><textarea id="f_sp" rows="3">${esc(spec)}</textarea></div>
 <label class="chk"><input type="checkbox" id="f_a" ${p.active===false?'':'checked'}>Visible in the store</label>
 <button class="btn full" data-saveprod>Save product</button>`}
@@ -407,6 +407,20 @@ document.addEventListener('click',async e=>{
   const{error}=await sb.rpc('apply_vendor',a);BUSY=false;
   if(error){toast(error.message);x.disabled=false;x.textContent='Submit application';return}
   V=await loadVendor();toast('Application submitted');V?enter():boot();return}
+ if(x=g(e,'[data-aiwrite]')){
+  if(BUSY)return;
+  const name=val('f_n'),brand=val('f_b');
+  if(name.length<2){toast('Enter the product name first');return}
+  if(!IMGS.length&&!brand&&!confirm('No photo or brand yet, so the write-up will be very short. Continue?'))return;
+  if(val('f_d').trim()&&!confirm('Replace your current description?'))return;
+  BUSY=true;const old=x.textContent;x.disabled=true;x.textContent='Writing…';
+  try{
+   const{data:{session}}=await sb.auth.getSession();
+   const{data,error}=await sb.functions.invoke('product-writeup',{body:{token:session?.access_token||'',name,brand,category:val('f_c'),image:IMGS[0]||'',notes:val('f_sp')}});
+   if(error||!data?.ok){toast(data?.error||'Could not write it right now. Please type it yourself.')}
+   else{$('#f_d').value=data.description;toast(data.note?('Done. Check: '+data.note):'Done. Read it and edit anything that is not right.')}
+  }catch(err){toast('Could not write it right now. Please type it yourself.')}
+  BUSY=false;x.disabled=false;x.textContent=old;return}
  if(x=g(e,'[data-saveprod]')){
   if(BUSY)return;
   const name=val('f_n'),price=Math.floor(Number(val('f_p'))),old=Math.floor(Number(val('f_o')))||null,stock=Math.floor(Number(val('f_s')));

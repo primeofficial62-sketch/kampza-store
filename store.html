@@ -263,9 +263,10 @@ const STEPS=['processing','packed','shipped','delivered'],cap=t=>t?t[0].toUpperC
 const canCancel=o=>!['cancelled','completed'].includes(o.st)&&o.items.some(i=>i.s==='processing')&&o.items.every(i=>i.s==='processing'||i.s==='cancelled');
 const cancelBtn=o=>canCancel(o)?`<button class="btn full danger" data-cancel="${esc(o.id)}">Cancel order</button>`:'';
 const byId=id=>P.find(x=>x.id===id);
+const mine=p=>!!(U&&p&&p.v&&p.v===U.id);
 const flash=()=>FLASH.map(byId).filter(Boolean);
 const recs=()=>P.filter(x=>!FLASH.includes(x.id));
-const mapP=(r,rt)=>{const im=Array.isArray(r.images)?r.images:[];return{id:r.id,n:r.name,e:r.emoji||'🛍️',p:r.price,o:r.old_price,c:r.category||'General',d:r.description||'',b:r.brand,s:r.specs||{},img:im[0]||'',imgs:im,st:r.stock,r:Number(rt?.avg)||0,rn:rt?.n||0,t:Date.parse(r.created_at)||0}};
+const mapP=(r,rt)=>{const im=Array.isArray(r.images)?r.images:[];return{id:r.id,n:r.name,e:r.emoji||'🛍️',p:r.price,o:r.old_price,c:r.category||'General',d:r.description||'',b:r.brand,s:r.specs||{},v:r.vendor_id,img:im[0]||'',imgs:im,st:r.stock,r:Number(rt?.avg)||0,rn:rt?.n||0,t:Date.parse(r.created_at)||0}};
 async function loadCatalog(){
  if(sb)try{
   const[a,b,c]=await Promise.all([sb.from('products').select('*').eq('active',true).order('created_at',{ascending:false}),sb.from('product_ratings').select('*'),sb.from('settings').select('delivery_fee').maybeSingle()]);
@@ -273,7 +274,7 @@ async function loadCatalog(){
   const rt=Object.fromEntries((b.data||[]).map(x=>[x.product_id,x]));
   P=a.data.map(r=>mapP(r,rt[r.id]));if(c.data)FEE=c.data.delivery_fee;
   FLASH=P.filter(x=>x.o>x.p).sort((x,y)=>y.o/y.p-x.o/x.p).slice(0,6).map(x=>x.id);
-  for(const id of Object.keys(S.cart))if(!byId(id))delete S.cart[id];store();nav();
+  for(const id of Object.keys(S.cart))if(!byId(id)||mine(byId(id)))delete S.cart[id];store();nav();
  }catch(err){console.error(err);toast('Could not load products. Check your connection.')}
  LOADED=true;view()}
 /* orders, wallet, addresses and quotes always come from the database */
@@ -348,7 +349,7 @@ const cartTotal=()=>Object.entries(S.cart).reduce((a,[id,n])=>a+(byId(id)?.p||0)
 const slide=s=>`<section class="sl" style="--a:var(--o);background:#252525"><span class="t">${s[0]}</span><h2>${s[1]}</h2><span class="em" aria-hidden="true">${s[2]}</span><button class="btn" data-list="all">Shop Now →</button></section>`;
 function card(p,showAdd=true){
  const d=p.o&&p.o>p.p?Math.round((1-p.p/p.o)*100):0,out=p.st===0;
- return `<article class="card" data-open="${p.id}">${d?`<span class="disc">-${d}%</span>`:''}<button class="hb ${S.wish.includes(p.id)?'on':''}" data-w="${p.id}" aria-label="Wishlist ${esc(p.n)}" aria-pressed="${S.wish.includes(p.id)}">${heart}</button><div class="pimg">${p.img?`<img src="${esc(p.img)}" data-e="${esc(p.e)}" alt="${esc(p.n)}" loading="lazy">`:esc(p.e)}</div><h3>${esc(p.n)}</h3>${p.r?`<small class="stars">★ ${p.r} <span style="color:var(--m)">(${p.rn})</span></small>`:''}<div class="pr">${fmt(p.p)}${d?`<span class="old">${fmt(p.o)}</span>`:''}</div>${showAdd?`<button class="btn" data-add="${p.id}" ${out?'disabled':''}>${out?'Out of stock':cartI+'Add to Cart'}</button>`:''}</article>`}
+ return `<article class="card" data-open="${p.id}">${d?`<span class="disc">-${d}%</span>`:''}<button class="hb ${S.wish.includes(p.id)?'on':''}" data-w="${p.id}" aria-label="Wishlist ${esc(p.n)}" aria-pressed="${S.wish.includes(p.id)}">${heart}</button><div class="pimg">${p.img?`<img src="${esc(p.img)}" data-e="${esc(p.e)}" alt="${esc(p.n)}" loading="lazy">`:esc(p.e)}</div><h3>${esc(p.n)}</h3>${p.r?`<small class="stars">★ ${p.r} <span style="color:var(--m)">(${p.rn})</span></small>`:''}<div class="pr">${fmt(p.p)}${d?`<span class="old">${fmt(p.o)}</span>`:''}</div>${showAdd?(mine(p)?'<button class="btn" disabled>Your product</button>':`<button class="btn" data-add="${p.id}" ${out?'disabled':''}>${out?'Out of stock':cartI+'Add to Cart'}</button>`):''}</article>`}
 const thumb=p=>p.img?`<img src="${esc(p.img)}" data-e="${esc(p.e||'🛍️')}" alt="">`:esc(p.e||'🛍️');
 const empty=(i,m,b='')=>`<div class="soon"><b>${i}</b>${m}${b}</div>`;
 const shop='<br><br><button class="btn" data-list="all">Start shopping</button>';
@@ -391,7 +392,7 @@ ${imgs.length>1?`<div class="thumbs">${imgs.map(u=>`<button data-gi="${esc(u)}" 
 <h2 class="sh2">Description</h2><p class="pdesc">${esc(p.d||'No description has been added for this product yet.')}</p>
 <h2 class="sh2">Specifications</h2><div class="box"><table class="spec">${rows.map(r=>`<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td></tr>`).join('')}</table></div>
 <h2 class="sh2">Reviews</h2><div id="revs"><small>Loading…</small></div>
-<div class="pbar"><button class="btn alt" data-add="${p.id}" ${out?'disabled':''}>Add to cart</button><button class="btn" data-buy="${p.id}" ${out?'disabled':''}>Buy now</button></div></div></div>
+<div class="pbar">${mine(p)?'<button class="btn" disabled style="flex:1">This is your own product</button>':`<button class="btn alt" data-add="${p.id}" ${out?'disabled':''}>Add to cart</button><button class="btn" data-buy="${p.id}" ${out?'disabled':''}>Buy now</button>`}</div></div></div>
 ${rel.length?`<div class="sh"><h2>More in ${esc(p.c)}</h2></div><div class="grid">${rel.map(x=>card(x)).join('')}</div>`:''}`}
 /* ---- account ---- */
 function accountView(){
@@ -560,11 +561,11 @@ document.addEventListener('click',async e=>{
  if(x=g('[data-w]')){const k=x.dataset.w,on=!S.wish.includes(k);S.wish=on?[...S.wish,k]:S.wish.filter(i=>i!==k);store();
   document.querySelectorAll(`[data-w="${k}"]`).forEach(b=>{b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)});
   toast(on?'Saved to wishlist':'Removed from wishlist');if(tab==='wish'&&!q.trim()&&!sub)view();return}
- if(x=g('[data-add]')){const id=x.dataset.add,p=byId(id);if(!p)return;if(p.st===0){toast('Out of stock');return}const n=(S.cart[id]||0)+1;if(p.st!=null&&n>p.st){toast('Only '+p.st+' in stock');return}S.cart[id]=n;store();nav();toast('Added to cart ('+n+')');return}
+ if(x=g('[data-add]')){const id=x.dataset.add,p=byId(id);if(!p)return;if(mine(p)){toast('You cannot buy your own product');return}if(p.st===0){toast('Out of stock');return}const n=(S.cart[id]||0)+1;if(p.st!=null&&n>p.st){toast('Only '+p.st+' in stock');return}S.cart[id]=n;store();nav();toast('Added to cart ('+n+')');return}
  if(x=g('[data-qty]')){const id=x.dataset.qty,n=(S.cart[id]||0)+Number(x.dataset.d);if(n<=0)delete S.cart[id];else S.cart[id]=Math.min(n,99,byId(id)?.st??99);store();nav();view();return}
  if(x=g('[data-rm]')){delete S.cart[x.dataset.rm];store();nav();view();return}
  if(x=g('[data-gi]')){const m=$('#gmain');if(m)m.src=x.dataset.gi;return}
- if(x=g('[data-buy]')){const id=x.dataset.buy;S.cart[id]=S.cart[id]||1;store();tab='cart';pg='checkout';prod=null;sub=null;draw();return}
+ if(x=g('[data-buy]')){const id=x.dataset.buy;if(mine(byId(id))){toast('You cannot buy your own product');return}S.cart[id]=S.cart[id]||1;store();tab='cart';pg='checkout';prod=null;sub=null;draw();return}
  if(x=g('[data-open]')){if(!byId(x.dataset.open))return;prod=x.dataset.open;q='';$('#q').value='';draw();return}
  if(g('[data-ai]')){aiOpen();return}
  if(g('[data-aiclose]')){AIOPEN=false;aiSync();return}

@@ -11,6 +11,8 @@
 @media(min-width:768px){:root{--pad:20px;--gap:14px;--hh:220px;--lh:64px}}
 @media(min-width:1024px){:root{--pad:24px;--hh:240px}}
 *{box-sizing:border-box;margin:0;min-width:0;-webkit-tap-highlight-color:transparent}
+/* nothing is painted until we know the user is signed in (no flash before a redirect to login) */
+html:not(.ok) body{visibility:hidden}
 html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 130px);-webkit-text-size-adjust:100%}
 html,body{max-width:100%;overflow-x:clip}
 body{font:400 14px/1.4 Inter,system-ui,sans-serif;color:var(--c);background:var(--bg);padding-bottom:calc(110px + env(safe-area-inset-bottom,0px))}
@@ -122,7 +124,7 @@ nav .cb{position:absolute;top:1px;left:calc(50% + 4px);background:var(--o);color
 .pm{flex:1;display:grid;gap:3px;justify-items:start}.pm b{font:600 17px Sora;overflow-wrap:anywhere}.pm small{overflow-wrap:anywhere}
 .badge{background:#FF762822;color:var(--o);font:600 12px Inter;padding:3px 10px;border-radius:99px}
 .badge.no{background:#fde8e6;color:#d92d20}
-.qt{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:12px 0 4px}
+.qt{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0 4px}
 .qt button{border:1px solid var(--b);background:#FF76280a;border-radius:var(--r);padding:12px 2px 10px;display:grid;justify-items:center;gap:2px;font-weight:600;font-size:12.5px}
 .qt small{font-size:11px;font-weight:400}
 .ico{width:42px;height:42px;border-radius:50%;background:#FF762818;display:grid;place-items:center;margin-bottom:4px;flex:none}
@@ -153,16 +155,6 @@ details{border-bottom:1px solid var(--b);padding:13px 0}summary{font-weight:600;
 .terms h3{font-size:15px;margin:16px 0 4px}.terms p{color:var(--m)}
 .warn{background:#fde8e6;color:#9b1c14;border-radius:var(--r);padding:12px;margin-bottom:14px}
 [data-open]{cursor:pointer}
-#aibox{position:fixed;left:12px;right:12px;max-width:380px;margin-left:auto;bottom:calc(88px + env(safe-area-inset-bottom,0px));height:min(58vh,440px);background:var(--bg);border:1px solid var(--b);border-radius:18px;box-shadow:0 10px 34px #00000030;z-index:40;display:flex;flex-direction:column;overflow:hidden}
-#aibox[hidden]{display:none}
-.ah{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;background:var(--o);color:#fff}.ah b{font:600 15px Sora}.ah button{color:#fff;font-size:26px;line-height:1;padding:0 4px}
-#aibox .chat{flex:1;overflow-y:auto;padding:12px;align-content:start;overscroll-behavior:contain}
-#aibox .chips{padding:0 12px;margin:0 0 8px}
-.cbar2{display:flex;gap:8px;padding:8px 10px;border-top:1px solid var(--b)}.cbar2 input{border-radius:99px;padding:10px 14px}.cbar2 .btn{border-radius:99px;padding:0 16px}
-.acon{text-align:center;padding:0 0 8px}.acon a{color:var(--o);font-weight:600}
-body.aiopen .fab{display:none}
-.fab{position:fixed;right:14px;bottom:calc(88px + env(safe-area-inset-bottom,0px));z-index:35;display:flex;align-items:center;gap:7px;background:var(--o);color:#fff;border-radius:99px;padding:12px 18px 12px 14px;font-weight:600;box-shadow:0 6px 18px #ff762873;transition:transform .15s}
-.fab:active{transform:scale(.95)}.fab svg{width:24px;height:24px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .chat{display:grid;gap:10px;padding-bottom:10px}
 .bub{max-width:85%;padding:10px 13px;border-radius:16px;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.45}
 .bub.bot{background:var(--g);border-bottom-left-radius:4px;justify-self:start}
@@ -195,7 +187,6 @@ body.aiopen .fab{display:none}
 .steps{display:flex;gap:4px;margin:4px 0 8px}.steps i{flex:1;height:4px;border-radius:3px;background:var(--b)}.steps i.on{background:var(--o)}
 .cartw{display:grid;gap:10px}
 @media(min-width:760px){.cartw{grid-template-columns:minmax(0,1fr) 340px;gap:24px;align-items:start}.cartw .sum{position:sticky;top:150px;bottom:auto}}
-@media(min-width:768px){#aibox{right:16px;left:auto;width:380px}.fab{right:20px}}
 @media(max-width:340px){.qt{grid-template-columns:repeat(2,minmax(0,1fr))}.pbar{flex-direction:column}}
 .cat{flex:0 0 80px;font-size:11px}.cat span{overflow-wrap:normal;word-break:normal;hyphens:none;min-height:2.4em}
 @media(min-width:768px){.cat{flex-basis:92px;font-size:12px}}
@@ -221,13 +212,21 @@ input[readonly]{background:var(--g);color:var(--m);cursor:not-allowed}
 /* ===== floating nav (same size, rounded, lifted) ===== */
 nav{left:50%;right:auto;transform:translateX(-50%);width:calc(100% - 24px);max-width:520px;bottom:calc(10px + env(safe-area-inset-bottom,0px));border:1px solid var(--b);border-radius:26px;padding:8px 6px 10px;box-shadow:0 8px 28px #0000002b}
 body{padding-bottom:calc(130px + env(safe-area-inset-bottom,0px))}
-.fab,#aibox,.pbar,.sum,.cbar{bottom:calc(104px + env(safe-area-inset-bottom,0px))}
+.pbar,.sum,.cbar{bottom:calc(104px + env(safe-area-inset-bottom,0px))}
 #toast{bottom:calc(116px + env(safe-area-inset-bottom,0px))}
 /* ===== install popup ===== */
 #inst{position:fixed;top:calc(env(safe-area-inset-top,0px) + 8px);left:50%;transform:translateX(-50%);width:calc(100% - 24px);max-width:520px;z-index:60;display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--b);border-radius:18px;padding:10px 12px;box-shadow:0 10px 30px #0000003a}
 #inst[hidden]{display:none}#inst img{width:44px;height:44px;border-radius:10px;flex:none}
 #inst div{flex:1;display:grid}#inst small{line-height:1.3}#inst .btn{flex:none}#inst #insx{font-size:24px;padding:0 4px;color:var(--m)}
 .wab{background:#25D366!important}
+/* ===== new-message popup (top of screen) ===== */
+#mpop{position:fixed;top:calc(env(safe-area-inset-top,0px) + 8px);left:50%;width:calc(100% - 24px);max-width:520px;z-index:80;display:flex;align-items:center;gap:10px;text-align:left;background:#252525;color:#fff;border-radius:16px;padding:12px 14px;box-shadow:0 10px 30px #0000004d;transform:translate(-50%,-160%);transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+#mpop.s{transform:translate(-50%,0)}
+#mpop .mi{font-size:24px;flex:none}#mpop .mt{flex:1;display:grid;min-width:0}
+#mpop .mt b{font:600 14px Sora}#mpop .mt small{color:#ddd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#mpop .mg{color:var(--o);font-weight:600;font-size:13px;flex:none}
+/* the AI assistant has been removed; keep any leftover widget hidden */
+#aibox,.fab{display:none!important}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <link rel="manifest" href="manifest.json"><meta name="theme-color" content="#FF7628"><link rel="apple-touch-icon" href="icon-192.png"><script src="kz-extra.js"></script>
@@ -248,13 +247,12 @@ body{padding-bottom:calc(130px + env(safe-area-inset-bottom,0px))}
 <nav aria-label="Main"><div id="nav"></div></nav>
 <div id="inst" hidden role="dialog" aria-label="Install KAMPZA"><img src="icon-192.png" alt="" onerror="this.style.display='none'"><div><b>Install KAMPZA</b><small id="insm">Add the app to your home screen for faster shopping.</small></div><button class="btn" id="insgo">Install</button><button id="insx" aria-label="Close">×</button></div>
 <div id="toast" role="status" aria-live="polite"></div>
-<div id="aibox" role="dialog" aria-label="KAMPZA AI" hidden><div class="ah"><b>KAMPZA AI</b><button data-aiclose aria-label="Close chat">×</button></div><div class="chat" id="chat"></div><div class="chips" id="chips"></div><div class="cbar2"><input id="ain" placeholder="Ask anything about KAMPZA…" enterkeyhint="send" autocomplete="off" maxlength="500"><button class="btn" data-aisend>Send</button></div><div class="acon"><small>Need a person? <a id="aiwa" target="_blank" rel="noopener">WhatsApp</a> · <a id="aiem">Email</a></small></div></div>
 
 <script>
 /* ================= CONFIG ================= */
-const SUPABASE_URL='https://fcgvmxkxwgymgqcbtzjd.supabase.co',SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjZ3ZteGt4d2d5bWdxY2J0empkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMwODgyODcsImV4cCI6MjEwODY2NDI4N30.SEROg_J5x2dldpI6buHKYVQbuuyzM4bOJLHPYDWtIbM',AUTH_URL='index.html',MAIL_ENDPOINT=SUPABASE_URL+'/functions/v1/notify',CATALOG_URL='deals.json';
-const SUPPORT_EMAIL='kampzastore@gmail.com',WHATSAPP='2349059538257',AI_ENDPOINT=SUPABASE_URL+'/functions/v1/kampza-ai',VERSION='2.2.0';
-const AI_FN=['kampza-ai'],MAIL_FN=['notify-ts'];
+const SUPABASE_URL='https://fcgvmxkxwgymgqcbtzjd.supabase.co',SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjZ3ZteGt4d2d5bWdxY2J0empkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMwODgyODcsImV4cCI6MjEwODY2NDI4N30.SEROg_J5x2dldpI6buHKYVQbuuyzM4bOJLHPYDWtIbM',AUTH_URL='auth.html',MAIL_ENDPOINT=SUPABASE_URL+'/functions/v1/notify',CATALOG_URL='deals.json';
+const SUPPORT_EMAIL='kampzastore@gmail.com',WHATSAPP='2349059538257',VERSION='2.3.0';
+const MAIL_FN=['notify-ts'];
 async function callFn(names,body){let last;for(const n of names){try{const r=await fetch(SUPABASE_URL+'/functions/v1/'+n,{method:'POST',headers:{'Content-Type':'application/json',apikey:SUPABASE_ANON_KEY,Authorization:'Bearer '+SUPABASE_ANON_KEY},body:JSON.stringify(body)});if(r.status===404)continue;return await r.json()}catch(e){last=e}}throw last||new Error('function not found')}
 
 /* ================= HELPERS ================= */
@@ -264,6 +262,7 @@ const toast=m=>{const t=$('#toast');t.textContent=m;t.className='s';clearTimeout
 const today=()=>new Date().toLocaleDateString('en-CA',{timeZone:'Africa/Lagos'});
 const dt=t=>new Date(t).toLocaleDateString('en-NG',{day:'numeric',month:'short',year:'numeric'});
 const v=id=>($('#'+id)?.value||'').trim();
+const showPage=()=>document.documentElement.classList.add('ok');
 
 /* ================= DATA (deals.json overrides this fallback) ================= */
 const SLIDES=[
@@ -328,13 +327,13 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&U)loadSer
 const heart='<svg viewBox="0 0 24 24"><path d="M12 21s-8-5.5-8-11a4.5 4.5 0 018-2.8A4.5 4.5 0 0120 10c0 5.5-8 11-8 11z"/></svg>';
 const cartI='<svg viewBox="0 0 24 24"><path d="M3 4h3l2.5 12h10L21 8H7"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg>';
 const IC={home:'<path d="M3 11l9-8 9 8v10h-6v-6H9v6H3z"/>',cats:'<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>',wish:'<path d="M12 21s-8-5.5-8-11a4.5 4.5 0 018-2.8A4.5 4.5 0 0120 10c0 5.5-8 11-8 11z"/>',cart:cartI.slice(cartI.indexOf('<path'),-6),account:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>'};
-const ICO={user:IC.account,shield:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',doc:'<path d="M6 3h8l4 4v14H6z"/><path d="M9 13h6M9 17h4"/>',trash:'<path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 11v6M14 11v6"/>',help:'<path d="M4 14v-2a8 8 0 0116 0v2"/><rect x="3" y="14" width="4" height="6" rx="2"/><rect x="17" y="14" width="4" height="6" rx="2"/>',out:'<path d="M9 4H5v16h4M16 8l4 4-4 4M20 12H9"/>',tag:'<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.2"/>',wallet:'<path d="M3 7h16a2 2 0 012 2v10H5a2 2 0 01-2-2z"/><path d="M3 7l2-3h12"/><circle cx="17" cy="14" r="1"/>',heart:IC.wish,bot:'<rect x="4" y="8" width="16" height="11" rx="3"/><path d="M12 8V4M9 13h.01M15 13h.01M9 16h6"/>',bell:'<path d="M6 9a6 6 0 0112 0c0 6 2 7 2 8H4c0-1 2-2 2-8zM10 20a2 2 0 004 0"/>'};
+const ICO={user:IC.account,shield:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',doc:'<path d="M6 3h8l4 4v14H6z"/><path d="M9 13h6M9 17h4"/>',trash:'<path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 11v6M14 11v6"/>',help:'<path d="M4 14v-2a8 8 0 0116 0v2"/><rect x="3" y="14" width="4" height="6" rx="2"/><rect x="17" y="14" width="4" height="6" rx="2"/>',out:'<path d="M9 4H5v16h4M16 8l4 4-4 4M20 12H9"/>',tag:'<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.2"/>',wallet:'<path d="M3 7h16a2 2 0 012 2v10H5a2 2 0 01-2-2z"/><path d="M3 7l2-3h12"/><circle cx="17" cy="14" r="1"/>',heart:IC.wish,bell:'<path d="M6 9a6 6 0 0112 0c0 6 2 7 2 8H4c0-1 2-2 2-8zM10 20a2 2 0 004 0"/>'};
 const ic=n=>`<svg viewBox="0 0 24 24" aria-hidden="true">${ICO[n]}</svg>`;
 const NAV=[['home','Home'],['cats','Categories'],['wish','Wishlist'],['cart','Cart'],['account','Account']];
 
 /* ================= STATE ================= */
 let U=null,TOKEN='',tab='home',sub=null,pg=null,prod=null,q='',OUT=false;
-const DEF=()=>({notifs:[],ai:[],prefs:{email:true,daily:true},cart:{},wish:[],day:'',orders:[],quotes:[],wallet:{bal:0,tx:[]}});
+const DEF=()=>({notifs:[],prefs:{email:true,daily:true},cart:{},wish:[],day:'',orders:[],quotes:[],wallet:{bal:0,tx:[]}});
 let S=DEF();
 let VS=null;
 async function loadVendor(){if(!sb||!U)return;try{const{data,error}=await sb.from('vendors').select('status').eq('user_id',U.id).maybeSingle();if(error)return;VS=data?data.status:'none';if(tab==='account'&&!pg&&!sub)view()}catch{}}
@@ -364,8 +363,7 @@ const area=(id,l,val='',ph='')=>`<div class="fld"><label for="${id}">${l}</label
 const skel=n=>`<div class="grid">${Array(n).fill('<div class="sk"></div>').join('')}</div>`;
 function home(){
  const fl=flash(),rc=recs(),SL=heroSlides();N=SL.length;
- return `<button class="fab" data-ai aria-label="Ask KAMPZA AI">${ic('bot')}Ask AI</button>
-<div class="hero" id="hero" aria-roledescription="carousel" aria-label="Campaigns"><div class="track" id="track">${SL.join('')}</div><div class="dots">${SL.map(()=>'<i></i>').join('')}</div></div>
+ return `<div class="hero" id="hero" aria-roledescription="carousel" aria-label="Campaigns"><div class="track" id="track">${SL.join('')}</div><div class="dots">${SL.map(()=>'<i></i>').join('')}</div></div>
 <div class="cats">${CATS.map(c=>`<button class="cat" data-cat="${esc(c[0])}"><i>${c[1]}</i><span>${esc(c[0])}</span></button>`).join('')}</div>`
  +(!LOADED?`<div class="sh"><h2>Loading products…</h2></div>${skel(4)}`
  :!P.length?empty('🛍️','No products yet. Our vendors are getting set up. Check back soon.')
@@ -406,11 +404,9 @@ function accountView(){
 <div class="qt">
  <button data-pg="orders"><span class="ico">${ic('doc')}</span>My Orders<small>${S.orders.length} orders</small></button>
  <button data-go="wish"><span class="ico">${ic('heart')}</span>Wishlist<small>${S.wish.length} saved</small></button>
- <button data-pg="quotes"><span class="ico">${ic('tag')}</span>My Quotes<small>${S.quotes.length} quotes</small></button>
- <button data-pg="wallet"><span class="ico">${ic('wallet')}</span>Wallet<small>${fmt(S.wallet.bal)}</small></button></div>
+ <button data-pg="quotes"><span class="ico">${ic('tag')}</span>My Quotes<small>${S.quotes.length} quotes</small></button></div>
 <h2 class="sh2">Account Settings</h2>
 <div class="box">${row('chats','help','Messages','Chat with vendors, send receipts')}${row('info','user','Personal Information','Name, email, phone number, address')}${row('security','shield','Security','Change password, verification')}${row('prefs','bell','Notifications','Email alerts and daily deals')}${row('terms','doc','Terms &amp; Conditions','Read our terms and policies')}${row('delete','trash','Delete Account','Permanently remove your account')}</div>
-<button class="li tint" data-ai><span class="ic">${ic('bot')}</span><span><b>Ask KAMPZA AI</b><small>Instant answers about products, orders and payments</small></span><span class="cv">›</span></button>
 <a class="li tint" href="vendor-dashboard.html" style="text-decoration:none;color:inherit"><span class="ic">${ic('tag')}</span><span><b>${VS==='approved'?'Vendor Dashboard':VS==='pending'?'Vendor Application':VS==='rejected'?'Vendor Application':VS==='suspended'?'Vendor Dashboard':'Become a Vendor'}</b><small>${VS==='approved'?'Manage your products, orders and payouts':VS==='pending'?'Under review. We will notify you once approved':VS==='rejected'?'Not approved. Tap to see details or reapply':VS==='suspended'?'Your vendor account is suspended':'Apply to sell on KAMPZA'}</small></span><span class="cv">›</span></a>
 <button class="li tint" data-pg="help"><span class="ic">${ic('help')}</span><span><b>Help &amp; Support</b><small>Get help, contact us, or visit FAQs</small></span><span class="cv">›</span></button>
 <button class="out" data-signout>${ic('out')}Log Out</button>
@@ -421,36 +417,16 @@ function checkoutView(){
  const ids=Object.keys(S.cart).filter(byId);if(!ids.length)return pgHead('Checkout')+empty('🛒','Your cart is empty.',shop);
  const a=ADDR[0]||{},sub=cartTotal(),tot=sub+FEE;
  return pgHead('Checkout')+`<div class="cartw"><div><h2 class="sh2" style="margin-top:0">Delivery</h2>${gpsBlock()}${ADDR.length?`<div class="fld"><label for="adsel">Saved addresses</label><select id="adsel"><option value="">Enter a new address</option>${ADDR.map((x,i)=>`<option value="${i}" ${i===0?'selected':''}>${esc(x.label||'Address')} · ${esc(x.hostel||'')}, ${esc(x.campus||'')}</option>`).join('')}</select></div>`:''}${fld('cp','Campus',a.campus||'','autocomplete="off" placeholder="e.g. FUNAAB main campus"')}${fld('hs','Hostel / room',a.hostel||'','autocomplete="off" placeholder="Hostel name and room number"')}${fld('ph','Phone number',a.phone||U.phone,'type="tel" inputmode="tel" autocomplete="tel"')}<label class="chk" style="margin-bottom:6px"><input type="checkbox" id="sv" ${ADDR.length?'':'checked'}>Save this address for next time</label>
-<h2 class="sh2">Payment</h2><label class="opt"><input type="radio" name="pay" value="cod" checked><span>Pay on delivery</span></label><label class="opt"><input type="radio" name="pay" value="wallet"><span>Wallet <small>${fmt(S.wallet.bal)} available</small></span></label><label class="opt"><input type="radio" name="pay" value="transfer"><span>Bank transfer <small>pay the vendor, then send your receipt</small></span></label></div>
+<h2 class="sh2">Payment</h2><label class="opt"><input type="radio" name="pay" value="cod" checked><span>Pay on delivery</span></label><label class="opt"><input type="radio" name="pay" value="transfer"><span>Bank transfer <small>pay the vendor, then send your receipt</small></span></label></div>
 <div class="sum"><b>Order summary</b>${ids.map(id=>`<div class="oh" style="font-weight:400;font-size:14px"><span>${S.cart[id]}× ${esc(byId(id).n)}</span><span>${fmt(byId(id).p*S.cart[id])}</span></div>`).join('')}<div style="font-weight:400;font-size:14px"><span>Subtotal</span><span>${fmt(sub)}</span></div><div style="font-weight:400;font-size:14px"><span>Delivery</span><span>${fmt(FEE)}</span></div><div><span>Total</span><span>${fmt(tot)}</span></div><button class="btn" data-place>Place order · ${fmt(tot)}</button></div></div>`}
 function quotesView(){return pgHead('My Quotes')+`<p class="sub">Can’t find something? Tell us what you need and we’ll send a price.</p>${fld('qi','What do you need?','','placeholder="e.g. HP laptop, 16GB RAM"')}${fld('qq','Quantity','1','type="number" inputmode="numeric" min="1"')}${fld('qb','Budget (₦, optional)','','type="number" inputmode="numeric"')}${area('qn','Extra details (optional)')}<button class="btn full" data-quote>Request quote</button><h2 class="sh2">Your requests</h2>`+(S.quotes.length?S.quotes.map(x=>`<div class="nt"><div class="oh"><b>${esc(x.id)}</b><span class="st">${esc(x.status)}</span></div><div>${x.qty}× ${esc(x.item)}</div><small>${dt(x.at)}${x.budget?' · Budget '+fmt(x.budget):''}</small></div>`).join(''):'<div class="soon">No quotes yet.</div>')}
-function walletView(){return pgHead('Wallet')+`<div class="bal"><small>Available balance</small><b>${fmt(S.wallet.bal)}</b></div><a class="btn full" href="https://wa.me/${WHATSAPP}?text=I%20want%20to%20fund%20my%20KAMPZA%20wallet" target="_blank" rel="noopener">Fund wallet via WhatsApp</a><h2 class="sh2">Transactions</h2>`+(S.wallet.tx.length?S.wallet.tx.map(x=>`<div class="nt"><div class="oh"><b>${esc(x.t)}</b><b style="color:${x.a<0?'#d92d20':'#1a8f4c'}">${x.a<0?'−':'+'}${fmt(Math.abs(x.a))}</b></div><small>${dt(x.at)}</small></div>`).join(''):'<div class="soon">No transactions yet.</div>')}
 function infoView(){return pgHead('Personal Information')+`${fld('fn','Full name',U.name,'autocomplete="name"')}${fld('em','Email',U.email,'disabled')}${fld('ph','Phone number',U.phone,'type="tel" inputmode="tel" autocomplete="tel"')}${area('ad','Delivery address',U.meta.address||'','Hostel, room, campus')}<button class="btn full" data-saveinfo>Save changes</button>`}
 function securityView(){return pgHead('Security')+`<div class="set"><div><b>Email verification</b><small>${U.verified?'Your email is verified':'Not verified yet'}</small></div>${U.verified?'<span class="badge">✓ Verified</span>':'<button class="btn" data-resend>Resend link</button>'}</div><h2 class="sh2">Change password</h2>${fld('np','New password','','type="password" autocomplete="new-password" placeholder="At least 8 characters"')}${fld('cp','Confirm new password','','type="password" autocomplete="new-password"')}<button class="btn full" data-pw>Update password</button>`}
-function prefsView(){return pgHead('Notifications')+`<label class="set"><div><b>Daily deals email</b><small>One email each morning with today’s Flash Deals</small></div><span class="sw"><input type="checkbox" data-pref="daily" ${S.prefs.daily?'checked':''}><s></s></span></label><label class="set"><div><b>Other email updates</b><small>Welcome and account messages</small></div><span class="sw"><input type="checkbox" data-pref="email" ${S.prefs.email?'checked':''}><s></s></span></label><p style="margin-top:14px"><small>Emails are sent automatically to ${esc(U.email)}.</small></p>`}
-function termsView(){return pgHead('Terms &amp; Conditions')+`<div class="terms"><h3>1. Using KAMPZA</h3><p>You must provide accurate details and keep your login private. You are responsible for activity on your account.</p><h3>2. Orders and pricing</h3><p>Prices are in Nigerian Naira. We may cancel an order if an item is unavailable or a price was listed in error, and refund any payment made.</p><h3>3. Wallet</h3><p>Wallet funds can only be spent on KAMPZA orders and are not withdrawable unless required by law.</p><h3>4. Delivery</h3><p>Delivery times are estimates. Please provide a correct address and phone number.</p><h3>5. Privacy</h3><p>We use your name, email, phone and address only to run your account, process orders and send messages you opted into. You can turn emails off or delete your account at any time.</p><h3>6. Contact</h3><p>Questions? Email ${esc(SUPPORT_EMAIL)}.</p></div>`}
+function prefsView(){return pgHead('Notifications')+`<label class="set"><div><b>Daily deals email</b><small>One email each morning with today’s Flash Deals</small></div><span class="sw"><input type="checkbox" data-pref="daily" ${S.prefs.daily?'checked':''}><s></s></span></label><label class="set"><div><b>Other email updates</b><small>Welcome and account messages</small></div><span class="sw"><input type="checkbox" data-pref="email" ${S.prefs.email?'checked':''}><s></s></span></label><p style="margin-top:14px"><small>Order emails (placed, payment confirmed, shipped, delivered) are always sent to ${esc(U.email)}.</small></p>`}
+function termsView(){return pgHead('Terms &amp; Conditions')+`<div class="terms"><h3>1. Using KAMPZA</h3><p>You must provide accurate details and keep your login private. You are responsible for activity on your account.</p><h3>2. Orders and pricing</h3><p>Prices are in Nigerian Naira. We may cancel an order if an item is unavailable or a price was listed in error, and refund any payment made.</p><h3>3. Delivery</h3><p>Delivery times are estimates. Please provide a correct address and phone number.</p><h3>4. Privacy</h3><p>We use your name, email, phone and address only to run your account, process orders and send messages you opted into. You can turn emails off or delete your account at any time.</p><h3>5. Contact</h3><p>Questions? Email ${esc(SUPPORT_EMAIL)}.</p></div>`}
 function deleteView(){return pgHead('Delete Account')+`<div class="warn"><b>This cannot be undone.</b> Your profile, orders, quotes, wishlist and wallet balance will be removed permanently.</div>${fld('dc','Type DELETE to confirm','','autocapitalize="characters" autocomplete="off"')}<button class="btn full danger" data-del>Delete my account</button>`}
-function helpView(){const f=(a,b)=>`<details><summary>${a}</summary><p>${b}</p></details>`;return pgHead('Help &amp; Support')+'<button class="li tint" style="margin:0 0 6px" data-ai><span class="ic">'+ic('bot')+'</span><span><b>Ask KAMPZA AI</b><small>Instant answers, any time</small></span><span class="cv">›</span></button>'+f('How do I place an order?','Add items to your cart, tap Checkout, enter your phone and address, then choose Wallet, Bank transfer or Pay on delivery.')+f('How do I fund my wallet?','Go to Account → Wallet and tap Fund wallet to message us on WhatsApp.')+f('Can’t find a product?','Use My Quotes to describe what you need and we’ll reply with a price.')+f('I didn’t get an email','Check spam, confirm your email is verified under Security, then make sure Daily deals email is on in Notifications.')+`<a class="btn full" href="https://wa.me/${WHATSAPP}" target="_blank" rel="noopener">Chat on WhatsApp</a><a class="btn full ghost" href="mailto:${SUPPORT_EMAIL}">Email support</a>`}
-const AIHI='Hi! I’m KAMPZA AI 👋 Ask me about products, orders, your wallet, payments or delivery.';
-let AIOPEN=false,AIBUSY=false;
-const AIQ=['Where is my order?','How do I fund my wallet?','How does delivery work?','Recommend something under ₦30,000'];
-function aiSync(){const root=tab==='home'&&!sub&&!pg&&!prod&&!q.trim();if(!root)AIOPEN=false;$('#aibox').hidden=!AIOPEN;document.body.classList.toggle('aiopen',AIOPEN)}
-function aiRender(){const c=$('#chat');c.innerHTML=`<div class="bub bot">${AIHI}</div>`+S.ai.map(m=>`<div class="bub ${m.r==='u'?'me':'bot'}">${esc(m.t)}</div>`).join('');
- $('#chips').innerHTML=S.ai.length?'':AIQ.map(t=>`<button data-aiq="${esc(t)}">${esc(t)}</button>`).join('');
- $('#aiwa').href='https://wa.me/'+WHATSAPP;$('#aiem').href='mailto:'+SUPPORT_EMAIL;c.scrollTop=c.scrollHeight}
-function aiOpen(){AIOPEN=true;if(!(tab==='home'&&!sub&&!pg&&!prod&&!q.trim()))go2('home');aiRender();aiSync()}
-async function askAI(text){
- text=(text||'').trim().slice(0,500);if(!text||AIBUSY)return;AIBUSY=true;
- const chat=$('#chat'),add=(c,t)=>{const d=document.createElement('div');d.className='bub '+c;d.textContent=t;chat.appendChild(d);chat.scrollTop=chat.scrollHeight;return d};
- $('#chips').innerHTML='';
- S.ai.push({r:'u',t:text});add('me',text);$('#ain').value='';
- const w=add('bot','…');
- try{const j=await callFn(AI_FN,{token:TOKEN,messages:S.ai.slice(-10).map(m=>({role:m.r==='u'?'user':'assistant',content:m.t})),ctx:{name:U.name.split(' ')[0],wallet:S.wallet.bal,orders:S.orders.slice(0,5).map(o=>({id:o.id,status:o.status,total:o.total,date:dt(o.at),pay:o.pay,items:o.items.map(i=>i.q+'x '+i.n)}))}});
-  const t=j.ok?j.reply:'Sorry, I can’t answer right now. Please message us on WhatsApp or email.';if(!j.ok)console.error('KAMPZA AI',j);w.textContent=t;if(j.ok)S.ai.push({r:'a',t})}
- catch(err){console.error('KAMPZA AI',err);w.textContent='I can’t connect right now. Please try again or message us on WhatsApp.'}
- chat.scrollTop=chat.scrollHeight;S.ai=S.ai.slice(-30);store();AIBUSY=false}
-document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='ain'){e.preventDefault();askAI(e.target.value)}});
-const PG={pay:()=>KX.payView(),chat:()=>KX.chatView(),chats:()=>KX.chatsView(),track:trackView,orders:ordersView,checkout:checkoutView,quotes:quotesView,wallet:walletView,info:infoView,security:securityView,prefs:prefsView,terms:termsView,delete:deleteView,help:helpView};
+function helpView(){const f=(a,b)=>`<details><summary>${a}</summary><p>${b}</p></details>`;return pgHead('Help &amp; Support')+f('How do I place an order?','Add items to your cart, tap Checkout, enter your phone and address, then choose Bank transfer or Pay on delivery.')+f('Can’t find a product?','Use My Quotes to describe what you need and we’ll reply with a price.')+f('I didn’t get an email','Check spam, then confirm your email address is correct under Personal Information.')+`<a class="btn full" href="https://wa.me/${WHATSAPP}" target="_blank" rel="noopener">Chat on WhatsApp</a><a class="btn full ghost" href="mailto:${SUPPORT_EMAIL}">Email support</a>`}
+const PG={pay:()=>KX.payView(),chat:()=>KX.chatView(),chats:()=>KX.chatsView(),track:trackView,orders:ordersView,checkout:checkoutView,quotes:quotesView,info:infoView,security:securityView,prefs:prefsView,terms:termsView,delete:deleteView,help:helpView};
 
 /* ===== GPS + TRACKING ===== */
 let GM='gps',GEO=null,GWATCH=null,GMAP=null,GMARK=null,GCIR=null,TC=null,LID=0;
@@ -548,7 +524,7 @@ function view(){
  else h=tab==='home'?home():tab==='cats'?catsView():tab==='wish'?wishView():tab==='cart'?cartView():tab==='account'?accountView():notifsView();
  $('#app').innerHTML=h;if(prod&&byId(prod)&&!q.trim()&&!pg)loadReviews(prod);
  if(pg==='checkout'&&!q.trim()){gpsInit();addrMode()}else if(pg==='track'&&!q.trim())trackLoad();else if(!q.trim()&&KX.hooks[pg])KX.hooks[pg]();
- if(tab==='home'&&!sub&&!pg&&!prod&&!q.trim())start();aiSync()}
+ if(tab==='home'&&!sub&&!pg&&!prod&&!q.trim())start()}
 const snap=()=>({tab,sub,pg,prod,tc:TC});
 function draw(h=true){nav();view();scrollTo(0,0);try{U&&localStorage.setItem('kz_nav_'+U.id,JSON.stringify(snap()))}catch{}if(h){const t=snap();if(JSON.stringify(history.state)!==JSON.stringify(t))history.pushState(t,'')}}
 function go2(t,s=null){tab=t;sub=s;pg=null;prod=null;q='';$('#q').value='';draw()}
@@ -571,10 +547,6 @@ document.addEventListener('click',async e=>{
  if(x=g('[data-gi]')){const m=$('#gmain');if(m)m.src=x.dataset.gi;return}
  if(x=g('[data-buy]')){const id=x.dataset.buy;if(mine(byId(id))){toast('You cannot buy your own product');return}S.cart[id]=S.cart[id]||1;store();tab='cart';pg='checkout';prod=null;sub=null;draw();return}
  if(x=g('[data-open]')){if(!byId(x.dataset.open))return;prod=x.dataset.open;q='';$('#q').value='';draw();return}
- if(g('[data-ai]')){aiOpen();return}
- if(g('[data-aiclose]')){AIOPEN=false;aiSync();return}
- if(x=g('[data-aiq]')){askAI(x.dataset.aiq);return}
- if(g('[data-aisend]')){askAI($('#ain').value);return}
  if(x=g('[data-cat]')){tab='home';sub={cat:x.dataset.cat};pg=null;prod=null;q='';$('#q').value='';draw();return}
  if(x=g('[data-list]')){tab='home';sub=x.dataset.list;pg=null;prod=null;q='';$('#q').value='';draw();return}
  if(x=g('[data-go]')){go2(x.dataset.go);return}
@@ -583,7 +555,7 @@ document.addEventListener('click',async e=>{
  if(x=g('[data-pg]')){pg=x.dataset.pg;draw();return}
  if(g('[data-pgback],[data-back],[data-hback]')){history.back();return}
  if(g('[data-read]')){S.notifs.forEach(n=>n.r=1);store();badges();view();return}
- if(g('[data-signout]')){OUT=true;try{localStorage.removeItem('kz_nav_'+U.id)}catch{}sb?.auth.signOut();return}
+ if(g('[data-signout]')){signOut();return}
  if(x=g('[data-share]')){const p=byId(x.dataset.share),t=p.n+' for '+fmt(p.p)+' on KAMPZA';if(navigator.share)navigator.share({title:p.n,text:t,url:location.origin}).catch(()=>{});else{navigator.clipboard?.writeText(t+' '+location.origin);toast('Link copied')}return}
  if(x=g('[data-rev]')){prod=x.dataset.rev;pg=null;q='';draw();return}
  if(x=g('[data-star]')){const r=$('#rate'),n=+x.dataset.star;r.dataset.v=n;r.querySelectorAll('button').forEach((b,i)=>b.classList.toggle('on',i<n));return}
@@ -609,7 +581,6 @@ document.addEventListener('click',async e=>{
   const ph=v('ph'),cp=v('cp'),hs=v('hs'),ad=hs+', '+cp,pay=document.querySelector('input[name=pay]:checked').value,t=cartTotal()+FEE;
   if(ph.length<7||cp.length<2||hs.length<2){toast('Enter your phone, campus and hostel / room');return}
   if(GM==='gps'&&!GEO){toast('Tap "Find my location" or choose manual address');return}
-  if(pay==='wallet'&&S.wallet.bal<t){toast('Wallet balance is too low. Fund your wallet first.');return}
   const items=Object.keys(S.cart).filter(byId).map(id=>({id,qty:S.cart[id]}));
   PLACING=true;x.disabled=true;x.textContent='Placing order…';
   try{
@@ -619,8 +590,9 @@ document.addEventListener('click',async e=>{
    try{await sb.rpc('set_order_location',{p_code:data.code,p_lat:GM==='gps'?GEO?.lat:null,p_lng:GM==='gps'?GEO?.lng:null,p_acc:GM==='gps'?GEO?.acc:null,p_src:GM==='gps'&&GEO?'gps':'manual'})}catch(e){console.error(e)}
    GEO=null;try{sessionStorage.removeItem('kz_gps')}catch{}
    S.cart={};CKEY=crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random();U.phone=ph;store();
+   /* the "order placed" email is sent by the server (database trigger -> order-mail function) */
    notif('Order placed ✅',data.code+' · '+fmt(data.total));
-   await Promise.all([loadServer(),loadCatalog()]);if(pay==='transfer')KX.payCode=data.code;tab='account';pg=pay==='transfer'?'pay':'orders';draw();toast('Order placed');
+   await Promise.all([loadServer(),loadCatalog()]);if(pay==='transfer')KX.payCode=data.code;tab='account';pg=pay==='transfer'?'pay':'orders';draw();toast('Order placed. A confirmation email is on its way');
   }catch(err){toast(err.message||'Could not place your order');x.disabled=false;x.textContent='Place order · '+fmt(t)}
   PLACING=false;return}
  if(g('[data-quote]')){
@@ -700,19 +672,26 @@ async function welcome(){
  }catch(err){console.error('daily_open',err)}
  store();badges()}
 async function session(){for(let i=0;i<3;i++){try{const{data}=await sb.auth.getSession();if(data.session)return data.session}catch{}await new Promise(r=>setTimeout(r,400))}return null}
+/* Always go straight to the login page. Clears the saved screen so a new login starts fresh. */
+function toLogin(){try{sessionStorage.clear()}catch{}location.replace(AUTH_URL)}
+async function signOut(){
+ OUT=true;
+ try{if(U)localStorage.removeItem('kz_nav_'+U.id)}catch{}
+ try{await sb?.auth.signOut()}catch{}
+ toLogin()}
 async function boot(){
- if(!sb){nav();$('#app').innerHTML=empty('🔑','Add your Supabase URL and anon key in the CONFIG line to enable sign-in.');return}
+ if(!sb){showPage();nav();$('#app').innerHTML=empty('🔑','Add your Supabase URL and anon key in the CONFIG line to enable sign-in.');return}
  const ses=await session();
- if(!ses){if(!navigator.onLine){nav();$('#app').innerHTML=empty('📡','You are offline. Reconnect and reload.');return}location.replace(AUTH_URL);return}
+ if(!ses){if(!navigator.onLine){showPage();nav();$('#app').innerHTML=empty('📡','You are offline. Reconnect and reload.');return}toLogin();return}
  TOKEN=ses.access_token;const u=ses.user,md=u.user_metadata||{};
  U={id:u.id,email:u.email,verified:!!u.email_confirmed_at,
   name:md.full_name||md.name||(u.email||'').split('@')[0],
   phone:u.phone||md.phone||'',avatar:md.avatar_url||md.picture||'',meta:md};
- loadState();welcome();try{const nv=jget('kz_nav_'+U.id,null);if(nv){tab=nv.tab||'home';sub=nv.sub||null;pg=(nv.pg==='pay'||nv.pg==='chat')?null:(nv.pg||null);prod=nv.prod||null;TC=nv.tc||null}}catch{}history.replaceState({root:1},'');draw();await Promise.all([loadCatalog(),loadServer(),loadVendor()]);live()}
+ loadState();welcome();try{const nv=jget('kz_nav_'+U.id,null);if(nv){tab=nv.tab||'home';sub=nv.sub||null;pg=(nv.pg==='pay'||nv.pg==='chat')?null:(nv.pg||null);prod=nv.prod||null;TC=nv.tc||null}}catch{}history.replaceState({root:1},'');showPage();draw();await Promise.all([loadCatalog(),loadServer(),loadVendor()]);live();msgWatch()}
 /* Only the user's own Log Out signs them out. Other SIGNED_OUT events are re-checked first. */
 sb?.auth.onAuthStateChange((ev,ses)=>{if(ses?.access_token)TOKEN=ses.access_token;
- if(ev==='SIGNED_OUT'&&U){if(OUT){sessionStorage.clear();location.replace(AUTH_URL)}else setTimeout(async()=>{if(!await session()){sessionStorage.clear();location.replace(AUTH_URL)}},800)}});
-addEventListener('pageshow',async e=>{if(e.persisted&&sb&&U){const t=await session();if(t)TOKEN=t.access_token;else location.replace(AUTH_URL)}});
+ if(ev==='SIGNED_OUT'&&U){if(OUT)toLogin();else setTimeout(async()=>{if(!await session())toLogin()},800)}});
+addEventListener('pageshow',async e=>{if(e.persisted&&sb&&U){const t=await session();if(t)TOKEN=t.access_token;else toLogin()}});
 /* Back button moves inside the app and never leaves the store or the session. */
 addEventListener('popstate',e=>{if(!U)return;const t=e.state;
  q='';$('#q').value='';
@@ -730,6 +709,40 @@ $('#insgo').onclick=async()=>{
  if(DIP){DIP.prompt();try{await DIP.userChoice}catch{}DIP=null;$('#inst').hidden=true}
  else{$('#insm').textContent='Tap the Share button, then “Add to Home Screen”.';$('#insgo').hidden=true}};
 if(isIOS)setTimeout(showInst,1800);
+
+/* ================= NEW-MESSAGE POPUP (buyers and vendors) ================= */
+let LASTMSG=0,MPT;
+function msgPop(t,b){
+ let e=$('#mpop');
+ if(!e){e=document.createElement('button');e.id='mpop';e.type='button';document.body.appendChild(e);
+  e.onclick=()=>{e.classList.remove('s');tab='account';sub=null;prod=null;q='';$('#q').value='';pg='chats';draw()}}
+ e.innerHTML=`<span class="mi">💬</span><span class="mt"><b>${esc(t)}</b><small>${esc(b)}</small></span><span class="mg">Open ›</span>`;
+ void e.offsetWidth;e.classList.add('s');clearTimeout(MPT);MPT=setTimeout(()=>e.classList.remove('s'),7000);
+ try{navigator.vibrate?.(60)}catch{}}
+function msgWatch(){
+ if(!sb||!U||msgWatch.on)return;msgWatch.on=1;
+ const busy=()=>pg==='chat'||pg==='chats';
+ /* poll: catches anything realtime missed and announces unread messages once on entry */
+ const poll=async()=>{
+  try{
+   const{data}=await sb.from('conversations').select('last_text,last_message_at,vendor_id,buyer_id,vendor_unread,buyer_unread');
+   if(!data)return;
+   const first=!LASTMSG,all=Math.max(1,...data.map(c=>Date.parse(c.last_message_at)||0));
+   const my=data.map(c=>({t:c.last_text,at:Date.parse(c.last_message_at)||0,n:c.vendor_id===U.id?c.vendor_unread:c.buyer_unread})).filter(c=>c.n>0).sort((a,b)=>b.at-a.at);
+   if(my.length&&!busy()){
+    const tot=my.reduce((a,c)=>a+c.n,0);
+    if(first)msgPop('You have '+tot+' unread message'+(tot>1?'s':''),my[0].t||'Tap to open your chats');
+    else if(my[0].at>LASTMSG+1000)msgPop('New message',my[0].t||'Tap to open');
+   }
+   LASTMSG=Math.max(LASTMSG,all);
+  }catch(e){console.error(e)}};
+ poll();setInterval(()=>{if(!document.hidden)poll()},20000);
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)poll()});
+ /* realtime: instant pop-up when the other person sends a message */
+ sb.channel('kz-msg').on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},p=>{
+  const m=p.new;if(!m||m.sender_id===U.id)return;
+  LASTMSG=Math.max(LASTMSG,Date.parse(m.created_at)||0);
+  if(!busy())msgPop('New message',m.body||'📷 Sent a photo')}).subscribe()}
 
 /* ================= MANUAL PAYMENT: bank transfer → receipt on WhatsApp or in-app chat ================= */
 const waNum=n=>{let d=String(n||'').replace(/\D/g,'');if(d.startsWith('0'))d='234'+d.slice(1);return d};

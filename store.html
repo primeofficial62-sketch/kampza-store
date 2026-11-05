@@ -214,7 +214,7 @@ body.aiopen .fab{display:none}
 input[readonly]{background:var(--g);color:var(--m);cursor:not-allowed}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="https://js.paystack.co/v2/inline.js"></script>
+<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#FF7628"><link rel="apple-touch-icon" href="icon-192.png"><script src="kz-extra.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
@@ -236,7 +236,7 @@ input[readonly]{background:var(--g);color:var(--m);cursor:not-allowed}
 <script>
 /* ================= CONFIG ================= */
 const SUPABASE_URL='https://fcgvmxkxwgymgqcbtzjd.supabase.co',SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjZ3ZteGt4d2d5bWdxY2J0empkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMwODgyODcsImV4cCI6MjEwODY2NDI4N30.SEROg_J5x2dldpI6buHKYVQbuuyzM4bOJLHPYDWtIbM',AUTH_URL='index.html',MAIL_ENDPOINT=SUPABASE_URL+'/functions/v1/notify',CATALOG_URL='deals.json';
-const PAYSTACK_KEY='pk_live_d9911dcf3fe46d107832d05d71a40221640de093',SUPPORT_EMAIL='kampzastore@gmail.com',WHATSAPP='2349059538257',AI_ENDPOINT=SUPABASE_URL+'/functions/v1/kampza-ai',VERSION='2.1.0';
+const SUPPORT_EMAIL='kampzastore@gmail.com',WHATSAPP='2349059538257',AI_ENDPOINT=SUPABASE_URL+'/functions/v1/kampza-ai',VERSION='2.2.0';
 const AI_FN=['kampza-ai'],MAIL_FN=['notify-ts'];
 async function callFn(names,body){let last;for(const n of names){try{const r=await fetch(SUPABASE_URL+'/functions/v1/'+n,{method:'POST',headers:{'Content-Type':'application/json',apikey:SUPABASE_ANON_KEY,Authorization:'Bearer '+SUPABASE_ANON_KEY},body:JSON.stringify(body)});if(r.status===404)continue;return await r.json()}catch(e){last=e}}throw last||new Error('function not found')}
 
@@ -269,10 +269,10 @@ const recs=()=>P.filter(x=>!FLASH.includes(x.id));
 const mapP=(r,rt)=>{const im=Array.isArray(r.images)?r.images:[];return{id:r.id,n:r.name,e:r.emoji||'🛍️',p:r.price,o:r.old_price,c:r.category||'General',d:r.description||'',b:r.brand,s:r.specs||{},v:r.vendor_id,img:im[0]||'',imgs:im,st:r.stock,r:Number(rt?.avg)||0,rn:rt?.n||0,t:Date.parse(r.created_at)||0}};
 async function loadCatalog(){
  if(sb)try{
-  const[a,b,c]=await Promise.all([sb.from('products').select('*').eq('active',true).order('created_at',{ascending:false}),sb.from('product_ratings').select('*'),sb.from('settings').select('delivery_fee').maybeSingle()]);
+  const[a,b,c,pm]=await Promise.all([sb.from('products').select('*').eq('active',true).order('created_at',{ascending:false}),sb.from('product_ratings').select('*'),sb.from('settings').select('delivery_fee').maybeSingle(),sb.rpc('active_promos')]);
   if(a.error)throw a.error;
   const rt=Object.fromEntries((b.data||[]).map(x=>[x.product_id,x]));
-  P=a.data.map(r=>mapP(r,rt[r.id]));if(c.data)FEE=c.data.delivery_fee;
+  P=a.data.map(r=>mapP(r,rt[r.id]));KX.promos(P,pm.data);if(c.data)FEE=c.data.delivery_fee;
   FLASH=P.filter(x=>x.o>x.p).sort((x,y)=>y.o/y.p-x.o/x.p).slice(0,6).map(x=>x.id);
   for(const id of Object.keys(S.cart))if(!byId(id)||mine(byId(id)))delete S.cart[id];store();nav();
  }catch(err){console.error(err);toast('Could not load products. Check your connection.')}
@@ -296,27 +296,8 @@ async function loadServer(){
   for(const x of S.orders){const sg=x.st+'|'+x.items.map(i=>i.s).join();if(S.seen[x.id]&&S.seen[x.id]!==sg)notif('Order '+x.id+' updated','Status: '+x.status);S.seen[x.id]=sg}
   store();badges();nav();
   const sg=JSON.stringify([S.orders,S.wallet,S.quotes,ADDR]);
-  if(sg!==LASTSIG){LASTSIG=sg;if(!['checkout','quotes','info','security','delete'].includes(pg)&&!document.activeElement?.matches?.('input,textarea,select'))view()}
+  if(sg!==LASTSIG){LASTSIG=sg;if(!['checkout','quotes','info','security','delete','pay','chat','chats'].includes(pg)&&!document.activeElement?.matches?.('input,textarea,select'))view()}
  }catch(err){console.error(err)}}
-const newRef=()=>'KZ'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
-function paystack(amount,done){
- if(PAYSTACK_KEY.startsWith('YOUR_')||!window.PaystackPop){toast('Payment window did not load. Check your internet and reload.');return false}
- const ref=newRef();let ok=false;
- const w=setTimeout(()=>{if(!ok)toast('Payment window is taking long. Check your internet and try again.')},12000);
- const end=()=>{ok=true;clearTimeout(w)};
- try{new PaystackPop().newTransaction({key:PAYSTACK_KEY,email:U.email,amount:Math.round(amount*100),currency:'NGN',ref,reference:ref,
-  onLoad:end,
-  onSuccess:t=>{end();done((t&&t.reference)||ref)},
-  onCancel:()=>{end();toast('Payment cancelled')},
-  onError:err=>{end();console.error('Paystack',err);toast('Paystack: '+(err&&err.message||'could not load the payment window'))}})}
- catch(e){end();console.error(e);toast('Could not open the payment window');return false}
- return true}
-async function verify(body){
- const{data}=await sb.auth.getSession();
- const r=await fetch(SUPABASE_URL+'/functions/v1/paystack-verify',{method:'POST',headers:{'Content-Type':'application/json',apikey:SUPABASE_ANON_KEY,Authorization:'Bearer '+(data.session?.access_token||TOKEN)},body:JSON.stringify(body)});
- return r.json()}
-function payOrder(code,total){
- return paystack(total,ref=>{toast('Confirming payment…');verify({reference:ref,order:code}).then(async j=>{toast(j.ok?'Payment confirmed ✅':'Could not confirm payment. Keep ref '+ref);if(j.ok)notif('Payment confirmed',code);await loadServer()}).catch(()=>toast('Could not confirm payment. Keep ref '+ref))})}
 async function loadReviews(id){
  const el=$('#revs');if(!el||!sb)return;
  const{data,error}=await sb.from('reviews').select('*').eq('product_id',id).order('created_at',{ascending:false}).limit(30);
@@ -392,7 +373,7 @@ ${imgs.length>1?`<div class="thumbs">${imgs.map(u=>`<button data-gi="${esc(u)}" 
 <h2 class="sh2">Description</h2><p class="pdesc">${esc(p.d||'No description has been added for this product yet.')}</p>
 <h2 class="sh2">Specifications</h2><div class="box"><table class="spec">${rows.map(r=>`<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td></tr>`).join('')}</table></div>
 <h2 class="sh2">Reviews</h2><div id="revs"><small>Loading…</small></div>
-<div class="pbar">${mine(p)?'<button class="btn" disabled style="flex:1">This is your own product</button>':`<button class="btn alt" data-add="${p.id}" ${out?'disabled':''}>Add to cart</button><button class="btn" data-buy="${p.id}" ${out?'disabled':''}>Buy now</button>`}</div></div></div>
+<div class="pbar">${mine(p)?'<button class="btn" disabled style="flex:1">This is your own product</button>':`<button class="btn ghost" data-chatv="${p.v}">💬 Chat</button><button class="btn alt" data-add="${p.id}" ${out?'disabled':''}>Add to cart</button><button class="btn" data-buy="${p.id}" ${out?'disabled':''}>Buy now</button>`}</div></div></div>
 ${rel.length?`<div class="sh"><h2>More in ${esc(p.c)}</h2></div><div class="grid">${rel.map(x=>card(x)).join('')}</div>`:''}`}
 /* ---- account ---- */
 function accountView(){
@@ -405,28 +386,28 @@ function accountView(){
  <button data-pg="quotes"><span class="ico">${ic('tag')}</span>My Quotes<small>${S.quotes.length} quotes</small></button>
  <button data-pg="wallet"><span class="ico">${ic('wallet')}</span>Wallet<small>${fmt(S.wallet.bal)}</small></button></div>
 <h2 class="sh2">Account Settings</h2>
-<div class="box">${row('info','user','Personal Information','Name, email, phone number, address')}${row('security','shield','Security','Change password, verification')}${row('prefs','bell','Notifications','Email alerts and daily deals')}${row('terms','doc','Terms &amp; Conditions','Read our terms and policies')}${row('delete','trash','Delete Account','Permanently remove your account')}</div>
+<div class="box">${row('chats','help','Messages','Chat with vendors, send receipts')}${row('info','user','Personal Information','Name, email, phone number, address')}${row('security','shield','Security','Change password, verification')}${row('prefs','bell','Notifications','Email alerts and daily deals')}${row('terms','doc','Terms &amp; Conditions','Read our terms and policies')}${row('delete','trash','Delete Account','Permanently remove your account')}</div>
 <button class="li tint" data-ai><span class="ic">${ic('bot')}</span><span><b>Ask KAMPZA AI</b><small>Instant answers about products, orders and payments</small></span><span class="cv">›</span></button>
 <a class="li tint" href="vendor-dashboard.html" style="text-decoration:none;color:inherit"><span class="ic">${ic('tag')}</span><span><b>${VS==='approved'?'Vendor Dashboard':VS==='pending'?'Vendor Application':VS==='rejected'?'Vendor Application':VS==='suspended'?'Vendor Dashboard':'Become a Vendor'}</b><small>${VS==='approved'?'Manage your products, orders and payouts':VS==='pending'?'Under review. We will notify you once approved':VS==='rejected'?'Not approved. Tap to see details or reapply':VS==='suspended'?'Your vendor account is suspended':'Apply to sell on KAMPZA'}</small></span><span class="cv">›</span></a>
 <button class="li tint" data-pg="help"><span class="ic">${ic('help')}</span><span><b>Help &amp; Support</b><small>Get help, contact us, or visit FAQs</small></span><span class="cv">›</span></button>
 <button class="out" data-signout>${ic('out')}Log Out</button>
 <p class="foot">KAMPZA · Find It. Get It. Love It.<br>v${VERSION}</p>`}
 
-function ordersView(){return pgHead('My Orders')+(S.orders.length?S.orders.map(o=>`<div class="nt"><div class="oh"><b>${esc(o.id)}</b><span class="st">${esc(o.status)}</span></div><small>${dt(o.at)} · ${{wallet:'Wallet',cod:'Pay on delivery',card:'Card'}[o.pay]}${o.pay!=='cod'?(o.paid?' · Paid':' · Awaiting payment'):''}</small>${o.items.map(i=>`<div class="oh"><span>${i.q}× ${esc(i.n)}</span><span class="st">${cap(i.s)}</span></div>${i.s==='cancelled'?'':`<div class="steps">${STEPS.map((x,k)=>`<i class="${k<=STEPS.indexOf(i.s)?'on':''}"></i>`).join('')}</div>`}${i.s==='delivered'&&i.pid&&byId(i.pid)?`<button class="rm" data-rev="${i.pid}">Rate this item</button>`:''}`).join('')}<div class="oh"><small>Delivery</small><small>${fmt(o.fee)}</small></div><div class="oh tot"><span>Total</span><b>${fmt(o.total)}</b></div><button class="btn full ghost" data-track="${esc(o.id)}">Track order</button>${o.pay==='card'&&!o.paid&&o.st!=='cancelled'?`<button class="btn full" data-payord="${esc(o.id)}">Pay now · ${fmt(o.total)}</button>`:''}${cancelBtn(o)}</div>`).join(''):empty('📦','No orders yet.',shop))}
+function ordersView(){return pgHead('My Orders')+(S.orders.length?S.orders.map(o=>`<div class="nt"><div class="oh"><b>${esc(o.id)}</b><span class="st">${esc(o.status)}</span></div><small>${dt(o.at)} · ${{wallet:'Wallet',cod:'Pay on delivery',transfer:'Bank transfer',card:'Card'}[o.pay]}${o.pay!=='cod'?(o.paid?' · Paid':' · Awaiting payment'):''}</small>${o.items.map(i=>`<div class="oh"><span>${i.q}× ${esc(i.n)}</span><span class="st">${cap(i.s)}</span></div>${i.s==='cancelled'?'':`<div class="steps">${STEPS.map((x,k)=>`<i class="${k<=STEPS.indexOf(i.s)?'on':''}"></i>`).join('')}</div>`}${i.s==='delivered'&&i.pid&&byId(i.pid)?`<button class="rm" data-rev="${i.pid}">Rate this item</button>`:''}`).join('')}<div class="oh"><small>Delivery</small><small>${fmt(o.fee)}</small></div><div class="oh tot"><span>Total</span><b>${fmt(o.total)}</b></div><button class="btn full ghost" data-track="${esc(o.id)}">Track order</button>${o.pay==='transfer'&&!o.paid&&o.st!=='cancelled'?`<button class="btn full" data-payord="${esc(o.id)}">Pay by transfer · ${fmt(o.total)}</button>`:''}${cancelBtn(o)}</div>`).join(''):empty('📦','No orders yet.',shop))}
 function checkoutView(){
  const ids=Object.keys(S.cart).filter(byId);if(!ids.length)return pgHead('Checkout')+empty('🛒','Your cart is empty.',shop);
  const a=ADDR[0]||{},sub=cartTotal(),tot=sub+FEE;
  return pgHead('Checkout')+`<div class="cartw"><div><h2 class="sh2" style="margin-top:0">Delivery</h2>${gpsBlock()}${ADDR.length?`<div class="fld"><label for="adsel">Saved addresses</label><select id="adsel"><option value="">Enter a new address</option>${ADDR.map((x,i)=>`<option value="${i}" ${i===0?'selected':''}>${esc(x.label||'Address')} · ${esc(x.hostel||'')}, ${esc(x.campus||'')}</option>`).join('')}</select></div>`:''}${fld('cp','Campus',a.campus||'','autocomplete="off" placeholder="e.g. FUNAAB main campus"')}${fld('hs','Hostel / room',a.hostel||'','autocomplete="off" placeholder="Hostel name and room number"')}${fld('ph','Phone number',a.phone||U.phone,'type="tel" inputmode="tel" autocomplete="tel"')}<label class="chk" style="margin-bottom:6px"><input type="checkbox" id="sv" ${ADDR.length?'':'checked'}>Save this address for next time</label>
-<h2 class="sh2">Payment</h2><label class="opt"><input type="radio" name="pay" value="cod" checked><span>Pay on delivery</span></label><label class="opt"><input type="radio" name="pay" value="wallet"><span>Wallet <small>${fmt(S.wallet.bal)} available</small></span></label><label class="opt"><input type="radio" name="pay" value="card"><span>Card (Paystack)</span></label></div>
+<h2 class="sh2">Payment</h2><label class="opt"><input type="radio" name="pay" value="cod" checked><span>Pay on delivery</span></label><label class="opt"><input type="radio" name="pay" value="wallet"><span>Wallet <small>${fmt(S.wallet.bal)} available</small></span></label><label class="opt"><input type="radio" name="pay" value="transfer"><span>Bank transfer <small>pay the vendor, upload receipt</small></span></label></div>
 <div class="sum"><b>Order summary</b>${ids.map(id=>`<div class="oh" style="font-weight:400;font-size:14px"><span>${S.cart[id]}× ${esc(byId(id).n)}</span><span>${fmt(byId(id).p*S.cart[id])}</span></div>`).join('')}<div style="font-weight:400;font-size:14px"><span>Subtotal</span><span>${fmt(sub)}</span></div><div style="font-weight:400;font-size:14px"><span>Delivery</span><span>${fmt(FEE)}</span></div><div><span>Total</span><span>${fmt(tot)}</span></div><button class="btn" data-place>Place order · ${fmt(tot)}</button></div></div>`}
 function quotesView(){return pgHead('My Quotes')+`<p class="sub">Can’t find something? Tell us what you need and we’ll send a price.</p>${fld('qi','What do you need?','','placeholder="e.g. HP laptop, 16GB RAM"')}${fld('qq','Quantity','1','type="number" inputmode="numeric" min="1"')}${fld('qb','Budget (₦, optional)','','type="number" inputmode="numeric"')}${area('qn','Extra details (optional)')}<button class="btn full" data-quote>Request quote</button><h2 class="sh2">Your requests</h2>`+(S.quotes.length?S.quotes.map(x=>`<div class="nt"><div class="oh"><b>${esc(x.id)}</b><span class="st">${esc(x.status)}</span></div><div>${x.qty}× ${esc(x.item)}</div><small>${dt(x.at)}${x.budget?' · Budget '+fmt(x.budget):''}</small></div>`).join(''):'<div class="soon">No quotes yet.</div>')}
-function walletView(){return pgHead('Wallet')+`<div class="bal"><small>Available balance</small><b>${fmt(S.wallet.bal)}</b></div>${fld('amt','Add funds (₦)','','type="number" inputmode="numeric" min="100" placeholder="e.g. 5000"')}<button class="btn full" data-fund>Fund wallet</button><h2 class="sh2">Transactions</h2>`+(S.wallet.tx.length?S.wallet.tx.map(x=>`<div class="nt"><div class="oh"><b>${esc(x.t)}</b><b style="color:${x.a<0?'#d92d20':'#1a8f4c'}">${x.a<0?'−':'+'}${fmt(Math.abs(x.a))}</b></div><small>${dt(x.at)}</small></div>`).join(''):'<div class="soon">No transactions yet.</div>')}
+function walletView(){return pgHead('Wallet')+`<div class="bal"><small>Available balance</small><b>${fmt(S.wallet.bal)}</b></div><a class="btn full" href="https://wa.me/${WHATSAPP}?text=I%20want%20to%20fund%20my%20KAMPZA%20wallet" target="_blank" rel="noopener">Fund wallet via WhatsApp</a><h2 class="sh2">Transactions</h2>`+(S.wallet.tx.length?S.wallet.tx.map(x=>`<div class="nt"><div class="oh"><b>${esc(x.t)}</b><b style="color:${x.a<0?'#d92d20':'#1a8f4c'}">${x.a<0?'−':'+'}${fmt(Math.abs(x.a))}</b></div><small>${dt(x.at)}</small></div>`).join(''):'<div class="soon">No transactions yet.</div>')}
 function infoView(){return pgHead('Personal Information')+`${fld('fn','Full name',U.name,'autocomplete="name"')}${fld('em','Email',U.email,'disabled')}${fld('ph','Phone number',U.phone,'type="tel" inputmode="tel" autocomplete="tel"')}${area('ad','Delivery address',U.meta.address||'','Hostel, room, campus')}<button class="btn full" data-saveinfo>Save changes</button>`}
 function securityView(){return pgHead('Security')+`<div class="set"><div><b>Email verification</b><small>${U.verified?'Your email is verified':'Not verified yet'}</small></div>${U.verified?'<span class="badge">✓ Verified</span>':'<button class="btn" data-resend>Resend link</button>'}</div><h2 class="sh2">Change password</h2>${fld('np','New password','','type="password" autocomplete="new-password" placeholder="At least 8 characters"')}${fld('cp','Confirm new password','','type="password" autocomplete="new-password"')}<button class="btn full" data-pw>Update password</button>`}
 function prefsView(){return pgHead('Notifications')+`<label class="set"><div><b>Daily deals email</b><small>One email each morning with today’s Flash Deals</small></div><span class="sw"><input type="checkbox" data-pref="daily" ${S.prefs.daily?'checked':''}><s></s></span></label><label class="set"><div><b>Other email updates</b><small>Welcome and account messages</small></div><span class="sw"><input type="checkbox" data-pref="email" ${S.prefs.email?'checked':''}><s></s></span></label><p style="margin-top:14px"><small>Emails are sent automatically to ${esc(U.email)}.</small></p>`}
 function termsView(){return pgHead('Terms &amp; Conditions')+`<div class="terms"><h3>1. Using KAMPZA</h3><p>You must provide accurate details and keep your login private. You are responsible for activity on your account.</p><h3>2. Orders and pricing</h3><p>Prices are in Nigerian Naira. We may cancel an order if an item is unavailable or a price was listed in error, and refund any payment made.</p><h3>3. Wallet</h3><p>Wallet funds can only be spent on KAMPZA orders and are not withdrawable unless required by law.</p><h3>4. Delivery</h3><p>Delivery times are estimates. Please provide a correct address and phone number.</p><h3>5. Privacy</h3><p>We use your name, email, phone and address only to run your account, process orders and send messages you opted into. You can turn emails off or delete your account at any time.</p><h3>6. Contact</h3><p>Questions? Email ${esc(SUPPORT_EMAIL)}.</p></div>`}
 function deleteView(){return pgHead('Delete Account')+`<div class="warn"><b>This cannot be undone.</b> Your profile, orders, quotes, wishlist and wallet balance will be removed permanently.</div>${fld('dc','Type DELETE to confirm','','autocapitalize="characters" autocomplete="off"')}<button class="btn full danger" data-del>Delete my account</button>`}
-function helpView(){const f=(a,b)=>`<details><summary>${a}</summary><p>${b}</p></details>`;return pgHead('Help &amp; Support')+'<button class="li tint" style="margin:0 0 6px" data-ai><span class="ic">'+ic('bot')+'</span><span><b>Ask KAMPZA AI</b><small>Instant answers, any time</small></span><span class="cv">›</span></button>'+f('How do I place an order?','Add items to your cart, tap Checkout, enter your phone and address, then choose Wallet or Pay on delivery.')+f('How do I fund my wallet?','Go to Account → Wallet, enter an amount and pay securely with Paystack.')+f('Can’t find a product?','Use My Quotes to describe what you need and we’ll reply with a price.')+f('I didn’t get an email','Check spam, confirm your email is verified under Security, then make sure Daily deals email is on in Notifications.')+`<a class="btn full" href="https://wa.me/${WHATSAPP}" target="_blank" rel="noopener">Chat on WhatsApp</a><a class="btn full ghost" href="mailto:${SUPPORT_EMAIL}">Email support</a>`}
+function helpView(){const f=(a,b)=>`<details><summary>${a}</summary><p>${b}</p></details>`;return pgHead('Help &amp; Support')+'<button class="li tint" style="margin:0 0 6px" data-ai><span class="ic">'+ic('bot')+'</span><span><b>Ask KAMPZA AI</b><small>Instant answers, any time</small></span><span class="cv">›</span></button>'+f('How do I place an order?','Add items to your cart, tap Checkout, enter your phone and address, then choose Wallet, Bank transfer or Pay on delivery.')+f('How do I fund my wallet?','Go to Account → Wallet and tap Fund wallet to message us on WhatsApp.')+f('Can’t find a product?','Use My Quotes to describe what you need and we’ll reply with a price.')+f('I didn’t get an email','Check spam, confirm your email is verified under Security, then make sure Daily deals email is on in Notifications.')+`<a class="btn full" href="https://wa.me/${WHATSAPP}" target="_blank" rel="noopener">Chat on WhatsApp</a><a class="btn full ghost" href="mailto:${SUPPORT_EMAIL}">Email support</a>`}
 const AIHI='Hi! I’m KAMPZA AI 👋 Ask me about products, orders, your wallet, payments or delivery.';
 let AIOPEN=false,AIBUSY=false;
 const AIQ=['Where is my order?','How do I fund my wallet?','How does delivery work?','Recommend something under ₦30,000'];
@@ -446,7 +427,7 @@ async function askAI(text){
  catch(err){console.error('KAMPZA AI',err);w.textContent='I can’t connect right now. Please try again or message us on WhatsApp.'}
  chat.scrollTop=chat.scrollHeight;S.ai=S.ai.slice(-30);store();AIBUSY=false}
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='ain'){e.preventDefault();askAI(e.target.value)}});
-const PG={track:trackView,orders:ordersView,checkout:checkoutView,quotes:quotesView,wallet:walletView,info:infoView,security:securityView,prefs:prefsView,terms:termsView,delete:deleteView,help:helpView};
+const PG={pay:()=>KX.payView(),chat:()=>KX.chatView(),chats:()=>KX.chatsView(),track:trackView,orders:ordersView,checkout:checkoutView,quotes:quotesView,wallet:walletView,info:infoView,security:securityView,prefs:prefsView,terms:termsView,delete:deleteView,help:helpView};
 
 /* ===== GPS + TRACKING ===== */
 let GM='gps',GEO=null,GWATCH=null,GMAP=null,GMARK=null,GCIR=null,TC=null,LID=0;
@@ -536,14 +517,14 @@ function listItems(){
 function nav(){const n=cartCount();
  $('#nav').innerHTML=NAV.map(x=>`<button data-t="${x[0]}" class="${x[0]==tab?'on':''}" aria-label="${x[1]}" ${x[0]==tab?'aria-current="page"':''}><svg viewBox="0 0 24 24" aria-hidden="true">${IC[x[0]]}</svg>${x[1]}${x[0]=='cart'&&n?`<span class="cb">${n>99?'99+':n}</span>`:''}</button>`).join('')}
 function view(){
- stop();let h;
+ stop();KX.leave(pg);let h;
  if(q.trim()){h=listView('Results for “'+esc(q.trim())+'”',P.filter(match))}
  else if(prod&&byId(prod))h=prodView(prod);
  else if(pg&&PG[pg])h=PG[pg]();
  else if(sub&&tab==='home'){const[t,it]=listItems();h=listView(t,it)}
  else h=tab==='home'?home():tab==='cats'?catsView():tab==='wish'?wishView():tab==='cart'?cartView():tab==='account'?accountView():notifsView();
  $('#app').innerHTML=h;if(prod&&byId(prod)&&!q.trim()&&!pg)loadReviews(prod);
- if(pg==='checkout'&&!q.trim()){gpsInit();addrMode()}else if(pg==='track'&&!q.trim())trackLoad();
+ if(pg==='checkout'&&!q.trim()){gpsInit();addrMode()}else if(pg==='track'&&!q.trim())trackLoad();else if(!q.trim()&&KX.hooks[pg])KX.hooks[pg]();
  if(tab==='home'&&!sub&&!pg&&!prod&&!q.trim())start();aiSync()}
 const snap=()=>({tab,sub,pg,prod,tc:TC});
 function draw(h=true){nav();view();scrollTo(0,0);try{U&&localStorage.setItem('kz_nav_'+U.id,JSON.stringify(snap()))}catch{}if(h){const t=snap();if(JSON.stringify(history.state)!==JSON.stringify(t))history.pushState(t,'')}}
@@ -599,14 +580,13 @@ document.addEventListener('click',async e=>{
    await Promise.all([loadServer(),loadCatalog()]);view();
   }catch(err){toast(err.message||'Could not cancel this order');x.disabled=false;x.textContent='Cancel order';await loadServer()}
   return}
- if(x=g('[data-payord]')){const o=S.orders.find(k=>k.id===x.dataset.payord);if(o)payOrder(o.id,o.total);return}
+ if(x=g('[data-payord]')){const o=S.orders.find(k=>k.id===x.dataset.payord);if(o){KX.payCode=o.id;pg='pay';draw()}return}
  if(x=g('[data-place]')){
   if(PLACING)return;
   const ph=v('ph'),cp=v('cp'),hs=v('hs'),ad=hs+', '+cp,pay=document.querySelector('input[name=pay]:checked').value,t=cartTotal()+FEE;
   if(ph.length<7||cp.length<2||hs.length<2){toast('Enter your phone, campus and hostel / room');return}
   if(GM==='gps'&&!GEO){toast('Tap "Find my location" or choose manual address');return}
   if(pay==='wallet'&&S.wallet.bal<t){toast('Wallet balance is too low. Fund your wallet first.');return}
-  if(pay==='card'&&(PAYSTACK_KEY.startsWith('YOUR_')||!window.PaystackPop)){toast('Card payments are not set up yet');return}
   const items=Object.keys(S.cart).filter(byId).map(id=>({id,qty:S.cart[id]}));
   PLACING=true;x.disabled=true;x.textContent='Placing order…';
   try{
@@ -617,8 +597,7 @@ document.addEventListener('click',async e=>{
    GEO=null;try{sessionStorage.removeItem('kz_gps')}catch{}
    S.cart={};CKEY=crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random();U.phone=ph;store();
    notif('Order placed ✅',data.code+' · '+fmt(data.total));
-   await Promise.all([loadServer(),loadCatalog()]);tab='account';pg='orders';draw();toast('Order placed');
-   if(pay==='card')payOrder(data.code,data.total);
+   await Promise.all([loadServer(),loadCatalog()]);if(pay==='transfer')KX.payCode=data.code;tab='account';pg=pay==='transfer'?'pay':'orders';draw();toast('Order placed');
   }catch(err){toast(err.message||'Could not place your order');x.disabled=false;x.textContent='Place order · '+fmt(t)}
   PLACING=false;return}
  if(g('[data-quote]')){
@@ -627,9 +606,6 @@ document.addEventListener('click',async e=>{
   const{error}=await sb.from('quotes').insert({id,user_id:U.id,item,qty:Math.max(1,parseInt(v('qq'))||1),budget:Number(v('qb'))||null,note:v('qn')||null});
   if(error){toast('Could not send your request');return}
   notif('Quote requested',id+' · '+item);await loadServer();draw();toast('Quote request sent');return}
- if(g('[data-fund]')){
-  const a=Math.floor(Number(v('amt')));if(!(a>=100)){toast('Minimum is ₦100');return}
-  paystack(a,ref=>{toast('Confirming payment…');verify({reference:ref}).then(async j=>{if(j.ok){notif('Wallet funded',fmt(j.amount)+' added to your wallet.');toast('Wallet funded ✅')}else toast('Could not confirm payment. Keep ref '+ref);await loadServer();if(pg==='wallet')view()}).catch(()=>toast('Could not confirm payment. Keep ref '+ref))});return}
  if(g('[data-saveinfo]')){
   const name=v('fn'),ph=v('ph'),ad=v('ad');if(name.length<2){toast('Enter your full name');return}
   const d={full_name:name,phone:ph,address:ad};
@@ -709,7 +685,7 @@ async function boot(){
  U={id:u.id,email:u.email,verified:!!u.email_confirmed_at,
   name:md.full_name||md.name||(u.email||'').split('@')[0],
   phone:u.phone||md.phone||'',avatar:md.avatar_url||md.picture||'',meta:md};
- loadState();welcome();try{const nv=jget('kz_nav_'+U.id,null);if(nv){tab=nv.tab||'home';sub=nv.sub||null;pg=nv.pg||null;prod=nv.prod||null;TC=nv.tc||null}}catch{}history.replaceState({root:1},'');draw();await Promise.all([loadCatalog(),loadServer(),loadVendor()]);live()}
+ loadState();welcome();try{const nv=jget('kz_nav_'+U.id,null);if(nv){tab=nv.tab||'home';sub=nv.sub||null;pg=(nv.pg==='pay'||nv.pg==='chat')?null:(nv.pg||null);prod=nv.prod||null;TC=nv.tc||null}}catch{}history.replaceState({root:1},'');draw();await Promise.all([loadCatalog(),loadServer(),loadVendor()]);live()}
 /* Only the user's own Log Out signs them out. Other SIGNED_OUT events are re-checked first. */
 sb?.auth.onAuthStateChange((ev,ses)=>{if(ses?.access_token)TOKEN=ses.access_token;
  if(ev==='SIGNED_OUT'&&U){if(OUT){sessionStorage.clear();location.replace(AUTH_URL)}else setTimeout(async()=>{if(!await session()){sessionStorage.clear();location.replace(AUTH_URL)}},800)}});

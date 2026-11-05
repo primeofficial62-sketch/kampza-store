@@ -588,4 +588,43 @@ document.addEventListener('keydown',e=>{if($('#lock').hidden)return;if(/^[0-9]$/
 (async()=>{try{const {data:{session:cur}}=await sb.auth.getSession();if(cur){session=cur;const {data:ok}=await sb.rpc('is_admin');if(ok){sb.auth.onAuthStateChange((_e,s)=>{if(s)session=s});return unlock()}await sb.auth.signOut()}}catch(e){}document.documentElement.classList.remove('resume')})();
 setTimeout(()=>document.documentElement.classList.remove('resume'),9000);
 
+/* KAMPZA admin: working Promotions page. Load AFTER the main admin script:  <script src="promo-addon.js"></script> */
+views.promotions=async()=>{
+ const R=await Promise.all([sb.from('promotions').select('*').order('created_at',{ascending:false}).limit(100),sb.from('products').select('id,name,emoji,price,stock').eq('active',true).order('name').limit(500)]);
+ const bad=R.find(x=>x.error);if(bad)return app.innerHTML=err('promotions',bad.error);
+ const [pr,pd]=R,P=pd.data,now=Date.now();app._pr=pr.data;app._pp=P;
+ const st=x=>!x.active?['Ended','bad']:now<Date.parse(x.starts_at)?['Scheduled','info']:now>Date.parse(x.ends_at)?['Expired','warn']:['Live','ok'];
+ const after=(p,x)=>p?naira(x.discount_type==='percent'?Math.round(p.price*(100-x.discount_value)/100):Math.max(1,p.price-x.discount_value)):'—';
+ app.innerHTML=`<div class="card"><h2>New promotion</h2><p class="mut" style="margin-bottom:10px">The product appears as a slide on the store home hero for the chosen number of days. Checkout charges the promo price automatically.</p><div class="grid">
+ <label class="mut">Product<select id="pr-p">${P.map(p=>`<option value="${esc(p.id)}">${esc(p.name)} — ${naira(p.price)}</option>`).join('')}</select></label>
+ <label class="mut">Discount type<select id="pr-t"><option value="percent">Percent (%)</option><option value="fixed">Fixed amount (₦)</option></select></label>
+ <label class="mut">Discount value<input id="pr-v" type="number" min="1" value="20"></label>
+ <label class="mut">Number of days<input id="pr-d" type="number" min="1" max="90" value="3"></label>
+ <label class="mut">Headline (optional)<input id="pr-h" maxlength="80" placeholder="e.g. Weekend special"></label></div>
+ <button class="btn" data-pact="add" style="margin-top:10px">Start promotion</button></div>`+
+ tbl(['Product','Discount','Promo price','Ends','Status',''],pr.data.map(x=>{const p=P.find(z=>z.id===x.product_id),[s,c]=st(x),live=x.active&&now<=Date.parse(x.ends_at);return `<tr data-id="${esc(x.id)}"><td><b>${esc(p?p.name:'Hidden product')}</b>${x.headline?`<br><span class="mut">${esc(x.headline)}</span>`:''}</td><td>${x.discount_type==='percent'?x.discount_value+'%':naira(x.discount_value)}</td><td>${after(p,x)}</td><td>${when(x.ends_at)}</td><td>${pill(s,c)}</td><td class="row">${live?'<button class="btn alt sm" data-pact="ext">+1 day</button><button class="btn red sm" data-pact="end">End</button>':''}</td></tr>`}));
+};
+document.addEventListener('click',async e=>{
+ const b=e.target.closest('[data-pact]');if(!b)return;const a=b.dataset.pact,row=b.closest('[data-id]');b.disabled=true;
+ try{
+  if(a==='add'){
+   const pid=$('#pr-p').value,type=$('#pr-t').value,v=Number($('#pr-v').value),d=Number($('#pr-d').value),h=$('#pr-h').value.trim().slice(0,80),p=(app._pp||[]).find(x=>x.id===pid);
+   if(!p)return toast('Choose a product');
+   if(!Number.isInteger(v)||v<1)return toast('Enter a whole-number discount');
+   if(type==='percent'&&v>90)return toast('Percent discount must be 1–90');
+   if(type==='fixed'&&v>=p.price)return toast('Fixed discount must be less than the price ('+naira(p.price)+')');
+   if(!(d>=1&&d<=90))return toast('Days must be 1–90');
+   if((app._pr||[]).some(x=>x.product_id===pid&&x.active&&Date.parse(x.ends_at)>Date.now()))return toast('This product already has a live promotion. End it first.');
+   const r={product_id:pid,discount_type:type,discount_value:v,ends_at:new Date(Date.now()+d*864e5).toISOString(),headline:h||null};
+   if(await done(sb.from('promotions').insert(r).select('id'),'Promotion started',['promo_create','promotions',pid,r],true))show();
+  }else if(a==='end'){
+   if(await done(sb.from('promotions').update({active:false}).eq('id',row.dataset.id).select('id'),'Promotion ended',['promo_end','promotions',row.dataset.id,{}],true))show();
+  }else if(a==='ext'){
+   const x=(app._pr||[]).find(z=>z.id===row.dataset.id),n=new Date(Math.max(Date.now(),Date.parse(x.ends_at))+864e5).toISOString();
+   if(await done(sb.from('promotions').update({ends_at:n}).eq('id',row.dataset.id).select('id'),'Extended by 1 day',['promo_extend','promotions',row.dataset.id,{ends_at:n}],true))show();
+  }
+ }finally{b.disabled=false}
+});
+
+
 </script></body></html>

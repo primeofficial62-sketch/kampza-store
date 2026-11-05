@@ -21,6 +21,7 @@
 [hidden]{display:none!important}
 html{-webkit-text-size-adjust:100%;font-size:clamp(16px,.45vw + 11.5px,20px)}
 html.chk body{visibility:hidden}
+html.hs .scr{visibility:hidden}
 img{max-width:100%}
 @media(min-width:1600px){html{font-size:clamp(20px,.9vw + 3px,32px)}}
 body{overflow-x:clip;margin:0;font-family:var(--f);color:var(--ch);background:var(--wh);min-height:100vh;min-height:100dvh;-webkit-font-smoothing:antialiased}
@@ -162,6 +163,10 @@ h1 em{font-style:normal;color:var(--or)}
 @media(prefers-reduced-motion:reduce){*{animation-duration:.01s!important;transition-duration:.01s!important}}
 </style>
 <script>
+/* if the link points at a screen other than the login form, hold the form until the router has picked it (no flash) */
+try{var h=location.hash;if(h&&h!=='#signin'&&h!=='#')document.documentElement.classList.add('hs')}catch(e){}
+</script>
+<script>
 /* hide the page while we check for an existing session, so signed-in users go straight through.
    The key must match CFG.URL's project ref below. */
 (function(){try{
@@ -188,8 +193,8 @@ h1 em{font-style:normal;color:var(--or)}
 <main class="formside"><div class="card">
   <img class="logo" src="kampza-logo.png" alt="KAMPZA" width="92" height="84">
 
-  <!-- 0 CHOOSE ACCOUNT TYPE -->
-  <section class="scr" data-s="choose" aria-labelledby="h-choose">
+  <!-- 0 CHOOSE ACCOUNT TYPE (only shown from "Create Account") -->
+  <section class="scr" data-s="choose" hidden aria-labelledby="h-choose">
     <h1 id="h-choose" tabindex="-1">Join <em>KAMPZA</em></h1>
     <p class="sub">How would you like to use KAMPZA?</p>
     <button class="role pri" type="button" data-go="signup"><span class="ri"><svg class="ic"><use href="#bag"/></svg></span><span><b>I'm a Buyer</b><small>Shop great products from vendors around campus.</small></span></button>
@@ -260,8 +265,8 @@ h1 em{font-style:normal;color:var(--or)}
     <button class="lk ctr" data-go="choose" type="button">← Change account type</button>
   </section>
 
-  <!-- 2 SIGN IN -->
-  <section class="scr" data-s="signin" hidden aria-labelledby="h-signin">
+  <!-- 2 SIGN IN (default screen) -->
+  <section class="scr" data-s="signin" aria-labelledby="h-signin">
     <h1 id="h-signin" tabindex="-1">Welcome back!</h1>
     <p class="sub">Sign in to continue your KAMPZA experience.</p>
     <div class="note" id="n-signin" role="alert" hidden></div>
@@ -481,12 +486,12 @@ var timers={};
 function cool(k){var b=$('rs-'+k),left=CFG.COOLDOWN;clearInterval(timers[k]);b.disabled=true;b.textContent='Resend code in '+left+'s';
   timers[k]=setInterval(function(){left--;if(left<=0){clearInterval(timers[k]);b.disabled=false;b.textContent='Resend Code'}else b.textContent='Resend code in '+left+'s'},1000)}
 
-/* ---------- routing ---------- */
+/* ---------- routing (the login form is the default screen) ---------- */
 function go(n){if(location.hash==='#'+n)route();else location.hash='#'+n}
 function route(){
-  var n=(location.hash||'#choose').slice(1);
-  if(!document.querySelector('[data-s="'+n+'"]'))n='choose';
-  if(n==='verify'&&!(ctx.email&&ctx.purpose==='signup'))n='choose';
+  var n=(location.hash||'#signin').slice(1);
+  if(!document.querySelector('[data-s="'+n+'"]'))n='signin';
+  if(n==='verify'&&!(ctx.email&&ctx.purpose==='signup'))n='signin';
   if(n==='recover'&&!(ctx.email&&ctx.purpose==='recovery'))n='forgot';
   if(n==='reset'&&!ctx.recovered)n=(ctx.email&&ctx.purpose==='recovery')?'recover':'forgot';
   if(location.hash!=='#'+n)history.replaceState(null,'',location.pathname+location.search+'#'+n);
@@ -496,7 +501,7 @@ function route(){
   var T={choose:'Join KAMPZA',signup:'Create your KAMPZA account',vendor:'Open your KAMPZA store',signin:'Sign in',verify:'Verify your account',forgot:'Forgot password',recover:'Verify password recovery',reset:'Create a new password'};
   document.title=T[n]+' — KAMPZA';
   if(n==='vendor')loadBanks();
-  var h=$('h-'+n);if(h){h.focus({preventScroll:true})}window.scrollTo(0,0);
+  var h=$('h-'+n);if(h){h.focus({preventScroll:true})}window.scrollTo(0,0);document.documentElement.classList.remove('hs');
 }
 window.addEventListener('hashchange',route);
 document.addEventListener('click',function(e){var g=e.target.closest('[data-go]');if(g){e.preventDefault();var d=g.dataset.go;if(d==='back')d=ctx.role==='vendor'?'vendor':'signup';['signup','vendor','signin','forgot'].forEach(function(s){note(s,'')});go(d)}});
@@ -659,7 +664,7 @@ $('f-reset').addEventListener('submit',async function(ev){
 
 /* ---------- social (buyers only; vendors need the business form) ---------- */
 document.querySelectorAll('[data-oauth]').forEach(function(b){b.addEventListener('click',async function(){
-  var cur=(location.hash||'#choose').slice(1);if(cfgMissing(cur)||!hosted(cur))return;
+  var cur=(location.hash||'#signin').slice(1);if(cfgMissing(cur)||!hosted(cur))return;
   note(cur,'');try{localStorage.setItem('kz_oauth',cur==='signin'?'signin':'signup')}catch(e){}
   var p=b.dataset.oauth,o={redirectTo:location.origin+location.pathname};if(p==='facebook')o.scopes='email';
   var r=await sb.auth.signInWithOAuth({provider:p,options:o});

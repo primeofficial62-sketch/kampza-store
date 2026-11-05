@@ -67,6 +67,9 @@ small,.mut{color:var(--m)}
 .fld{display:grid;gap:6px;margin-bottom:12px}.fld label{font-weight:600;font-size:13px}
 input,textarea,select{font:inherit;font-size:16px;color:var(--c);border:1px solid var(--b);border-radius:10px;padding:11px 12px;background:var(--bg);width:100%;outline:0}
 input:focus,textarea:focus,select:focus{border-color:var(--o);box-shadow:0 0 0 3px #FF762826}
+input[readonly]{background:var(--g);color:var(--c);font-weight:600}
+.bst{padding:10px 12px;border-radius:10px;background:var(--g);margin:-4px 0 12px;font-size:13px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.bst.ok{background:#e6f6ec;color:#1a7f43}.bst.bad{background:#fde8e6;color:#b42318}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .chk{display:flex;gap:8px;align-items:flex-start}.chk input{width:auto;margin-top:2px;accent-color:var(--o)}
 .imgs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
@@ -123,6 +126,40 @@ const ic=n=>`<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="${IC
 const PAGES={home:['Overview','home'],products:['Products','box'],orders:['Orders','orders'],analytics:['Analytics','chart'],reviews:['Reviews','star'],payouts:['Payouts','wallet'],profile:['Store profile','user'],help:['Help & support','help']};
 let UID=null,UPHONE='',V=null,tab='home',BAL={earned:0,paid:0,pending:0,available:0},PR=[],ITEMS=[],ORD={},PAY=[],REV=[],EDIT=null,OF='open',OQ='',PF='all',PQ='',AR=7,BUSY=false,IMGS=[];
 
+/* ---------- Nigerian banks + automatic account-name verification (same service as signup: resolve-account) ---------- */
+const FALLBACK_BANKS=['9 Payment Service Bank (9PSB)','Access Bank','Citibank Nigeria','Ecobank Nigeria','Fidelity Bank','First Bank of Nigeria','First City Monument Bank (FCMB)','Globus Bank','Guaranty Trust Bank (GTBank)','Heritage Bank','Jaiz Bank','Keystone Bank','Kuda Microfinance Bank','Lotus Bank','Moniepoint MFB','OPay','PalmPay','Parallex Bank','Polaris Bank','Premium Trust Bank','Providus Bank','Stanbic IBTC Bank','Standard Chartered Bank','Sterling Bank','SunTrust Bank','Taj Bank','Titan Trust Bank','Union Bank of Nigeria','United Bank for Africa (UBA)','Unity Bank','VFD Microfinance Bank','Wema Bank','Zenith Bank'];
+let BANKS=FALLBACK_BANKS.slice(),BANKS_OK=false,RES={key:'',name:'',ok:false},VID=0;
+const bankOpts=cur=>{const l=BANKS.includes(cur)||!cur?BANKS:[cur,...BANKS];return `<option value="">Select your bank</option>`+l.map(b=>`<option value="${esc(b)}" ${b===cur?'selected':''}>${esc(b)}</option>`).join('')};
+async function loadBanks(){
+ if(BANKS_OK)return;
+ try{
+  const{data}=await sb.functions.invoke('resolve-account',{body:{banks:true}});
+  if(Array.isArray(data?.banks)&&data.banks.length){BANKS=data.banks;BANKS_OK=true}
+ }catch{}
+ ['a_b','p_b'].forEach(id=>{const s=$('#'+id);if(s)s.innerHTML=bankOpts(s.value)})}
+const bst=(p,m,c='',retry=false)=>{const e=$('#'+p+'_s');if(!e)return;e.className='bst '+c;e.innerHTML=`<span>${esc(m)}</span>${retry?`<button class="btn ghost sm" data-bretry="${p}">Verify again</button>`:''}`};
+async function errCode(error,data){if(data&&data.error)return data.error;try{return(await error.context.json()).error||'provider'}catch{return'provider'}}
+async function bverify(p){
+ const bank=val(p+'_b'),acc=val(p+'_a'),m=$('#'+p+'_m'),id=++VID;
+ RES={key:'',name:'',ok:false};if(m)m.value='';
+ if(!bank||!/^\d{10}$/.test(acc)){bst(p,acc.length===10&&!bank?'Choose your bank':'Choose your bank and enter your 10-digit account number');return}
+ bst(p,'Verifying account…');
+ try{
+  const{data,error}=await sb.functions.invoke('resolve-account',{body:{bank,account:acc}});
+  if(id!==VID)return;
+  if(data&&data.account_name){RES={key:bank+'|'+acc,name:data.account_name,ok:true};if(m)m.value=data.account_name;bst(p,'✓ Account verified','ok');return}
+  const code=await errCode(error,data);if(id!==VID)return;
+  if(code==='not_found')bst(p,'Account not found. Check the bank and account number.','bad');
+  else if(code==='bank_unsupported')bst(p,'We cannot verify this bank. Please choose another bank.','bad');
+  else if(code==='bad_request')bst(p,'Enter a valid 10-digit account number.','bad');
+  else bst(p,'Could not verify right now. Please try again.','bad',true)
+ }catch{if(id===VID)bst(p,'Could not verify right now. Please try again.','bad',true)}}
+const sameAcc=(bank,acc)=>RES.ok&&RES.key===bank+'|'+acc;
+function initProf(){
+ if(V.payout_verified&&V.account_name&&V.bank_name&&V.account_number){RES={key:V.bank_name+'|'+V.account_number,name:V.account_name,ok:true};bst('p','✓ Account verified','ok')}
+ else if(V.bank_name&&/^\d{10}$/.test(V.account_number||''))bverify('p');
+ else bst('p','Choose your bank and enter your 10-digit account number')}
+
 /* ---------- menu ---------- */
 $('#mb').innerHTML=ic('menu');
 const openMenu=()=>{document.body.classList.add('menu');$('#dr').setAttribute('aria-hidden','false')};
@@ -143,6 +180,7 @@ async function boot(){
  const ses=await session();
  if(!ses){location.replace(AUTH_URL);return}
  UID=ses.user.id;const md=ses.user.user_metadata||{};UPHONE=ses.user.phone||md.phone||'';
+ loadBanks();
  let v=await loadVendor();
  if(!v&&md.vendor_application){
   const{error}=await sb.rpc('register_vendor');
@@ -165,6 +203,7 @@ function gate(t,m,kind,extra=''){
 /* ---------- vendor application ---------- */
 function applyForm(p={}){
  document.body.classList.remove('chk');$('#mb').hidden=true;$('#hb').hidden=false;$('#hn').textContent='Become a vendor';$('#hs').textContent='Apply to sell on KAMPZA';
+ RES={key:'',name:'',ok:false};
  $('#app').innerHTML=`<div class="top"><h1>Vendor application</h1></div>
 <p class="mut" style="margin-bottom:14px">Tell us about your business. An admin reviews every application, and your dashboard opens as soon as you are approved.</p>
 <div class="fld"><label for="a_n">Business / store name</label><input id="a_n" maxlength="60" value="${esc(p.business_name||'')}" placeholder="e.g. Ada's Gadgets"></div>
@@ -173,10 +212,13 @@ function applyForm(p={}){
 <div class="fld"><label for="a_p">Phone number</label><input id="a_p" type="tel" inputmode="tel" maxlength="20" value="${esc(p.phone||UPHONE||'')}" placeholder="080..."></div>
 <div class="fld"><label for="a_d">About your business (optional)</label><textarea id="a_d" rows="3" maxlength="200">${esc(p.description||'')}</textarea></div>
 <h2 class="sh2">Payout account</h2>
-<div class="fld"><label for="a_b">Bank name</label><input id="a_b" maxlength="60" value="${esc(p.bank_name||'')}" placeholder="e.g. GTBank"></div>
-<div class="two"><div class="fld"><label for="a_a">Account number</label><input id="a_a" inputmode="numeric" maxlength="10" value="${esc(p.account_number||'')}" placeholder="10 digits"></div><div class="fld"><label for="a_m">Account name</label><input id="a_m" maxlength="80" value="${esc(p.account_name||'')}"></div></div>
+<div class="fld"><label for="a_b">Bank</label><select id="a_b">${bankOpts(p.bank_name||'')}</select></div>
+<div class="fld"><label for="a_a">Account number</label><input id="a_a" inputmode="numeric" maxlength="10" value="${esc(p.account_number||'')}" placeholder="10 digits" autocomplete="off"></div>
+<div class="fld"><label for="a_m">Account name</label><input id="a_m" readonly value="" placeholder="Appears after your account is verified"></div>
+<div class="bst" id="a_s">Choose your bank and enter your 10-digit account number</div>
 <label class="chk"><input type="checkbox" id="a_t"><span>I agree to the KAMPZA vendor terms and the commission on each sale.</span></label>
-<button class="btn full" data-apply>Submit application</button>`;scrollTo(0,0)}
+<button class="btn full" data-apply>Submit application</button>`;scrollTo(0,0);
+ if(p.bank_name&&/^\d{10}$/.test(p.account_number||''))bverify('a')}
 
 /* ---------- data ---------- */
 async function refresh(){
@@ -206,7 +248,7 @@ const pname=id=>PR.find(p=>p.id===id)?.name||'Product';
 
 /* ---------- views ---------- */
 function draw(){side();$('#hn').textContent=PAGES[tab][0];$('#hs').textContent=V.business_name;view();scrollTo(0,0)}
-function view(){const f={home:homeV,products:EDIT?formV:prodV,orders:ordV,analytics:anaV,reviews:revV,payouts:payV,profile:profV,help:helpV}[tab];$('#app').innerHTML=f();if(tab==='products'&&!EDIT)fillP();if(tab==='orders')fillO()}
+function view(){const f={home:homeV,products:EDIT?formV:prodV,orders:ordV,analytics:anaV,reviews:revV,payouts:payV,profile:profV,help:helpV}[tab];$('#app').innerHTML=f();if(tab==='products'&&!EDIT)fillP();if(tab==='orders')fillO();if(tab==='profile')initProf()}
 const empty=(i,m)=>`<div class="soon"><b>${i}</b>${m}</div>`;
 const money=i=>i.price*i.qty;
 function homeV(){
@@ -285,7 +327,7 @@ function revV(){
 function payV(){
  const can=V.payout_verified&&BAL.available>=1000;
  return `<div class="top"><h1>Payouts</h1></div><div class="stats"><div class="stat hl"><small>Available</small><b>${fmt(BAL.available)}</b></div><div class="stat"><small>Pending</small><b>${fmt(BAL.pending)}</b></div><div class="stat"><small>Paid out</small><b>${fmt(BAL.paid)}</b></div><div class="stat"><small>Total earned</small><b>${fmt(BAL.earned)}</b></div></div>
-<h2 class="sh2">Withdraw</h2><div class="box"><div class="fld" style="margin:0"><label for="w_a">Amount (₦, minimum 1,000)</label><input id="w_a" type="number" inputmode="numeric" min="1000" max="${BAL.available}" placeholder="${BAL.available>=1000?BAL.available:'1000'}"></div><div class="acts"><button class="btn" data-withdraw ${can?'':'disabled'}>Request withdrawal</button><button class="btn ghost" data-all ${BAL.available>=1000?'':'disabled'}>Withdraw all</button></div>${!V.payout_verified?'<small>Withdrawals open once KAMPZA verifies your bank details.</small>':BAL.available<1000?'<small>You need at least ₦1,000 available.</small>':''}</div>
+<h2 class="sh2">Withdraw</h2><div class="box"><div class="fld" style="margin:0"><label for="w_a">Amount (₦, minimum 1,000)</label><input id="w_a" type="number" inputmode="numeric" min="1000" max="${BAL.available}" placeholder="${BAL.available>=1000?BAL.available:'1000'}"></div><div class="acts"><button class="btn" data-withdraw ${can?'':'disabled'}>Request withdrawal</button><button class="btn ghost" data-all ${BAL.available>=1000?'':'disabled'}>Withdraw all</button></div>${!V.payout_verified?'<small>Withdrawals open once your bank account is verified.</small>':BAL.available<1000?'<small>You need at least ₦1,000 available.</small>':''}</div>
 <h2 class="sh2">Payout account<button data-t="profile">Edit</button></h2><div class="box"><b>${esc(V.bank_name||'—')}</b><span>${esc(V.account_number?'•••• '+V.account_number.slice(-4):'—')}${V.account_name?' · '+esc(V.account_name):''}</span><span class="st ${V.payout_verified?'ok':'no'}" style="justify-self:start">${V.payout_verified?'Verified':'Not verified'}</span></div>
 <small style="display:block;margin:6px 0">Earnings are credited after an item is delivered, minus KAMPZA commission. Pay-on-delivery items count once KAMPZA settles the cash.</small>
 <h2 class="sh2">History</h2>`+(PAY.length?PAY.map(x=>`<div class="box"><div class="oh"><b>${fmt(x.amount)}</b><span class="st ${x.status==='paid'?'ok':''}">${cap(x.status)}</span></div><small>${dt(x.created_at)}${x.ref?' · '+esc(x.ref):''}</small></div>`).join(''):empty('💸','No payouts yet.'))}
@@ -298,9 +340,11 @@ function profV(){
 <div class="fld"><label for="p_p">Phone</label><input id="p_p" type="tel" inputmode="tel" maxlength="20" value="${esc(V.phone||'')}"></div>
 <div class="fld"><label for="p_d">About your business</label><textarea id="p_d" rows="3" maxlength="200">${esc(V.description||'')}</textarea></div>
 <h2 class="sh2">Payout account</h2>
-<div class="fld"><label for="p_b">Bank name</label><input id="p_b" maxlength="60" value="${esc(V.bank_name||'')}"></div>
-<div class="two"><div class="fld"><label for="p_a">Account number</label><input id="p_a" inputmode="numeric" maxlength="10" value="${esc(V.account_number||'')}"></div><div class="fld"><label for="p_m">Account name</label><input id="p_m" maxlength="80" value="${esc(V.account_name||'')}"></div></div>
-<small style="display:block;margin-bottom:6px">Changing your bank details puts payouts on hold until KAMPZA verifies them again.</small>
+<div class="fld"><label for="p_b">Bank</label><select id="p_b">${bankOpts(V.bank_name||'')}</select></div>
+<div class="fld"><label for="p_a">Account number</label><input id="p_a" inputmode="numeric" maxlength="10" value="${esc(V.account_number||'')}" autocomplete="off"></div>
+<div class="fld"><label for="p_m">Account name</label><input id="p_m" readonly value="${esc(V.account_name||'')}" placeholder="Appears after your account is verified"></div>
+<div class="bst" id="p_s">Choose your bank and enter your 10-digit account number</div>
+<small style="display:block;margin-bottom:6px">Your account name is filled in automatically once the bank and account number are verified.</small>
 <button class="btn full" data-saveprof>Save changes</button>`}
 /* help */
 function helpV(){
@@ -312,7 +356,7 @@ function helpV(){
 <div class="box faq"><details><summary>Why can't I pack an order?</summary><p>For wallet and card orders, the buyer must pay first. Pay-on-delivery orders can be packed right away.</p></details></div>
 <div class="box faq"><details><summary>Can I cancel an order?</summary><p>Yes, but only while it is still New (processing). The buyer is refunded and your stock is restored.</p></details></div>
 <div class="box faq"><details><summary>How do I hide a product?</summary><p>Open Products and tap Hide. You can show it again any time without losing its details.</p></details></div>
-<div class="box faq"><details><summary>How do I get verified?</summary><p>Make sure your bank name, account number and account name are correct in Store profile, then contact support.</p></details></div>`}
+<div class="box faq"><details><summary>How do I get verified?</summary><p>Choose your bank and enter your account number in Store profile. Your account name is checked automatically.</p></details></div>`}
 
 /* ---------- actions ---------- */
 const g=(e,s)=>e.target.closest(s);
@@ -327,10 +371,15 @@ async function upload(files){
   if(error){toast('Upload failed: '+error.message);continue}
   IMGS.push(sb.storage.from(BUCKET).getPublicUrl(path).data.publicUrl)}
  const el=$('#imgs');if(el)el.innerHTML=imgHtml()}
-document.addEventListener('change',e=>{if(e.target.id==='file'){upload(e.target.files);e.target.value=''}});
+document.addEventListener('change',e=>{
+ if(e.target.id==='file'){upload(e.target.files);e.target.value=''}
+ if(e.target.id==='a_b'||e.target.id==='p_b')bverify(e.target.id[0])});
 document.addEventListener('input',e=>{
  if(e.target.id==='pq'){PQ=e.target.value;fillP()}
- if(e.target.id==='oq'){OQ=e.target.value;fillO()}});
+ if(e.target.id==='oq'){OQ=e.target.value;fillO()}
+ if(e.target.id==='a_a'||e.target.id==='p_a'){
+  const d=e.target.value.replace(/\D/g,'').slice(0,10);if(d!==e.target.value)e.target.value=d;
+  bverify(e.target.id[0])}});
 const val=id=>($('#'+id)?.value||'').trim();
 document.addEventListener('click',async e=>{
  let x;
@@ -341,6 +390,7 @@ document.addEventListener('click',async e=>{
  if(x=g(e,'[data-of]')){OF=x.dataset.of;view();return}
  if(x=g(e,'[data-pf]')){PF=x.dataset.pf;view();return}
  if(x=g(e,'[data-ar]')){AR=+x.dataset.ar;view();return}
+ if(x=g(e,'[data-bretry]')){bverify(x.dataset.bretry);return}
  if(g(e,'[data-check]')){await refresh();if(V?.status==='pending')toast('Still under review');return}
  if(g(e,'[data-reapply]')){applyForm(V||{});return}
  if(g(e,'[data-new]')){tab='products';EDIT='new';IMGS=[];draw();return}
@@ -389,9 +439,14 @@ document.addEventListener('click',async e=>{
   const a={p_business_name:val('p_n'),p_category:val('p_c'),p_location:val('p_l'),p_description:val('p_d'),p_phone:val('p_p'),p_bank_name:val('p_b'),p_account_number:val('p_a'),p_account_name:val('p_m')};
   if(a.p_business_name.length<2){toast('Enter your business name');return}
   if(a.p_location.length<3){toast('Enter your location');return}
+  if(a.p_bank_name.length<2){toast('Choose your bank');return}
   if(!/^\d{10}$/.test(a.p_account_number)){toast('Account number must be 10 digits');return}
+  if(!sameAcc(a.p_bank_name,a.p_account_number)){toast('Your account must be verified first. Check the bank and account number.');return}
+  a.p_account_name=RES.name;
   BUSY=true;x.disabled=true;x.textContent='Saving…';
-  const{error}=await sb.rpc('vendor_update_profile',a);BUSY=false;x.disabled=false;x.textContent='Save changes';
+  const{error}=await sb.rpc('vendor_update_profile',a);
+  if(!error){try{await sb.functions.invoke('resolve-account',{body:{save:true}})}catch{}}
+  BUSY=false;x.disabled=false;x.textContent='Save changes';
   if(error){toast(error.message);return}
   V=await loadVendor()||V;toast('Profile updated');draw();return}
  if(x=g(e,'[data-apply]')){
@@ -400,12 +455,15 @@ document.addEventListener('click',async e=>{
   if(a.p_business_name.length<2){toast('Enter your business name');return}
   if(a.p_location.length<3){toast('Enter your location');return}
   if(a.p_phone.replace(/\D/g,'').length<10){toast('Enter a valid phone number');return}
-  if(a.p_bank_name.length<2){toast('Enter your bank name');return}
+  if(a.p_bank_name.length<2){toast('Choose your bank');return}
   if(!/^\d{10}$/.test(a.p_account_number)){toast('Account number must be 10 digits');return}
+  if(!sameAcc(a.p_bank_name,a.p_account_number)){toast('Verify your account first. Your account name must appear.');return}
   if(!$('#a_t').checked){toast('Please accept the vendor terms');return}
+  a.p_account_name=RES.name;
   BUSY=true;x.disabled=true;x.textContent='Submitting…';
   const{error}=await sb.rpc('apply_vendor',a);BUSY=false;
   if(error){toast(error.message);x.disabled=false;x.textContent='Submit application';return}
+  try{await sb.functions.invoke('resolve-account',{body:{save:true}})}catch{}
   V=await loadVendor();toast('Application submitted');V?enter():boot();return}
  if(x=g(e,'[data-aiwrite]')){
   if(BUSY)return;

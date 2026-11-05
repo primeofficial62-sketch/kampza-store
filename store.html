@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>KAMPZA Store</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&display=swap" rel="stylesheet">
 <style>
@@ -289,7 +289,7 @@ async function loadCatalog(){
   const[a,b,c,pm]=await Promise.all([sb.from('products').select('*').eq('active',true).order('created_at',{ascending:false}),sb.from('product_ratings').select('*'),sb.from('settings').select('delivery_fee').maybeSingle(),sb.rpc('active_promos')]);
   if(a.error)throw a.error;
   const rt=Object.fromEntries((b.data||[]).map(x=>[x.product_id,x]));
-  P=a.data.map(r=>mapP(r,rt[r.id]));KX.promos(P,pm.data);await loadPromos();if(c.data)FEE=c.data.delivery_fee;
+  P=a.data.map(r=>mapP(r,rt[r.id]));KX.promos(P,pm.data);setPromos(pm.data);if(c.data)FEE=c.data.delivery_fee;
   FLASH=P.filter(x=>x.o>x.p).sort((x,y)=>y.o/y.p-x.o/x.p).slice(0,6).map(x=>x.id);
   for(const id of Object.keys(S.cart))if(!byId(id)||mine(byId(id)))delete S.cart[id];store();nav();
  }catch(err){console.error(err);toast('Could not load products. Check your connection.')}
@@ -347,9 +347,9 @@ const cartTotal=()=>Object.entries(S.cart).reduce((a,[id,n])=>a+(byId(id)?.p||0)
 const slide=s=>`<section class="sl" style="--a:var(--o);background:#252525"><span class="t">${s[0]}</span><h2>${s[1]}</h2><span class="em" aria-hidden="true">${s[2]}</span><button class="btn" data-list="all">Shop Now →</button></section>`;
 /* ---- promo slides (controlled from the admin panel) ---- */
 let PROMO=[];
-async function loadPromos(){if(!sb)return;try{const{data}=await sb.rpc('hero_promos');PROMO=(data||[]).map(r=>({pid:r.product_id,pct:r.percent,end:Date.parse(r.ends_at)}))}catch{PROMO=[]}}
+const setPromos=d=>{PROMO=(d||[]).filter(r=>r.base_price>0&&r.promo_price<r.base_price).map(r=>({pid:r.product_id,price:r.promo_price,old:r.base_price,pct:Math.round((1-r.promo_price/r.base_price)*100),end:Date.parse(r.ends_at),hl:r.headline}))};
 const promoSlide=m=>{const p=byId(m.pid);if(!p)return'';const d=Math.ceil((m.end-Date.now())/864e5);if(d<=0)return'';
- return `<section class="sl pr-sl" style="--a:var(--o);background:#252525"><span class="t">🔥 ${m.pct}% OFF · ${d<=1?'Ends today':d+' days left'}</span><h2>${esc(p.n)}</h2><div class="pp"><b>${fmt(p.p)}</b>${p.o>p.p?`<s>${fmt(p.o)}</s>`:''}</div><span class="em" aria-hidden="true">${p.img?`<img src="${esc(p.img)}" data-e="${esc(p.e)}" alt="">`:esc(p.e)}</span><button class="btn" data-open="${p.id}">Buy now →</button></section>`};
+ return `<section class="sl pr-sl" style="--a:var(--o);background:#252525"><span class="t">🔥 ${m.pct}% OFF · ${d<=1?'Ends today':d+' days left'}</span><h2>${esc(m.hl||p.n)}</h2><div class="pp"><b>${fmt(m.price)}</b><s>${fmt(m.old)}</s></div><span class="em" aria-hidden="true">${p.img?`<img src="${esc(p.img)}" data-e="${esc(p.e)}" alt="">`:esc(p.e)}</span><button class="btn" data-open="${p.id}">Buy now →</button></section>`};
 const heroSlides=()=>[...PROMO.map(promoSlide).filter(Boolean),...SLIDES.map(slide)];
 function card(p,showAdd=true){
  const d=p.o&&p.o>p.p?Math.round((1-p.p/p.o)*100):0,out=p.st===0;
@@ -739,17 +739,18 @@ KX.payView=()=>{const o=S.orders.find(k=>k.id===KX.payCode);
 KX.hooks=KX.hooks||{};
 KX.hooks.pay=async()=>{
  const el=$('#vpay'),o=S.orders.find(k=>k.id===KX.payCode);if(!el||!o)return;
- const{data,error}=await sb.rpc('order_pay_info',{p_code:o.id});if(!$('#vpay'))return;
- if(error||!data||!data.length){el.innerHTML='<div class="warn">Could not load the vendor’s bank details. Tap Chat in app to ask the vendor.</div>';return}
- el.innerHTML=data.map(v=>{
-  const amt=data.length===1?o.total:v.amount,lines=v.items.map(i=>`• ${i.qty}× ${i.name} @ ${fmt(i.price)} = ${fmt(i.qty*i.price)}`).join('\n');
-  const msg=`Hello ${v.shop}, I just placed an order on KAMPZA.\n\nOrder: ${o.id}\nProduct(s):\n${lines}\nAmount: ${fmt(amt)}\nName: ${U.name}\nPhone: ${U.phone||''}\n\nI have made the bank transfer. My payment receipt is attached 👇`;
-  const wa=waNum(v.whatsapp),has=v.account_number;
-  return `<div class="box pad" style="margin-bottom:12px"><b>${esc(v.shop)}</b>${v.items.map(i=>`<small>${i.qty}× ${esc(i.name)}</small>`).join('')}${has?`<table class="spec"><tr><td>Bank</td><td>${esc(v.bank_name)}</td></tr><tr><td>Account no.</td><td><b>${esc(v.account_number)}</b></td></tr><tr><td>Account name</td><td>${esc(v.account_name)}</td></tr><tr><td>Amount</td><td><b>${fmt(amt)}</b></td></tr></table><button class="btn ghost" data-copy="${esc(v.account_number)}">Copy account number</button>`:'<div class="warn">This vendor has not added bank details yet. Chat with them to get payment details.</div>'}${wa?`<a class="btn full wab" target="_blank" rel="noopener" href="https://wa.me/${wa}?text=${encodeURIComponent(msg)}">💬 Chat on WhatsApp (faster) — send receipt</a>`:''}<button class="btn full ghost" data-chatv="${esc(v.vendor_id)}">Chat in app — send receipt</button></div>`}).join('')};
+ const{data,error}=await sb.rpc('order_pay_info',{p_code:o.id}),vs=(data&&data.vendors)||[];if(!$('#vpay'))return;
+ if(error||!vs.length){el.innerHTML='<div class="warn">Could not load the vendor’s bank details. Tap Chat in app to ask the vendor.</div>';return}
+ el.innerHTML=vs.map(v=>{
+  const amt=v.amount,lines=v.items.map(i=>`• ${i.qty}× ${i.name} @ ${fmt(i.price)} = ${fmt(i.qty*i.price)}`).join('\n');
+  const msg=`Hello ${v.business_name}, I just placed an order on KAMPZA.\n\nOrder: ${o.id}\nProduct(s):\n${lines}\nAmount: ${fmt(amt)}\nName: ${U.name}\nPhone: ${U.phone||''}\n\nI have made the bank transfer. My payment receipt is attached 👇`;
+  const wa=waNum(v.phone),has=v.account_number;
+  return `<div class="box pad" style="margin-bottom:12px"><b>${esc(v.business_name)}</b>${v.pay_status==='confirmed'?' <span class="badge">✓ Payment confirmed</span>':''}${v.items.map(i=>`<small>${i.qty}× ${esc(i.name)}</small>`).join('')}${has?`<table class="spec"><tr><td>Bank</td><td>${esc(v.bank_name)}</td></tr><tr><td>Account no.</td><td><b>${esc(v.account_number)}</b></td></tr><tr><td>Account name</td><td>${esc(v.account_name)}</td></tr><tr><td>Amount</td><td><b>${fmt(amt)}</b></td></tr></table><button class="btn ghost" data-copy="${esc(v.account_number)}">Copy account number</button>`:'<div class="warn">This vendor has not added bank details yet. Chat with them to get payment details.</div>'}${wa?`<a class="btn full wab" target="_blank" rel="noopener" href="https://wa.me/${wa}?text=${encodeURIComponent(msg)}">💬 Chat on WhatsApp (faster) — send receipt</a>`:''}<button class="btn full ghost" data-chatv="${esc(v.vendor_id)}">Chat in app — send receipt</button></div>`}).join('')};
 document.addEventListener('click',e=>{const c=e.target.closest('[data-copy]');if(c){navigator.clipboard?.writeText(c.dataset.copy);toast('Account number copied')}});
 
 boot();
 
 </script>
+<script src="kz-chat.js"></script>
 </body>
 </html>

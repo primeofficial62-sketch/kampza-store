@@ -212,6 +212,22 @@ body.aiopen .fab{display:none}
 .tl div.on{color:var(--c)}.tl div.on::before,.tl div.on::after{background:var(--o)}
 .tl small{display:block}
 input[readonly]{background:var(--g);color:var(--m);cursor:not-allowed}
+
+/* ===== promo slide ===== */
+.pr-sl{padding:12px 18px}.pr-sl h2{-webkit-line-clamp:1;display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden;max-width:56%}
+.pr-sl .t{background:var(--o);color:#fff;padding:3px 10px;border-radius:99px;align-self:flex-start;font-size:12px}
+.pp{display:flex;gap:8px;align-items:baseline}.pp b{font:700 20px Sora}.pp s{opacity:.6;font-size:12px}
+.sl .em img{width:clamp(76px,22vw,120px);height:clamp(76px,22vw,120px);object-fit:contain;border-radius:14px;background:#fff}
+/* ===== floating nav (same size, rounded, lifted) ===== */
+nav{left:50%;right:auto;transform:translateX(-50%);width:calc(100% - 24px);max-width:520px;bottom:calc(10px + env(safe-area-inset-bottom,0px));border:1px solid var(--b);border-radius:26px;padding:8px 6px 10px;box-shadow:0 8px 28px #0000002b}
+body{padding-bottom:calc(130px + env(safe-area-inset-bottom,0px))}
+.fab,#aibox,.pbar,.sum,.cbar{bottom:calc(104px + env(safe-area-inset-bottom,0px))}
+#toast{bottom:calc(116px + env(safe-area-inset-bottom,0px))}
+/* ===== install popup ===== */
+#inst{position:fixed;top:calc(env(safe-area-inset-top,0px) + 8px);left:50%;transform:translateX(-50%);width:calc(100% - 24px);max-width:520px;z-index:60;display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--b);border-radius:18px;padding:10px 12px;box-shadow:0 10px 30px #0000003a}
+#inst[hidden]{display:none}#inst img{width:44px;height:44px;border-radius:10px;flex:none}
+#inst div{flex:1;display:grid}#inst small{line-height:1.3}#inst .btn{flex:none}#inst #insx{font-size:24px;padding:0 4px;color:var(--m)}
+.wab{background:#25D366!important}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <link rel="manifest" href="manifest.json"><meta name="theme-color" content="#FF7628"><link rel="apple-touch-icon" href="icon-192.png"><script src="kz-extra.js"></script>
@@ -230,6 +246,7 @@ input[readonly]{background:var(--g);color:var(--m);cursor:not-allowed}
 <main class="wrap" id="app"></main>
 
 <nav aria-label="Main"><div id="nav"></div></nav>
+<div id="inst" hidden role="dialog" aria-label="Install KAMPZA"><img src="icon-192.png" alt="" onerror="this.style.display='none'"><div><b>Install KAMPZA</b><small id="insm">Add the app to your home screen for faster shopping.</small></div><button class="btn" id="insgo">Install</button><button id="insx" aria-label="Close">×</button></div>
 <div id="toast" role="status" aria-live="polite"></div>
 <div id="aibox" role="dialog" aria-label="KAMPZA AI" hidden><div class="ah"><b>KAMPZA AI</b><button data-aiclose aria-label="Close chat">×</button></div><div class="chat" id="chat"></div><div class="chips" id="chips"></div><div class="cbar2"><input id="ain" placeholder="Ask anything about KAMPZA…" enterkeyhint="send" autocomplete="off" maxlength="500"><button class="btn" data-aisend>Send</button></div><div class="acon"><small>Need a person? <a id="aiwa" target="_blank" rel="noopener">WhatsApp</a> · <a id="aiem">Email</a></small></div></div>
 
@@ -272,7 +289,7 @@ async function loadCatalog(){
   const[a,b,c,pm]=await Promise.all([sb.from('products').select('*').eq('active',true).order('created_at',{ascending:false}),sb.from('product_ratings').select('*'),sb.from('settings').select('delivery_fee').maybeSingle(),sb.rpc('active_promos')]);
   if(a.error)throw a.error;
   const rt=Object.fromEntries((b.data||[]).map(x=>[x.product_id,x]));
-  P=a.data.map(r=>mapP(r,rt[r.id]));KX.promos(P,pm.data);if(c.data)FEE=c.data.delivery_fee;
+  P=a.data.map(r=>mapP(r,rt[r.id]));KX.promos(P,pm.data);await loadPromos();if(c.data)FEE=c.data.delivery_fee;
   FLASH=P.filter(x=>x.o>x.p).sort((x,y)=>y.o/y.p-x.o/x.p).slice(0,6).map(x=>x.id);
   for(const id of Object.keys(S.cart))if(!byId(id)||mine(byId(id)))delete S.cart[id];store();nav();
  }catch(err){console.error(err);toast('Could not load products. Check your connection.')}
@@ -328,6 +345,12 @@ const cartTotal=()=>Object.entries(S.cart).reduce((a,[id,n])=>a+(byId(id)?.p||0)
 
 /* ================= VIEWS ================= */
 const slide=s=>`<section class="sl" style="--a:var(--o);background:#252525"><span class="t">${s[0]}</span><h2>${s[1]}</h2><span class="em" aria-hidden="true">${s[2]}</span><button class="btn" data-list="all">Shop Now →</button></section>`;
+/* ---- promo slides (controlled from the admin panel) ---- */
+let PROMO=[];
+async function loadPromos(){if(!sb)return;try{const{data}=await sb.rpc('hero_promos');PROMO=(data||[]).map(r=>({pid:r.product_id,pct:r.percent,end:Date.parse(r.ends_at)}))}catch{PROMO=[]}}
+const promoSlide=m=>{const p=byId(m.pid);if(!p)return'';const d=Math.ceil((m.end-Date.now())/864e5);if(d<=0)return'';
+ return `<section class="sl pr-sl" style="--a:var(--o);background:#252525"><span class="t">🔥 ${m.pct}% OFF · ${d<=1?'Ends today':d+' days left'}</span><h2>${esc(p.n)}</h2><div class="pp"><b>${fmt(p.p)}</b>${p.o>p.p?`<s>${fmt(p.o)}</s>`:''}</div><span class="em" aria-hidden="true">${p.img?`<img src="${esc(p.img)}" data-e="${esc(p.e)}" alt="">`:esc(p.e)}</span><button class="btn" data-open="${p.id}">Buy now →</button></section>`};
+const heroSlides=()=>[...PROMO.map(promoSlide).filter(Boolean),...SLIDES.map(slide)];
 function card(p,showAdd=true){
  const d=p.o&&p.o>p.p?Math.round((1-p.p/p.o)*100):0,out=p.st===0;
  return `<article class="card" data-open="${p.id}">${d?`<span class="disc">-${d}%</span>`:''}<button class="hb ${S.wish.includes(p.id)?'on':''}" data-w="${p.id}" aria-label="Wishlist ${esc(p.n)}" aria-pressed="${S.wish.includes(p.id)}">${heart}</button><div class="pimg">${p.img?`<img src="${esc(p.img)}" data-e="${esc(p.e)}" alt="${esc(p.n)}" loading="lazy">`:esc(p.e)}</div><h3>${esc(p.n)}</h3>${p.r?`<small class="stars">★ ${p.r} <span style="color:var(--m)">(${p.rn})</span></small>`:''}<div class="pr">${fmt(p.p)}${d?`<span class="old">${fmt(p.o)}</span>`:''}</div>${showAdd?(mine(p)?'<button class="btn" disabled>Your product</button>':`<button class="btn" data-add="${p.id}" ${out?'disabled':''}>${out?'Out of stock':cartI+'Add to Cart'}</button>`):''}</article>`}
@@ -340,9 +363,9 @@ const area=(id,l,val='',ph='')=>`<div class="fld"><label for="${id}">${l}</label
 
 const skel=n=>`<div class="grid">${Array(n).fill('<div class="sk"></div>').join('')}</div>`;
 function home(){
- const fl=flash(),rc=recs();
+ const fl=flash(),rc=recs(),SL=heroSlides();N=SL.length;
  return `<button class="fab" data-ai aria-label="Ask KAMPZA AI">${ic('bot')}Ask AI</button>
-<div class="hero" id="hero" aria-roledescription="carousel" aria-label="Campaigns"><div class="track" id="track">${SLIDES.map(slide).join('')}</div><div class="dots">${SLIDES.map(()=>'<i></i>').join('')}</div></div>
+<div class="hero" id="hero" aria-roledescription="carousel" aria-label="Campaigns"><div class="track" id="track">${SL.join('')}</div><div class="dots">${SL.map(()=>'<i></i>').join('')}</div></div>
 <div class="cats">${CATS.map(c=>`<button class="cat" data-cat="${esc(c[0])}"><i>${c[1]}</i><span>${esc(c[0])}</span></button>`).join('')}</div>`
  +(!LOADED?`<div class="sh"><h2>Loading products…</h2></div>${skel(4)}`
  :!P.length?empty('🛍️','No products yet. Our vendors are getting set up. Check back soon.')
@@ -398,7 +421,7 @@ function checkoutView(){
  const ids=Object.keys(S.cart).filter(byId);if(!ids.length)return pgHead('Checkout')+empty('🛒','Your cart is empty.',shop);
  const a=ADDR[0]||{},sub=cartTotal(),tot=sub+FEE;
  return pgHead('Checkout')+`<div class="cartw"><div><h2 class="sh2" style="margin-top:0">Delivery</h2>${gpsBlock()}${ADDR.length?`<div class="fld"><label for="adsel">Saved addresses</label><select id="adsel"><option value="">Enter a new address</option>${ADDR.map((x,i)=>`<option value="${i}" ${i===0?'selected':''}>${esc(x.label||'Address')} · ${esc(x.hostel||'')}, ${esc(x.campus||'')}</option>`).join('')}</select></div>`:''}${fld('cp','Campus',a.campus||'','autocomplete="off" placeholder="e.g. FUNAAB main campus"')}${fld('hs','Hostel / room',a.hostel||'','autocomplete="off" placeholder="Hostel name and room number"')}${fld('ph','Phone number',a.phone||U.phone,'type="tel" inputmode="tel" autocomplete="tel"')}<label class="chk" style="margin-bottom:6px"><input type="checkbox" id="sv" ${ADDR.length?'':'checked'}>Save this address for next time</label>
-<h2 class="sh2">Payment</h2><label class="opt"><input type="radio" name="pay" value="cod" checked><span>Pay on delivery</span></label><label class="opt"><input type="radio" name="pay" value="wallet"><span>Wallet <small>${fmt(S.wallet.bal)} available</small></span></label><label class="opt"><input type="radio" name="pay" value="transfer"><span>Bank transfer <small>pay the vendor, upload receipt</small></span></label></div>
+<h2 class="sh2">Payment</h2><label class="opt"><input type="radio" name="pay" value="cod" checked><span>Pay on delivery</span></label><label class="opt"><input type="radio" name="pay" value="wallet"><span>Wallet <small>${fmt(S.wallet.bal)} available</small></span></label><label class="opt"><input type="radio" name="pay" value="transfer"><span>Bank transfer <small>pay the vendor, then send your receipt</small></span></label></div>
 <div class="sum"><b>Order summary</b>${ids.map(id=>`<div class="oh" style="font-weight:400;font-size:14px"><span>${S.cart[id]}× ${esc(byId(id).n)}</span><span>${fmt(byId(id).p*S.cart[id])}</span></div>`).join('')}<div style="font-weight:400;font-size:14px"><span>Subtotal</span><span>${fmt(sub)}</span></div><div style="font-weight:400;font-size:14px"><span>Delivery</span><span>${fmt(FEE)}</span></div><div><span>Total</span><span>${fmt(tot)}</span></div><button class="btn" data-place>Place order · ${fmt(tot)}</button></div></div>`}
 function quotesView(){return pgHead('My Quotes')+`<p class="sub">Can’t find something? Tell us what you need and we’ll send a price.</p>${fld('qi','What do you need?','','placeholder="e.g. HP laptop, 16GB RAM"')}${fld('qq','Quantity','1','type="number" inputmode="numeric" min="1"')}${fld('qb','Budget (₦, optional)','','type="number" inputmode="numeric"')}${area('qn','Extra details (optional)')}<button class="btn full" data-quote>Request quote</button><h2 class="sh2">Your requests</h2>`+(S.quotes.length?S.quotes.map(x=>`<div class="nt"><div class="oh"><b>${esc(x.id)}</b><span class="st">${esc(x.status)}</span></div><div>${x.qty}× ${esc(x.item)}</div><small>${dt(x.at)}${x.budget?' · Budget '+fmt(x.budget):''}</small></div>`).join(''):'<div class="soon">No quotes yet.</div>')}
 function walletView(){return pgHead('Wallet')+`<div class="bal"><small>Available balance</small><b>${fmt(S.wallet.bal)}</b></div><a class="btn full" href="https://wa.me/${WHATSAPP}?text=I%20want%20to%20fund%20my%20KAMPZA%20wallet" target="_blank" rel="noopener">Fund wallet via WhatsApp</a><h2 class="sh2">Transactions</h2>`+(S.wallet.tx.length?S.wallet.tx.map(x=>`<div class="nt"><div class="oh"><b>${esc(x.t)}</b><b style="color:${x.a<0?'#d92d20':'#1a8f4c'}">${x.a<0?'−':'+'}${fmt(Math.abs(x.a))}</b></div><small>${dt(x.at)}</small></div>`).join(''):'<div class="soon">No transactions yet.</div>')}
@@ -634,7 +657,7 @@ document.addEventListener('change',async e=>{
  toast(k==='daily'?(c.checked?'Daily deals email on':'Daily deals email off'):(c.checked?'Email updates on':'Email updates off'))});
 
 /* ================= HERO CAROUSEL ================= */
-let idx=0,timer,drag=null;const N=SLIDES.length;
+let idx=0,timer,drag=null,N=SLIDES.length;
 function goTo(i){if(!$('#track'))return;idx=((i%N)+N)%N;document.querySelectorAll('.sl').forEach((s,j)=>{let o=((j-idx)%N+N)%N;if(o>N/2)o-=N;s.style.transform=`translateX(${o*100}%)`;s.style.opacity=Math.abs(o)>1?0:1;s.setAttribute('aria-hidden',o!==0)});
  document.querySelectorAll('.dots i').forEach((d,j)=>d.classList.toggle('on',j==idx))}
 function start(){
@@ -695,6 +718,36 @@ addEventListener('popstate',e=>{if(!U)return;const t=e.state;
  q='';$('#q').value='';
  if(!t||t.root){tab='home';sub=null;pg=null;prod=null;draw(true);return}
  tab=t.tab||'home';sub=t.sub||null;pg=t.pg||null;prod=t.prod||null;TC=t.tc||TC;draw(false)});
+/* ================= INSTALL AS APP POPUP (shows on every visit until installed) ================= */
+let DIP=null;
+const isApp=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+function showInst(){if(isApp()||!(DIP||isIOS))return;$('#inst').hidden=false}
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();DIP=e;setTimeout(showInst,1200)});
+addEventListener('appinstalled',()=>{DIP=null;$('#inst').hidden=true;toast('KAMPZA installed')});
+$('#insx').onclick=()=>{$('#inst').hidden=true};
+$('#insgo').onclick=async()=>{
+ if(DIP){DIP.prompt();try{await DIP.userChoice}catch{}DIP=null;$('#inst').hidden=true}
+ else{$('#insm').textContent='Tap the Share button, then “Add to Home Screen”.';$('#insgo').hidden=true}};
+if(isIOS)setTimeout(showInst,1800);
+
+/* ================= MANUAL PAYMENT: bank transfer → receipt on WhatsApp or in-app chat ================= */
+const waNum=n=>{let d=String(n||'').replace(/\D/g,'');if(d.startsWith('0'))d='234'+d.slice(1);return d};
+KX.payView=()=>{const o=S.orders.find(k=>k.id===KX.payCode);
+ if(!o)return pgHead('Payment')+empty('📦','Order not found.');
+ return pgHead('Pay by transfer')+`<div class="nt"><div class="oh"><b>${esc(o.id)}</b><span class="st">${o.paid?'Paid':'Awaiting payment'}</span></div><small>Total ${fmt(o.total)} (delivery ${fmt(o.fee)} included)</small></div><p class="sub" style="margin:0 0 12px">Transfer to the vendor account below, then send your receipt. Your order moves forward once the vendor verifies the payment.</p><div id="vpay"><small>Loading vendor bank details…</small></div>`};
+KX.hooks=KX.hooks||{};
+KX.hooks.pay=async()=>{
+ const el=$('#vpay'),o=S.orders.find(k=>k.id===KX.payCode);if(!el||!o)return;
+ const{data,error}=await sb.rpc('order_pay_info',{p_code:o.id});if(!$('#vpay'))return;
+ if(error||!data||!data.length){el.innerHTML='<div class="warn">Could not load the vendor’s bank details. Tap Chat in app to ask the vendor.</div>';return}
+ el.innerHTML=data.map(v=>{
+  const amt=data.length===1?o.total:v.amount,lines=v.items.map(i=>`• ${i.qty}× ${i.name} @ ${fmt(i.price)} = ${fmt(i.qty*i.price)}`).join('\n');
+  const msg=`Hello ${v.shop}, I just placed an order on KAMPZA.\n\nOrder: ${o.id}\nProduct(s):\n${lines}\nAmount: ${fmt(amt)}\nName: ${U.name}\nPhone: ${U.phone||''}\n\nI have made the bank transfer. My payment receipt is attached 👇`;
+  const wa=waNum(v.whatsapp),has=v.account_number;
+  return `<div class="box pad" style="margin-bottom:12px"><b>${esc(v.shop)}</b>${v.items.map(i=>`<small>${i.qty}× ${esc(i.name)}</small>`).join('')}${has?`<table class="spec"><tr><td>Bank</td><td>${esc(v.bank_name)}</td></tr><tr><td>Account no.</td><td><b>${esc(v.account_number)}</b></td></tr><tr><td>Account name</td><td>${esc(v.account_name)}</td></tr><tr><td>Amount</td><td><b>${fmt(amt)}</b></td></tr></table><button class="btn ghost" data-copy="${esc(v.account_number)}">Copy account number</button>`:'<div class="warn">This vendor has not added bank details yet. Chat with them to get payment details.</div>'}${wa?`<a class="btn full wab" target="_blank" rel="noopener" href="https://wa.me/${wa}?text=${encodeURIComponent(msg)}">💬 Chat on WhatsApp (faster) — send receipt</a>`:''}<button class="btn full ghost" data-chatv="${esc(v.vendor_id)}">Chat in app — send receipt</button></div>`}).join('')};
+document.addEventListener('click',e=>{const c=e.target.closest('[data-copy]');if(c){navigator.clipboard?.writeText(c.dataset.copy);toast('Account number copied')}});
+
 boot();
 
 </script>

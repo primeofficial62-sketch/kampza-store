@@ -111,7 +111,7 @@ nav .cb{position:absolute;top:1px;left:calc(50% + 4px);background:var(--o);color
 .qty{display:inline-flex;align-items:center;gap:2px;background:var(--g);border-radius:99px}
 .qty button{width:34px;height:34px;font-size:18px;border-radius:50%}.qty span{min-width:22px;text-align:center;font-weight:600}
 .rm{color:var(--m);font-size:12px;text-decoration:underline;padding:4px}
-.sum{position:sticky;bottom:calc(88px + env(safe-area-inset-bottom,0px));background:var(--bg);border:1px solid var(--b);border-radius:var(--r);padding:12px;display:grid;gap:10px;box-shadow:0 -4px 16px #0000000d}
+.sum{position:static;background:var(--bg);border:1px solid var(--b);border-radius:var(--r);padding:12px;display:grid;gap:10px;box-shadow:0 -4px 16px #0000000d}
 .sum div{display:flex;justify-content:space-between;font-weight:700;font-size:16px}.sum .btn{padding:12px}
 .set{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--b)}.set small{display:block}
 .sw{position:relative;width:46px;height:28px;flex:none}.sw input{position:absolute;inset:0;opacity:0;width:100%;height:100%;margin:0;cursor:pointer}
@@ -187,7 +187,7 @@ details{border-bottom:1px solid var(--b);padding:13px 0}summary{font-weight:600;
 .rate button{font-size:28px;color:#ccc;padding:0 2px}.rate button.on{color:#f5a623}
 .steps{display:flex;gap:4px;margin:4px 0 8px}.steps i{flex:1;height:4px;border-radius:3px;background:var(--b)}.steps i.on{background:var(--o)}
 .cartw{display:grid;gap:10px}
-@media(min-width:760px){.cartw{grid-template-columns:minmax(0,1fr) 340px;gap:24px;align-items:start}.cartw .sum{position:sticky;top:150px;bottom:auto}}
+@media(min-width:760px){.cartw{grid-template-columns:minmax(0,1fr) 340px;gap:24px;align-items:start}.cartw .sum{position:static}}
 @media(max-width:340px){.qt{grid-template-columns:repeat(2,minmax(0,1fr))}.pbar{flex-direction:column}}
 .cat{flex:0 0 80px;font-size:11px}.cat span{overflow-wrap:normal;word-break:normal;hyphens:none;min-height:2.4em}
 @media(min-width:768px){.cat{flex-basis:92px;font-size:12px}}
@@ -230,6 +230,15 @@ body{padding-bottom:calc(130px + env(safe-area-inset-bottom,0px))}
 #aibox,.fab{display:none!important}
 /* ===== verified vendor badge ===== */
 .vb{display:inline-flex;align-self:flex-start;background:#1d9bf018;color:#1d7fd6;font:600 11px Inter;padding:2px 8px;border-radius:99px}
+/* ===== payment states + receipt ===== */
+.st.pend{background:#fff3cd;color:#8a6100}.st.ok{background:#e6f6ec;color:#1a7f43}
+.btn.dark{background:#252525;color:#fff}
+.rcw{max-width:480px;margin:0 auto}.rcw img{width:100%;border-radius:16px;box-shadow:0 8px 30px #0002}
+.rcb{display:flex;gap:10px;margin:14px auto;max-width:480px}.rcb .btn{flex:1;padding:13px;text-align:center}.rcb .btn.alt{background:#252525}
+.pendbox{background:#fff8e1;border:1px solid #ffe08a;color:#7a5600;border-radius:var(--r);padding:12px;margin-top:10px;font-size:13px;line-height:1.45}
+.okbox{background:#e6f6ec;border:1px solid #b7e4c7;color:#1a7f43;border-radius:var(--r);padding:12px;margin-top:10px;font-size:13px;line-height:1.45}
+[data-theme=dark] .st.pend,[data-theme=dark] .pendbox{background:#3a2f0b;color:#ffd666;border-color:#5c4a12}
+[data-theme=dark] .st.ok,[data-theme=dark] .okbox{background:#12301e;color:#6fdc9a;border-color:#1d4a2e}
 /* ===== dark mode ===== */
 :root[data-theme=dark]{--c:#f2f2f2;--bg:#141414;--g:#232323;--m:#a0a0a0;--b:#34343a;color-scheme:dark}
 [data-theme=dark] .pdesc,[data-theme=dark] .rv p{color:#cfcfcf}
@@ -267,7 +276,7 @@ body{padding-bottom:calc(130px + env(safe-area-inset-bottom,0px))}
 <script>
 /* ================= CONFIG ================= */
 const SUPABASE_URL='https://fcgvmxkxwgymgqcbtzjd.supabase.co',SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjZ3ZteGt4d2d5bWdxY2J0empkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMwODgyODcsImV4cCI6MjEwODY2NDI4N30.SEROg_J5x2dldpI6buHKYVQbuuyzM4bOJLHPYDWtIbM',AUTH_URL='auth.html#signin',MAIL_ENDPOINT=SUPABASE_URL+'/functions/v1/notify',CATALOG_URL='deals.json';
-const SUPPORT_EMAIL='kampzastore@gmail.com',WHATSAPP='2349059538257',VERSION='2.4.0';
+const SUPPORT_EMAIL='kampzastore@gmail.com',WHATSAPP='2349059538257',VERSION='2.5.0';
 const MAIL_FN=['notify-ts'];
 async function callFn(names,body){let last;for(const n of names){try{const r=await fetch(SUPABASE_URL+'/functions/v1/'+n,{method:'POST',headers:{'Content-Type':'application/json',apikey:SUPABASE_ANON_KEY,Authorization:'Bearer '+SUPABASE_ANON_KEY},body:JSON.stringify(body)});if(r.status===404)continue;return await r.json()}catch(e){last=e}}throw last||new Error('function not found')}
 
@@ -323,11 +332,15 @@ async function loadServer(){
    sb.from('wallet_tx').select('*').eq('user_id',U.id).order('created_at',{ascending:false}).limit(30),
    sb.from('addresses').select('*').eq('user_id',U.id).order('is_default',{ascending:false}).order('created_at',{ascending:false}),
    sb.from('quotes').select('*').eq('user_id',U.id).order('created_at',{ascending:false}).limit(30)]);
-  if(!o.error)S.orders=o.data.map(x=>({id:x.code,at:Date.parse(x.created_at),pay:x.pay_method,paid:x.paid,status:cap(x.status),st:x.status,fee:x.delivery_fee,total:x.total,items:(x.order_items||[]).map(i=>({id:i.id,pid:i.product_id,n:i.name,q:i.qty,p:i.price,s:i.status}))}));
+  if(!o.error)S.orders=o.data.map(x=>({id:x.code,at:Date.parse(x.created_at),pay:x.pay_method,paid:x.paid,claim:!x.paid&&(x.order_items||[]).some(i=>i.pay_status==='submitted'),rej:!x.paid&&(x.order_items||[]).some(i=>i.pay_status==='rejected')&&!(x.order_items||[]).some(i=>i.pay_status==='submitted'),ph:x.phone||'',ad:x.address||x.delivery_address||'',status:cap(x.status),st:x.status,fee:x.delivery_fee,total:x.total,items:(x.order_items||[]).map(i=>({id:i.id,pid:i.product_id,n:i.name,q:i.qty,p:i.price,s:i.status}))}));
   if(!w.error)S.wallet.bal=Number(w.data?.balance||0);
   if(!t.error)S.wallet.tx=t.data.map(x=>({t:x.title,a:Number(x.amount),at:Date.parse(x.created_at)}));
   if(!a.error)ADDR=a.data;
   if(!qt.error)S.quotes=qt.data.map(x=>({id:x.id,item:x.item,qty:x.qty,budget:x.budget,at:Date.parse(x.created_at),status:x.status}));
+  S.paidSeen=S.paidSeen||{};
+  for(const x of S.orders){
+   if(S.paidSeen[x.id]===undefined)S.paidSeen[x.id]=!!x.paid;
+   else if(!S.paidSeen[x.id]&&x.paid){S.paidSeen[x.id]=true;paidNow(x)}}
   S.seen=S.seen||{};
   for(const x of S.orders){const sg=x.st+'|'+x.items.map(i=>i.s).join();if(S.seen[x.id]&&S.seen[x.id]!==sg)notif('Order '+x.id+' updated','Status: '+x.status);S.seen[x.id]=sg}
   store();badges();nav();
@@ -432,7 +445,16 @@ function accountView(){
 <button class="out" data-signout>${ic('out')}Log Out</button>
 <p class="foot">KAMPZA · Find It. Get It. Love It.<br>v${VERSION}</p>`}
 
-function ordersView(){return pgHead('My Orders')+(S.orders.length?S.orders.map(o=>`<div class="nt"><div class="oh"><b>${esc(o.id)}</b><span class="st">${esc(o.status)}</span></div><small>${dt(o.at)} · ${{wallet:'Wallet',cod:'Pay on delivery',transfer:'Bank transfer',card:'Card'}[o.pay]}${o.pay!=='cod'?(o.paid?' · Paid':' · Awaiting payment'):''}</small>${o.items.map(i=>`<div class="oh"><span>${i.q}× ${esc(i.n)}</span><span class="st">${cap(i.s)}</span></div>${i.s==='cancelled'?'':`<div class="steps">${STEPS.map((x,k)=>`<i class="${k<=STEPS.indexOf(i.s)?'on':''}"></i>`).join('')}</div>`}${i.s==='delivered'&&i.pid&&byId(i.pid)?`<button class="rm" data-rev="${i.pid}">Rate this item</button>`:''}`).join('')}<div class="oh"><small>Delivery</small><small>${fmt(o.fee)}</small></div><div class="oh tot"><span>Total</span><b>${fmt(o.total)}</b></div><button class="btn full ghost" data-track="${esc(o.id)}">Track order</button>${o.pay==='transfer'&&!o.paid&&o.st!=='cancelled'?`<button class="btn full" data-payord="${esc(o.id)}">Pay by transfer · ${fmt(o.total)}</button>`:''}${cancelBtn(o)}</div>`).join(''):empty('📦','No orders yet.',shop))}
+const stBadge=o=>{let t=o.status,c='';
+ if(o.st!=='cancelled'){
+  if(o.pay==='transfer'&&!o.paid){t=o.claim?'Pending approval':o.rej?'Payment rejected':'Awaiting payment';c=o.claim?'pend':''}
+  else if(o.paid&&o.pay==='transfer'&&(o.st==='processing'||o.st==='paid')){t='Successful';c='ok'}}
+ return `<span class="st ${c}">${esc(t)}</span>`};
+const payBtns=o=>(o.pay==='transfer'&&!o.paid&&o.st!=='cancelled')
+ ?(o.claim?`<div class="pendbox">⏳ <b>Payment submitted.</b> Waiting for the vendor to approve it. Your order becomes successful and you will get an email with what you bought once it is approved.</div>`
+  :`${o.rej?'<div class="warn">The vendor could not find your payment. Check the amount and account, then pay again or chat with the vendor.</div>':''}<button class="btn full ghost" data-payord="${esc(o.id)}">Pay by transfer · ${fmt(o.total)}</button><button class="btn full" data-ipaid="${esc(o.id)}">✅ I have paid</button>`):'';
+const rcBtn=o=>receiptReady(o)?`<button class="btn full dark" data-rc="${esc(o.id)}">🧾 View receipt</button>`:'';
+function ordersView(){return pgHead('My Orders')+(S.orders.length?S.orders.map(o=>`<div class="nt"><div class="oh"><b>${esc(o.id)}</b>${stBadge(o)}</div><small>${dt(o.at)} · ${{wallet:'Wallet',cod:'Pay on delivery',transfer:'Bank transfer',card:'Card'}[o.pay]}${o.pay!=='cod'?(o.paid?' · Paid':o.claim?' · Payment pending approval':' · Awaiting payment'):''}</small>${o.items.map(i=>`<div class="oh"><span>${i.q}× ${esc(i.n)}</span><span class="st">${cap(i.s)}</span></div>${i.s==='cancelled'?'':`<div class="steps">${STEPS.map((x,k)=>`<i class="${k<=STEPS.indexOf(i.s)?'on':''}"></i>`).join('')}</div>`}${i.s==='delivered'&&i.pid&&byId(i.pid)?`<button class="rm" data-rev="${i.pid}">Rate this item</button>`:''}`).join('')}<div class="oh"><small>Delivery</small><small>${fmt(o.fee)}</small></div><div class="oh tot"><span>Total</span><b>${fmt(o.total)}</b></div><button class="btn full ghost" data-track="${esc(o.id)}">Track order</button>${payBtns(o)}${rcBtn(o)}${cancelBtn(o)}</div>`).join(''):empty('📦','No orders yet.',shop))}
 function checkoutView(){
  const ids=Object.keys(S.cart).filter(byId);if(!ids.length)return pgHead('Checkout')+empty('🛒','Your cart is empty.',shop);
  const a=ADDR[0]||{},sub=cartTotal(),tot=sub+FEE;
@@ -446,7 +468,7 @@ function prefsView(){return pgHead('Notifications')+`<label class="set"><div><b>
 function termsView(){return pgHead('Terms &amp; Conditions')+`<div class="terms"><h3>1. Using KAMPZA</h3><p>You must provide accurate details and keep your login private. You are responsible for activity on your account.</p><h3>2. Orders and pricing</h3><p>Prices are in Nigerian Naira. We may cancel an order if an item is unavailable or a price was listed in error, and refund any payment made.</p><h3>3. Delivery</h3><p>Delivery times are estimates. Please provide a correct address and phone number.</p><h3>4. Privacy</h3><p>We use your name, email, phone and address only to run your account, process orders and send messages you opted into. You can turn emails off or delete your account at any time.</p><h3>5. Contact</h3><p>Questions? Email ${esc(SUPPORT_EMAIL)}.</p></div>`}
 function deleteView(){return pgHead('Delete Account')+`<div class="warn"><b>This cannot be undone.</b> Your profile, orders, quotes, wishlist and wallet balance will be removed permanently.</div>${fld('dc','Type DELETE to confirm','','autocapitalize="characters" autocomplete="off"')}<button class="btn full danger" data-del>Delete my account</button>`}
 function helpView(){const f=(a,b)=>`<details><summary>${a}</summary><p>${b}</p></details>`;return pgHead('Help &amp; Support')+f('How do I place an order?','Add items to your cart, tap Checkout, enter your phone and address, then choose Bank transfer or Pay on delivery.')+f('Can’t find a product?','Use My Quotes to describe what you need and we’ll reply with a price.')+f('I didn’t get an email','Check spam, then confirm your email address is correct under Personal Information.')+`<a class="btn full" href="https://wa.me/${WHATSAPP}" target="_blank" rel="noopener">Chat on WhatsApp</a><a class="btn full ghost" href="mailto:${SUPPORT_EMAIL}">Email support</a>`}
-const PG={pay:()=>KX.payView(),chat:()=>KX.chatView(),chats:()=>KX.chatsView(),track:trackView,orders:ordersView,checkout:checkoutView,quotes:quotesView,info:infoView,security:securityView,prefs:prefsView,terms:termsView,delete:deleteView,help:helpView};
+const PG={receipt:receiptView,pay:()=>KX.payView(),chat:()=>KX.chatView(),chats:()=>KX.chatsView(),track:trackView,orders:ordersView,checkout:checkoutView,quotes:quotesView,info:infoView,security:securityView,prefs:prefsView,terms:termsView,delete:deleteView,help:helpView};
 
 /* ===== GPS + TRACKING ===== */
 let GM='gps',GEO=null,GWATCH=null,GMAP=null,GMARK=null,GCIR=null,TC=null,LID=0;
@@ -511,7 +533,7 @@ async function rev(lat,lng){
 function trackView(){
  const o=S.orders.find(k=>k.id===TC);
  if(!o)return pgHead('Track order')+empty('📦','Order not found.');
- return pgHead('Track '+esc(o.id))+`<div class="nt"><div class="oh"><b>${esc(o.status)}</b><span class="st">${o.paid?'Paid':o.pay==='cod'?'Pay on delivery':'Awaiting payment'}</span></div><small>${dt(o.at)} · Total ${fmt(o.total)}</small></div><h2 class="sh2">Progress</h2><div class="tl" id="tl"><small>Loading…</small></div><h2 class="sh2">Items</h2>${o.items.map(i=>`<div class="oh nt"><span>${i.q}× ${esc(i.n)}</span><span class="st">${cap(i.s)}</span></div>`).join('')}${cancelBtn(o)}`}
+ return pgHead('Track '+esc(o.id))+`<div class="nt"><div class="oh"><b>${esc(o.status)}</b><span class="st ${o.paid?'ok':o.claim?'pend':''}">${o.paid?'Paid':o.pay==='cod'?'Pay on delivery':o.claim?'Pending approval':'Awaiting payment'}</span></div><small>${dt(o.at)} · Total ${fmt(o.total)}</small></div><h2 class="sh2">Progress</h2><div class="tl" id="tl"><small>Loading…</small></div><h2 class="sh2">Items</h2>${o.items.map(i=>`<div class="oh nt"><span>${i.q}× ${esc(i.n)}</span><span class="st">${cap(i.s)}</span></div>`).join('')}${payBtns(o)}${rcBtn(o)}${cancelBtn(o)}`}
 async function trackLoad(){
  const el=$('#tl');if(!el||!sb)return;
  const{data,error}=await sb.from('order_events').select('*').eq('order_code',TC).order('created_at');
@@ -711,7 +733,7 @@ async function boot(){
  U={id:u.id,email:u.email,verified:!!u.email_confirmed_at,
   name:md.full_name||md.name||(u.email||'').split('@')[0],
   phone:u.phone||md.phone||'',avatar:md.avatar_url||md.picture||'',meta:md};
- loadState();welcome();try{const nv=jget('kz_nav_'+U.id,null);if(nv){tab=nv.tab||'home';sub=nv.sub||null;pg=(nv.pg==='pay'||nv.pg==='chat')?null:(nv.pg||null);prod=nv.prod||null;TC=nv.tc||null}}catch{}history.replaceState({root:1},'');showPage();draw();await Promise.all([loadCatalog(),loadServer(),loadVendor()]);live();msgWatch()}
+ loadState();welcome();try{const nv=jget('kz_nav_'+U.id,null);if(nv){tab=nv.tab||'home';sub=nv.sub||null;pg=(nv.pg==='pay'||nv.pg==='chat')?null:(nv.pg||null);prod=nv.prod||null;TC=nv.tc||null}}catch{}try{if(new URLSearchParams(location.search).get('msgs')){tab='account';pg='chats';prod=null;sub=null}}catch{}history.replaceState({root:1},'');showPage();draw();await Promise.all([loadCatalog(),loadServer(),loadVendor()]);live();msgWatch()}
 /* Only the user's own Log Out signs them out. Other SIGNED_OUT events are re-checked first. */
 sb?.auth.onAuthStateChange((ev,ses)=>{if(ses?.access_token)TOKEN=ses.access_token;
  if(ev==='SIGNED_OUT'&&U){if(OUT)toLogin();else setTimeout(async()=>{if(!await session())toLogin()},800)}});
@@ -772,7 +794,7 @@ function msgWatch(){
 const waNum=n=>{let d=String(n||'').replace(/\D/g,'');if(d.startsWith('0'))d='234'+d.slice(1);return d};
 KX.payView=()=>{const o=S.orders.find(k=>k.id===KX.payCode);
  if(!o)return pgHead('Payment')+empty('📦','Order not found.');
- return pgHead('Pay by transfer')+`<div class="nt"><div class="oh"><b>${esc(o.id)}</b><span class="st">${o.paid?'Paid':'Awaiting payment'}</span></div><small>Total ${fmt(o.total)} (delivery ${fmt(o.fee)} included)</small></div><p class="sub" style="margin:0 0 12px">Transfer to the vendor account below, then send your receipt. Your order moves forward once the vendor verifies the payment.</p><div id="vpay"><small>Loading vendor bank details…</small></div>`};
+ return pgHead('Pay by transfer')+`<div class="nt"><div class="oh"><b>${esc(o.id)}</b><span class="st">${o.paid?'Paid':'Awaiting payment'}</span></div><small>Total ${fmt(o.total)} (delivery ${fmt(o.fee)} included)</small></div><p class="sub" style="margin:0 0 12px">Transfer to the vendor account below, then send your receipt. Your order moves forward once the vendor verifies the payment.</p><div id="vpay"><small>Loading vendor bank details…</small></div>${o.paid?`<div class="okbox">✅ <b>Payment approved.</b> Your order is successful.</div>${rcBtn(o)}`:o.claim?payBtns(o):`<button class="btn full" data-ipaid="${esc(o.id)}">✅ I have paid</button><small style="display:block;text-align:center;margin-top:6px">Tap this after you have sent the transfer. The vendor will then check and approve it.</small>`}`};
 KX.hooks=KX.hooks||{};
 KX.hooks.pay=async()=>{
  const el=$('#vpay'),o=S.orders.find(k=>k.id===KX.payCode);if(!el||!o)return;
@@ -784,6 +806,152 @@ KX.hooks.pay=async()=>{
   const wa=waNum(v.phone),has=v.account_number;
   return `<div class="box pad" style="margin-bottom:12px"><b>${esc(v.business_name)}</b>${v.pay_status==='confirmed'?' <span class="badge">✓ Payment confirmed</span>':''}${v.items.map(i=>`<small>${i.qty}× ${esc(i.name)}</small>`).join('')}${has?`<table class="spec"><tr><td>Bank</td><td>${esc(v.bank_name)}</td></tr><tr><td>Account no.</td><td><b>${esc(v.account_number)}</b></td></tr><tr><td>Account name</td><td>${esc(v.account_name)}</td></tr><tr><td>Amount</td><td><b>${fmt(amt)}</b></td></tr></table><button class="btn ghost" data-copy="${esc(v.account_number)}">Copy account number</button>`:'<div class="warn">This vendor has not added bank details yet. Chat with them to get payment details.</div>'}${wa?`<a class="btn full wab" target="_blank" rel="noopener" href="https://wa.me/${wa}?text=${encodeURIComponent(msg)}">💬 Chat on WhatsApp (faster) — send receipt</a>`:''}<button class="btn full ghost" data-chatv="${esc(v.vendor_id)}">Chat in app — send receipt</button></div>`}).join('')};
 document.addEventListener('click',e=>{const c=e.target.closest('[data-copy]');if(c){navigator.clipboard?.writeText(c.dataset.copy);toast('Account number copied')}});
+
+/* ================= RECEIPT (image + PDF) ================= */
+let RC=null,RCV=null;
+const receiptReady=o=>!!o&&o.st!=='cancelled'&&(o.paid||o.st==='delivered');
+const RPAY={wallet:'KAMPZA Wallet',cod:'Pay on delivery',transfer:'Bank transfer',card:'Card'};
+function paidNow(o){
+ notif('Payment approved ✅',o.id+' · your receipt is ready');toast('Payment approved! Your receipt is ready');
+}
+function rr(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
+function wrapT(c,t,mw){const out=[];let l='';for(const w of String(t||'').split(/\s+/).filter(Boolean)){const n=l?l+' '+w:w;if(c.measureText(n).width>mw&&l){out.push(l);l=w}else l=n}if(l)out.push(l);return out.length?out:['—']}
+function paint(c,o,H){
+ const W=760,CX=28,CW=W-56,L=64,R=W-64,IW=R-L,TOP=24,BG='#f3efe8',OR='#FF7628',GR='#1fa65a',INK='#252525',MUT='#7a7a7a';
+ const total=H||4000,sp=(t,px)=>{try{c.letterSpacing=px+'px'}catch{}};
+ c.textBaseline='alphabetic';
+ c.fillStyle=BG;c.fillRect(0,0,W,total);
+ /* we draw the body first to learn the height, so the card is painted last behind it using destination-over */
+ c.save();
+ rr(c,CX,TOP,CW,total-2*TOP,28);c.clip();
+ c.fillStyle='#fff';c.fillRect(CX,TOP,CW,total);
+ /* header */
+ const hg=c.createLinearGradient(CX,TOP,CX+CW,TOP+190);hg.addColorStop(0,'#ff6a13');hg.addColorStop(1,'#ffa05a');
+ c.fillStyle=hg;c.fillRect(CX,TOP,CW,176);
+ c.fillStyle='rgba(255,255,255,.12)';c.beginPath();c.arc(CX+CW-40,TOP+10,110,0,7);c.fill();
+ c.fillStyle='rgba(255,255,255,.08)';c.beginPath();c.arc(CX+40,TOP+170,90,0,7);c.fill();
+ c.fillStyle='#fff';c.font='700 36px Sora,Inter,sans-serif';sp(0,1);c.textAlign='left';c.fillText('KAMPZA',L,TOP+74);
+ c.font='500 14px Inter,sans-serif';c.fillStyle='rgba(255,255,255,.92)';c.fillText('Find It. Get It. Love It.',L,TOP+100);
+ c.textAlign='right';c.font='700 12px Inter,sans-serif';sp(0,3);c.fillText('PAYMENT RECEIPT',R,TOP+72);sp(0,0);
+ c.font='500 13px Inter,sans-serif';c.fillText('#'+o.id,R,TOP+96);
+ c.restore();
+ /* badge */
+ const bx=W/2,by=TOP+176;
+ c.save();c.shadowColor='rgba(0,0,0,.18)';c.shadowBlur=14;c.shadowOffsetY=4;c.fillStyle='#fff';c.beginPath();c.arc(bx,by,46,0,7);c.fill();c.restore();
+ c.fillStyle=GR;c.beginPath();c.arc(bx,by,37,0,7);c.fill();
+ c.strokeStyle='#fff';c.lineWidth=7;c.lineCap='round';c.lineJoin='round';c.beginPath();c.moveTo(bx-15,by+1);c.lineTo(bx-4,by+13);c.lineTo(bx+17,by-12);c.stroke();
+ let y=by+46+40;
+ c.textAlign='center';c.fillStyle=INK;c.font='700 26px Sora,Inter,sans-serif';c.fillText(o.paid?'Payment Successful':'Order Completed',W/2,y);
+ y+=52;c.fillStyle=OR;c.font='700 48px Sora,Inter,sans-serif';c.fillText(fmt(o.total),W/2,y);
+ y+=30;c.fillStyle=MUT;c.font='400 14px Inter,sans-serif';
+ c.fillText(new Date(o.paidAt||o.at).toLocaleString('en-NG',{weekday:'short',day:'numeric',month:'long',year:'numeric',hour:'numeric',minute:'2-digit'}),W/2,y);
+ y+=36;
+ const tear=yy=>{c.fillStyle=BG;c.beginPath();c.arc(CX,yy,15,0,7);c.arc(CX+CW,yy,15,0,7);c.fill();
+  c.save();c.setLineDash([7,7]);c.strokeStyle='#ddd6cb';c.lineWidth=2;c.beginPath();c.moveTo(CX+30,yy);c.lineTo(CX+CW-30,yy);c.stroke();c.restore()};
+ tear(y);y+=40;
+ const lab=(t,x,yy,al='left')=>{c.textAlign=al;c.fillStyle=MUT;c.font='700 11px Inter,sans-serif';sp(0,1.6);c.fillText(t,x,yy);sp(0,0)};
+ const val=(t,x,yy,col=INK,al='left')=>{c.textAlign=al;c.fillStyle=col;c.font='600 15px Inter,sans-serif';c.fillText(t,x,yy)};
+ const colR=L+IW/2+16;
+ lab('RECEIPT NO.',L,y);val(o.id,L,y+22);
+ lab('PAYMENT METHOD',colR,y);val(RPAY[o.pay]||'—',colR,y+22);
+ y+=62;
+ lab('DATE',L,y);val(dt(o.paidAt||o.at),L,y+22);
+ lab('STATUS',colR,y);val(o.paid?'PAID':'DELIVERED',colR,y+22,GR);
+ y+=62;
+ const bt=y;
+ lab('BILLED TO',L,y);val(U.name||'Customer',L,y+22);c.fillStyle=MUT;c.font='400 14px Inter,sans-serif';c.textAlign='left';
+ if(o.ph||U.phone)c.fillText(o.ph||U.phone,L,y+44);
+ y+=70;
+ if(o.ad){lab('DELIVER TO',L,y);c.font='500 14.5px Inter,sans-serif';const ls=wrapT(c,o.ad,IW-150);c.fillStyle=INK;c.textAlign='left';ls.forEach((t,i)=>c.fillText(t,L,y+22+i*21));y+=22+ls.length*21+22}
+ /* stamp */
+ c.save();c.translate(R-82,bt+34);c.rotate(-.24);c.globalAlpha=.88;c.strokeStyle=GR;c.fillStyle=GR;c.lineWidth=4;rr(c,-62,-30,124,60,10);c.stroke();
+ c.lineWidth=1.5;rr(c,-57,-25,114,50,7);c.stroke();c.textAlign='center';c.font='700 28px Sora,Inter,sans-serif';sp(0,3);c.fillText(o.paid?'PAID':'DONE',3,10);sp(0,0);c.restore();
+ /* items */
+ c.textAlign='left';c.fillStyle='#fff3ea';rr(c,L,y,IW,34,17);c.fill();
+ c.fillStyle=OR;c.font='700 12px Inter,sans-serif';sp(0,2);c.fillText('ORDER ITEMS',L+16,y+22);sp(0,0);
+ c.textAlign='right';c.fillText(o.items.filter(i=>i.s!=='cancelled').length+' item'+(o.items.filter(i=>i.s!=='cancelled').length===1?'':'s'),R-16,y+22);
+ y+=54;
+ const items=o.items.filter(i=>i.s!=='cancelled');
+ items.forEach((i,k)=>{
+  c.font='600 15px Inter,sans-serif';const ls=wrapT(c,i.n,IW-170),h=Math.max(44,ls.length*21+12);
+  c.fillStyle='#fff3ea';rr(c,L,y-20,42,30,9);c.fill();c.fillStyle=OR;c.textAlign='center';c.font='700 14px Inter,sans-serif';c.fillText(i.q+'×',L+21,y);
+  c.textAlign='left';c.fillStyle=INK;c.font='600 15px Inter,sans-serif';ls.forEach((t,j)=>c.fillText(t,L+58,y+j*21));
+  c.textAlign='right';c.font='700 15px Inter,sans-serif';c.fillText(fmt(i.q*i.p),R,y);
+  if(i.q>1){c.fillStyle=MUT;c.font='400 12px Inter,sans-serif';c.fillText(fmt(i.p)+' each',R,y+19)}
+  y+=h+ (i.q>1?4:0);
+  if(k<items.length-1){c.strokeStyle='#eee';c.lineWidth=1.5;c.beginPath();c.moveTo(L,y-14);c.lineTo(R,y-14);c.stroke()}
+ });
+ y+=6;
+ const sub=Math.max(0,o.total-o.fee);
+ const row=(t,v2)=>{c.textAlign='left';c.fillStyle=MUT;c.font='500 14.5px Inter,sans-serif';c.fillText(t,L,y);c.textAlign='right';c.fillStyle=INK;c.font='600 14.5px Inter,sans-serif';c.fillText(v2,R,y);y+=28};
+ row('Subtotal',fmt(sub));row('Delivery fee',fmt(o.fee));
+ y+=2;c.fillStyle='#fff3ea';rr(c,L,y,IW,68,16);c.fill();
+ c.fillStyle=INK;c.textAlign='left';c.font='700 16px Sora,Inter,sans-serif';c.fillText(o.paid?'TOTAL PAID':'TOTAL',L+20,y+41);
+ c.fillStyle=OR;c.textAlign='right';c.font='700 26px Sora,Inter,sans-serif';c.fillText(fmt(o.total),R-20,y+43);
+ y+=68+40;
+ tear(y);y+=46;
+ /* footer */
+ c.textAlign='center';c.fillStyle=INK;c.font='600 18px Sora,Inter,sans-serif';c.fillText('Thank you for shopping on KAMPZA',W/2,y);
+ y+=26;c.fillStyle=MUT;c.font='400 13.5px Inter,sans-serif';c.fillText('Questions about your order? '+SUPPORT_EMAIL,W/2,y);
+ y+=34;
+ /* barcode */
+ const code=String(o.id),bw=[];for(let i=0;i<code.length*4+10;i++){const ch=code.charCodeAt(i%code.length)+i*7;bw.push(1+(ch%3))}
+ const tw=bw.reduce((a,b)=>a+b*2,0);let bx2=W/2-tw/2;c.fillStyle=INK;
+ bw.forEach((w,i)=>{if(i%2===0)c.fillRect(bx2,y,w*2,46);bx2+=w*2});
+ y+=46+20;c.fillStyle=MUT;c.font='500 11.5px Inter,sans-serif';sp(0,3);c.fillText(code,W/2+1.5,y);sp(0,0);
+ y+=26;c.font='400 11px Inter,sans-serif';c.fillStyle='#a8a8a8';c.fillText('This is a computer-generated receipt and needs no signature.',W/2,y);
+ y+=34;
+ return y+TOP;}
+async function makeReceipt(o){
+ try{await Promise.all(['700 30px Sora','600 15px Inter','500 14px Inter','400 14px Inter','700 12px Inter'].map(f=>document.fonts.load(f)))}catch{}
+ const W=760,SC=2,s=document.createElement('canvas');s.width=W;s.height=4000;
+ const H=Math.ceil(paint(s.getContext('2d'),o,0));
+ const cv=document.createElement('canvas');cv.width=W*SC;cv.height=H*SC;
+ const c=cv.getContext('2d');c.scale(SC,SC);paint(c,o,H);return cv}
+function receiptView(){
+ const o=S.orders.find(k=>k.id===RC);
+ if(!receiptReady(o))return pgHead('Receipt')+empty('🧾','Your receipt appears here once the vendor approves your payment.');
+ return pgHead('Receipt')+`<p class="sub">Your order is successful. Save the receipt as an image or PDF.</p><div class="rcw"><div class="sk" id="rcsk" style="min-height:460px"></div><img id="rcimg" alt="Receipt for ${esc(o.id)}" hidden></div><div class="rcb"><button class="btn" data-rcimg>⬇ Image (PNG)</button><button class="btn alt" data-rcpdf>⬇ PDF</button></div>`}
+function pdfFromJpeg(bytes,w,h){
+ const pw=420,ph=Math.round(420*h/w),enc=t=>new TextEncoder().encode(t),parts=[],offs=[];let len=0;
+ const push=b=>{parts.push(b);len+=b.length};
+ const obj=(n,head,stream)=>{offs[n]=len;push(enc(n+' 0 obj\n'+head+(stream?'\nstream\n':'\n')));if(stream){push(stream);push(enc('\nendstream\n'))}push(enc('endobj\n'))};
+ push(enc('%PDF-1.4\n'));
+ obj(1,'<</Type/Catalog/Pages 2 0 R>>');obj(2,'<</Type/Pages/Kids[3 0 R]/Count 1>>');
+ obj(3,`<</Type/Page/Parent 2 0 R/MediaBox[0 0 ${pw} ${ph}]/Resources<</XObject<</Im0 4 0 R>>>>/Contents 5 0 R>>`);
+ obj(4,`<</Type/XObject/Subtype/Image/Width ${w}/Height ${h}/ColorSpace/DeviceRGB/BitsPerComponent 8/Filter/DCTDecode/Length ${bytes.length}>>`,bytes);
+ const cs=enc(`q ${pw} 0 0 ${ph} 0 0 cm /Im0 Do Q`);obj(5,`<</Length ${cs.length}>>`,cs);
+ const x=len;let t='xref\n0 6\n0000000000 65535 f \n';for(let n=1;n<=5;n++)t+=String(offs[n]).padStart(10,'0')+' 00000 n \n';
+ t+=`trailer\n<</Size 6/Root 1 0 R>>\nstartxref\n${x}\n%%EOF`;push(enc(t));
+ return new Blob(parts,{type:'application/pdf'})}
+const saveBlob=(b,name)=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),5000)};
+KX.hooks=KX.hooks||{};
+KX.hooks.receipt=async()=>{
+ const o=S.orders.find(k=>k.id===RC);if(!receiptReady(o))return;
+ try{RCV=await makeReceipt(o)}catch(err){console.error(err);toast('Could not build the receipt');return}
+ const im=$('#rcimg');if(!im)return;im.src=RCV.toDataURL('image/png');im.hidden=false;$('#rcsk')?.remove()};
+document.addEventListener('click',async e=>{
+ let b;
+ if(b=e.target.closest('[data-rc]')){RC=b.dataset.rc;RCV=null;pg='receipt';draw();return}
+ if(b=e.target.closest('[data-rcimg],[data-rcpdf]')){
+  const o=S.orders.find(k=>k.id===RC);if(!receiptReady(o))return;
+  try{
+   if(!RCV)RCV=await makeReceipt(o);
+   if(b.hasAttribute('data-rcimg')){RCV.toBlob(bl=>{saveBlob(bl,'KAMPZA-Receipt-'+o.id+'.png');toast('Receipt image saved')},'image/png')}
+   else{const u=RCV.toDataURL('image/jpeg',.95),bin=atob(u.split(',')[1]),by=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)by[i]=bin.charCodeAt(i);
+    saveBlob(pdfFromJpeg(by,RCV.width,RCV.height),'KAMPZA-Receipt-'+o.id+'.pdf');toast('Receipt PDF saved')}
+  }catch(err){console.error(err);toast('Could not save the receipt')}
+  return}
+ if(b=e.target.closest('[data-ipaid]')){
+  const code=b.dataset.ipaid,o=S.orders.find(k=>k.id===code);if(!o||o.paid||o.claim)return;
+  if(!confirm('Confirm that you have transferred '+fmt(o.total)+' to the vendor?'))return;
+  b.disabled=true;b.textContent='Submitting…';
+  try{const{error}=await sb.rpc('order_mark_paid',{p_code:code});if(error)throw error}catch(err){toast(err.message||'Could not submit your payment');b.disabled=false;b.textContent='✅ I have paid';return}
+  o.claim=true;o.rej=false;
+  notif('Payment submitted ⏳',code+' · waiting for vendor approval');
+  toast('Done. Waiting for the vendor to approve your payment');
+  tab='account';pg='orders';draw();loadServer();return}
+});
 
 boot();
 

@@ -261,7 +261,113 @@ button.nt:active{transform:scale(.99)}
 [data-theme=dark] #gmap{background:#222}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#FF7628"><link rel="apple-touch-icon" href="icon-192.png"><script src="kz-extra.js"></script>
+<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#FF7628"><link rel="apple-touch-icon" href="icon-192.png"><script>
+(()=>{
+const K=window.KX={payCode:null,PAY:null,conv:null,name:'',ch:null,seen:new Set(),hooks:{}};
+const $=s=>document.querySelector(s);
+const E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const M=n=>'₦'+Number(n).toLocaleString('en-NG');
+const wa=p=>{p=String(p||'').replace(/\D/g,'');if(p.startsWith('0'))p='234'+p.slice(1);return p};
+const shrink=f=>new Promise((ok,no)=>{const u=URL.createObjectURL(f),i=new Image();
+ i.onload=()=>{const r=Math.min(1,1280/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=Math.round(i.width*r);c.height=Math.round(i.height*r);c.getContext('2d').drawImage(i,0,0,c.width,c.height);URL.revokeObjectURL(u);c.toBlob(b=>b?ok(b):no(new Error('Image error')),'image/jpeg',.82)};
+ i.onerror=()=>no(new Error('Could not read the image'));i.src=u});
+
+/* ---------- promotions ---------- */
+K.promos=(P,rows)=>{(rows||[]).forEach(r=>{const p=P.find(x=>x.id===r.product_id);if(p&&r.promo_price<r.base_price){p.o=r.base_price;p.p=r.promo_price;p.pe=r.ends_at}})};
+
+/* ---------- leave chat page: close realtime channel ---------- */
+K.leave=p=>{if(p!=='chat'&&K.ch){try{sb.removeChannel(K.ch)}catch{}K.ch=null}};
+
+/* ---------- pay by transfer ---------- */
+const PS={unpaid:['Awaiting payment',''],submitted:['Receipt sent',''],confirmed:['Payment confirmed',''],rejected:['Rejected. Resend receipt','no']};
+K.payView=()=>pgHead('Pay by transfer')+'<div id="pay"><div class="sk"></div></div>';
+K.hooks.pay=async()=>{
+ if(!$('#pay'))return;
+ const{data:d,error}=await sb.rpc('order_pay_info',{p_code:K.payCode});
+ const el=$('#pay');if(!el)return;
+ if(error||!d){el.innerHTML='<div class="warn">'+E(error?.message||'Could not load payment details')+'</div>';return}
+ K.PAY=d;
+ el.innerHTML=`<div class="nt"><div class="oh"><b>${E(d.code)}</b><span class="st">${M(d.total)}</span></div><small>Send each amount below straight to that vendor's account, then upload your receipt.</small></div>`
+ +d.vendors.map(v=>{
+  const s=PS[v.pay_status]||PS.unpaid,open=v.pay_status==='unpaid'||v.pay_status==='rejected',hasBank=v.bank_name&&v.account_number;
+  return `<div class="box pad" style="margin-bottom:12px"><div class="oh"><b>${E(v.business_name)}</b><span class="badge ${s[1]}">${s[0]}</span></div>`
+  +v.items.map(i=>`<div class="oh" style="font-weight:400"><span>${i.qty}× ${E(i.name)}</span><span>${M(i.price*i.qty)}</span></div>`).join('')
+  +(v.has_fee?`<div class="oh"><small>Delivery</small><small>${M(d.delivery_fee)}</small></div>`:'')
+  +`<div class="oh tot"><span>Amount to pay</span><b>${M(v.amount)}</b></div>`
+  +(hasBank?`<div class="box"><table class="spec"><tr><td>Bank</td><td>${E(v.bank_name)}</td></tr><tr><td>Account name</td><td>${E(v.account_name)}</td></tr><tr><td>Account number</td><td><b>${E(v.account_number)}</b> <button class="rm" data-copy="${E(v.account_number)}">Copy</button></td></tr></table></div>`:'<div class="warn">This vendor has no bank details yet. Message them.</div>')
+  +(open&&hasBank?`<div class="fld" style="margin:8px 0 0"><label for="rc-${v.vendor_id}">Receipt photo</label><input id="rc-${v.vendor_id}" type="file" accept="image/*"></div><button class="btn full" data-sendrc="${v.vendor_id}">I have paid · send receipt</button>`:'')
+  +`<button class="btn full ghost" data-chatv="${v.vendor_id}">Message vendor</button>`
+  +(v.phone?`<a class="btn full ghost" href="https://wa.me/${wa(v.phone)}" target="_blank" rel="noopener">WhatsApp vendor</a>`:'')+'</div>'}).join('')};
+async function sendReceipt(vid,btn){
+ const f=$('#rc-'+vid)?.files?.[0];if(!f){toast('Choose your receipt photo first');return}
+ const v=K.PAY.vendors.find(x=>x.vendor_id===vid);btn.disabled=true;btn.textContent='Sending…';
+ try{
+  const a=await sb.rpc('start_chat',{p_vendor:vid});if(a.error)throw a.error;
+  const cid=a.data,blob=await shrink(f),path=cid+'/'+Date.now()+'.jpg';
+  const up=await sb.storage.from('chat-files').upload(path,blob,{contentType:'image/jpeg'});if(up.error)throw up.error;
+  const m=await sb.from('messages').insert({conversation_id:cid,sender_id:U.id,body:'Payment receipt for order '+K.payCode+' · '+M(v.amount),image_path:path,order_code:K.payCode});if(m.error)throw m.error;
+  const s=await sb.rpc('submit_transfer',{p_code:K.payCode,p_vendor:vid});if(s.error)throw s.error;
+  toast('Receipt sent. The vendor will confirm your payment');notif('Receipt sent',K.payCode+' · '+M(v.amount));
+ }catch(err){toast(err.message||'Could not send receipt')}
+ K.hooks.pay();loadServer()}
+
+/* ---------- chat ---------- */
+K.chatsView=()=>pgHead('Messages')+'<div id="cl"><div class="sk"></div></div>';
+K.hooks.chats=async()=>{
+ const{data,error}=await sb.rpc('chat_list');const el=$('#cl');if(!el)return;
+ if(error){el.innerHTML='<div class="warn">'+E(error.message)+'</div>';return}
+ el.innerHTML=data.length?data.map(c=>`<button class="line" style="width:100%;text-align:left" data-chat="${c.conv_id}" data-nm="${E(c.other_name)}"><span class="av" style="width:44px;height:44px;font-size:18px">${E((c.other_name||'?')[0].toUpperCase())}</span><span class="mid"><b>${E(c.other_name)}${c.as_vendor?' <small>(customer)</small>':''}</b><small>${E(c.last_text||'No messages yet')}</small></span>${c.unread?`<span class="badge">${c.unread}</span>`:''}</button>`).join(''):empty('💬','No conversations yet. Tap Chat on any product to message the vendor.')};
+K.chatView=()=>pgHead(E(K.name||'Chat'))+'<div class="chat" id="msgs" style="min-height:45vh"></div><div class="cbar"><label class="btn ghost" style="display:grid;place-items:center;padding:0 14px;cursor:pointer" aria-label="Send photo">📷<input id="cimg" type="file" accept="image/*" hidden></label><input id="cin" placeholder="Type a message…" maxlength="1000" autocomplete="off" enterkeyhint="send"><button class="btn" data-csend>Send</button></div>';
+function addMsg(m){
+ if(K.seen.has(m.id))return;K.seen.add(m.id);
+ const box=$('#msgs');if(!box)return;
+ const d=document.createElement('div');d.className='bub '+(m.sender_id===U.id?'me':'bot');
+ if(m.order_code){const s=document.createElement('small');s.textContent='Order '+m.order_code;s.style.cssText='display:block;opacity:.8';d.appendChild(s)}
+ if(m.image_path){const im=document.createElement('img');im.alt='Photo';im.style.cssText='max-width:100%;border-radius:10px;margin:4px 0';d.appendChild(im);
+  sb.storage.from('chat-files').createSignedUrl(m.image_path,3600).then(r=>{if(r.data)im.src=r.data.signedUrl})}
+ if(m.body){const t=document.createElement('div');t.textContent=m.body;d.appendChild(t)}
+ box.appendChild(d);window.scrollTo(0,document.body.scrollHeight)}
+K.hooks.chat=async()=>{
+ if(!K.conv||!$('#msgs'))return;
+ K.seen=new Set();if(K.ch){try{sb.removeChannel(K.ch)}catch{}K.ch=null}
+ const id=K.conv;
+ const[r,l]=await Promise.all([sb.from('messages').select('*').eq('conversation_id',id).order('created_at').limit(150),sb.rpc('chat_list')]);
+ if(K.conv!==id||!$('#msgs'))return;
+ if(!K.name&&l.data){const c=l.data.find(x=>x.conv_id===id);if(c){K.name=c.other_name;const h=$('.top h1');if(h)h.textContent=K.name}}
+ if(r.error){toast('Could not load messages');return}
+ r.data.forEach(addMsg);
+ sb.rpc('mark_chat_read',{p_conv:id});
+ K.ch=sb.channel('kz-msg-'+id).on('postgres_changes',{event:'INSERT',schema:'public',table:'messages',filter:'conversation_id=eq.'+id},p=>{addMsg(p.new);if(p.new.sender_id!==U.id)sb.rpc('mark_chat_read',{p_conv:id})}).subscribe()};
+async function send(body,path){
+ if(!K.conv)return;
+ const r=await sb.from('messages').insert({conversation_id:K.conv,sender_id:U.id,body:body||null,image_path:path||null}).select().single();
+ if(r.error){toast('Message not sent');return false}addMsg(r.data);return true}
+async function openChat(vid){
+ const{data,error}=await sb.rpc('start_chat',{p_vendor:vid});
+ if(error){toast(error.message||'Could not open chat');return}
+ K.conv=data;K.name='';pg='chat';draw()}
+
+/* ---------- events ---------- */
+document.addEventListener('click',async e=>{
+ const g=s=>e.target.closest(s);let x;
+ if(x=g('[data-chatv]')){openChat(x.dataset.chatv);return}
+ if(x=g('[data-chat]')){K.conv=x.dataset.chat;K.name=x.dataset.nm||'';pg='chat';draw();return}
+ if(x=g('[data-copy]')){try{await navigator.clipboard.writeText(x.dataset.copy);toast('Account number copied')}catch{toast(x.dataset.copy)}return}
+ if(x=g('[data-sendrc]')){sendReceipt(x.dataset.sendrc,x);return}
+ if(g('[data-csend]')){const i=$('#cin'),t=i.value.trim();if(!t)return;i.value='';if(!await send(t))i.value=t;return}
+});
+document.addEventListener('keydown',async e=>{if(e.key==='Enter'&&e.target.id==='cin'){e.preventDefault();const t=e.target.value.trim();if(!t)return;e.target.value='';if(!await send(t))e.target.value=t}});
+document.addEventListener('change',async e=>{
+ if(e.target.id!=='cimg'||!e.target.files[0])return;
+ const f=e.target.files[0];e.target.value='';toast('Sending photo…');
+ try{const blob=await shrink(f),path=K.conv+'/'+Date.now()+'.jpg';
+  const up=await sb.storage.from('chat-files').upload(path,blob,{contentType:'image/jpeg'});if(up.error)throw up.error;
+  await send('',path)}catch(err){toast(err.message||'Could not send photo')}});
+
+/* ---------- PWA ---------- */
+if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+})();
+</script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
@@ -828,120 +934,4 @@ function notifView(){
  return pgHead('Notification')+`<div class="nt"><b style="font-size:17px">${esc(n.t)}</b><small>${new Date(n.at).toLocaleString('en-NG',{weekday:'short',day:'numeric',month:'long',year:'numeric',hour:'numeric',minute:'2-digit'})}</small><div class="ntfull">${esc(n.m)}</div></div>`
  +(o?`<h2 class="sh2">Order ${esc(o.id)}</h2><div class="nt"><div class="oh"><b>${esc(o.id)}</b>${stBadge(o)}</div><small>${dt(o.at)} · ${{wallet:'Wallet',cod:'Pay on delivery',transfer:'Bank transfer',card:'Card'}[o.pay]||''}</small>${o.items.map(i=>`<div class="oh"><span>${i.q}× ${esc(i.n)}</span><span class="st">${cap(i.s)}</span></div>`).join('')}<div class="oh"><small>Delivery</small><small>${fmt(o.fee)}</small></div><div class="oh tot"><span>Total</span><b>${fmt(o.total)}</b></div></div><button class="btn full ghost" data-track="${esc(o.id)}">Track order</button>${payBtns(o)}${rcBtn(o)}`:'');
 }
-/* ================= RECEIPT (image + PDF) ================= */
-let RC=null,RCV=null;
-const receiptReady=o=>!!o&&o.st!=='cancelled'&&(o.paid||o.st==='delivered');
-const RPAY={wallet:'KAMPZA Wallet',cod:'Pay on delivery',transfer:'Bank transfer',card:'Card'};
-function paidNow(o){
- notif('Payment confirmed ✅',`The vendor has confirmed your payment for order ${o.id}.\n\n${ordLines(o)}\n\nDelivery: ${fmt(o.fee)}\nTotal paid: ${fmt(o.total)}\n\nYour order is now being prepared and your receipt is ready. Open the order to download it.`,o.id);toast('Payment confirmed! Your receipt is ready');
-}
-function rr(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
-function wrapT(c,t,mw){const out=[];let l='';for(const w of String(t||'').split(/\s+/).filter(Boolean)){const n=l?l+' '+w:w;if(c.measureText(n).width>mw&&l){out.push(l);l=w}else l=n}if(l)out.push(l);return out.length?out:['—']}
-function paint(c,o,H){
- const W=760,CX=28,CW=W-56,L=64,R=W-64,IW=R-L,TOP=24,BG='#f3efe8',OR='#FF7628',GR='#1fa65a',INK='#252525',MUT='#7a7a7a';
- const total=H||4000,sp=(t,px)=>{try{c.letterSpacing=px+'px'}catch{}};
- c.textBaseline='alphabetic';
- c.fillStyle=BG;c.fillRect(0,0,W,total);
- /* we draw the body first to learn the height, so the card is painted last behind it using destination-over */
- c.save();
- rr(c,CX,TOP,CW,total-2*TOP,28);c.clip();
- c.fillStyle='#fff';c.fillRect(CX,TOP,CW,total);
- /* header */
- const hg=c.createLinearGradient(CX,TOP,CX+CW,TOP+190);hg.addColorStop(0,'#ff6a13');hg.addColorStop(1,'#ffa05a');
- c.fillStyle=hg;c.fillRect(CX,TOP,CW,176);
- c.fillStyle='rgba(255,255,255,.12)';c.beginPath();c.arc(CX+CW-40,TOP+10,110,0,7);c.fill();
- c.fillStyle='rgba(255,255,255,.08)';c.beginPath();c.arc(CX+40,TOP+170,90,0,7);c.fill();
- c.fillStyle='#fff';c.font='700 36px Sora,Inter,sans-serif';sp(0,1);c.textAlign='left';c.fillText('KAMPZA',L,TOP+74);
- c.font='500 14px Inter,sans-serif';c.fillStyle='rgba(255,255,255,.92)';c.fillText('Find It. Get It. Love It.',L,TOP+100);
- c.textAlign='right';c.font='700 12px Inter,sans-serif';sp(0,3);c.fillText('PAYMENT RECEIPT',R,TOP+72);sp(0,0);
- c.font='500 13px Inter,sans-serif';c.fillText('#'+o.id,R,TOP+96);
- c.restore();
- /* badge */
- const bx=W/2,by=TOP+176;
- c.save();c.shadowColor='rgba(0,0,0,.18)';c.shadowBlur=14;c.shadowOffsetY=4;c.fillStyle='#fff';c.beginPath();c.arc(bx,by,46,0,7);c.fill();c.restore();
- c.fillStyle=GR;c.beginPath();c.arc(bx,by,37,0,7);c.fill();
- c.strokeStyle='#fff';c.lineWidth=7;c.lineCap='round';c.lineJoin='round';c.beginPath();c.moveTo(bx-15,by+1);c.lineTo(bx-4,by+13);c.lineTo(bx+17,by-12);c.stroke();
- let y=by+46+40;
- c.textAlign='center';c.fillStyle=INK;c.font='700 26px Sora,Inter,sans-serif';c.fillText(o.paid?'Payment Successful':'Order Completed',W/2,y);
- y+=52;c.fillStyle=OR;c.font='700 48px Sora,Inter,sans-serif';c.fillText(fmt(o.total),W/2,y);
- y+=30;c.fillStyle=MUT;c.font='400 14px Inter,sans-serif';
- c.fillText(new Date(o.paidAt||o.at).toLocaleString('en-NG',{weekday:'short',day:'numeric',month:'long',year:'numeric',hour:'numeric',minute:'2-digit'}),W/2,y);
- y+=36;
- const tear=yy=>{c.fillStyle=BG;c.beginPath();c.arc(CX,yy,15,0,7);c.arc(CX+CW,yy,15,0,7);c.fill();
-  c.save();c.setLineDash([7,7]);c.strokeStyle='#ddd6cb';c.lineWidth=2;c.beginPath();c.moveTo(CX+30,yy);c.lineTo(CX+CW-30,yy);c.stroke();c.restore()};
- tear(y);y+=40;
- const lab=(t,x,yy,al='left')=>{c.textAlign=al;c.fillStyle=MUT;c.font='700 11px Inter,sans-serif';sp(0,1.6);c.fillText(t,x,yy);sp(0,0)};
- const val=(t,x,yy,col=INK,al='left')=>{c.textAlign=al;c.fillStyle=col;c.font='600 15px Inter,sans-serif';c.fillText(t,x,yy)};
- const colR=L+IW/2+16;
- lab('RECEIPT NO.',L,y);val(o.id,L,y+22);
- lab('PAYMENT METHOD',colR,y);val(RPAY[o.pay]||'—',colR,y+22);
- y+=62;
- lab('DATE',L,y);val(dt(o.paidAt||o.at),L,y+22);
- lab('STATUS',colR,y);val(o.paid?'PAID':'DELIVERED',colR,y+22,GR);
- y+=62;
- const bt=y;
- lab('BILLED TO',L,y);val(U.name||'Customer',L,y+22);c.fillStyle=MUT;c.font='400 14px Inter,sans-serif';c.textAlign='left';
- if(o.ph||U.phone)c.fillText(o.ph||U.phone,L,y+44);
- y+=70;
- if(o.ad){lab('DELIVER TO',L,y);c.font='500 14.5px Inter,sans-serif';const ls=wrapT(c,o.ad,IW-150);c.fillStyle=INK;c.textAlign='left';ls.forEach((t,i)=>c.fillText(t,L,y+22+i*21));y+=22+ls.length*21+22}
- /* stamp */
- c.save();c.translate(R-82,bt+34);c.rotate(-.24);c.globalAlpha=.88;c.strokeStyle=GR;c.fillStyle=GR;c.lineWidth=4;rr(c,-62,-30,124,60,10);c.stroke();
- c.lineWidth=1.5;rr(c,-57,-25,114,50,7);c.stroke();c.textAlign='center';c.font='700 28px Sora,Inter,sans-serif';sp(0,3);c.fillText(o.paid?'PAID':'DONE',3,10);sp(0,0);c.restore();
- /* items */
- c.textAlign='left';c.fillStyle='#fff3ea';rr(c,L,y,IW,34,17);c.fill();
- c.fillStyle=OR;c.font='700 12px Inter,sans-serif';sp(0,2);c.fillText('ORDER ITEMS',L+16,y+22);sp(0,0);
- c.textAlign='right';c.fillText(o.items.filter(i=>i.s!=='cancelled').length+' item'+(o.items.filter(i=>i.s!=='cancelled').length===1?'':'s'),R-16,y+22);
- y+=54;
- const items=o.items.filter(i=>i.s!=='cancelled');
- items.forEach((i,k)=>{
-  c.font='600 15px Inter,sans-serif';const ls=wrapT(c,i.n,IW-170),h=Math.max(44,ls.length*21+12);
-  c.fillStyle='#fff3ea';rr(c,L,y-20,42,30,9);c.fill();c.fillStyle=OR;c.textAlign='center';c.font='700 14px Inter,sans-serif';c.fillText(i.q+'×',L+21,y);
-  c.textAlign='left';c.fillStyle=INK;c.font='600 15px Inter,sans-serif';ls.forEach((t,j)=>c.fillText(t,L+58,y+j*21));
-  c.textAlign='right';c.font='700 15px Inter,sans-serif';c.fillText(fmt(i.q*i.p),R,y);
-  if(i.q>1){c.fillStyle=MUT;c.font='400 12px Inter,sans-serif';c.fillText(fmt(i.p)+' each',R,y+19)}
-  y+=h+ (i.q>1?4:0);
-  if(k<items.length-1){c.strokeStyle='#eee';c.lineWidth=1.5;c.beginPath();c.moveTo(L,y-14);c.lineTo(R,y-14);c.stroke()}
- });
- y+=6;
- const sub=Math.max(0,o.total-o.fee);
- const row=(t,v2)=>{c.textAlign='left';c.fillStyle=MUT;c.font='500 14.5px Inter,sans-serif';c.fillText(t,L,y);c.textAlign='right';c.fillStyle=INK;c.font='600 14.5px Inter,sans-serif';c.fillText(v2,R,y);y+=28};
- row('Subtotal',fmt(sub));row('Delivery fee',fmt(o.fee));
- y+=2;c.fillStyle='#fff3ea';rr(c,L,y,IW,68,16);c.fill();
- c.fillStyle=INK;c.textAlign='left';c.font='700 16px Sora,Inter,sans-serif';c.fillText(o.paid?'TOTAL PAID':'TOTAL',L+20,y+41);
- c.fillStyle=OR;c.textAlign='right';c.font='700 26px Sora,Inter,sans-serif';c.fillText(fmt(o.total),R-20,y+43);
- y+=68+40;
- tear(y);y+=46;
- /* footer */
- c.textAlign='center';c.fillStyle=INK;c.font='600 18px Sora,Inter,sans-serif';c.fillText('Thank you for shopping on KAMPZA',W/2,y);
- y+=26;c.fillStyle=MUT;c.font='400 13.5px Inter,sans-serif';c.fillText('Questions about your order? '+SUPPORT_EMAIL,W/2,y);
- y+=34;
- /* barcode */
- const code=String(o.id),bw=[];for(let i=0;i<code.length*4+10;i++){const ch=code.charCodeAt(i%code.length)+i*7;bw.push(1+(ch%3))}
- const tw=bw.reduce((a,b)=>a+b*2,0);let bx2=W/2-tw/2;c.fillStyle=INK;
- bw.forEach((w,i)=>{if(i%2===0)c.fillRect(bx2,y,w*2,46);bx2+=w*2});
- y+=46+20;c.fillStyle=MUT;c.font='500 11.5px Inter,sans-serif';sp(0,3);c.fillText(code,W/2+1.5,y);sp(0,0);
- y+=26;c.font='400 11px Inter,sans-serif';c.fillStyle='#a8a8a8';c.fillText('This is a computer-generated receipt and needs no signature.',W/2,y);
- y+=34;
- return y+TOP;}
-async function makeReceipt(o){
- try{await Promise.all(['700 30px Sora','600 15px Inter','500 14px Inter','400 14px Inter','700 12px Inter'].map(f=>document.fonts.load(f)))}catch{}
- const W=760,SC=2,s=document.createElement('canvas');s.width=W;s.height=4000;
- const H=Math.ceil(paint(s.getContext('2d'),o,0));
- const cv=document.createElement('canvas');cv.width=W*SC;cv.height=H*SC;
- const c=cv.getContext('2d');c.scale(SC,SC);paint(c,o,H);return cv}
-function receiptView(){
- const o=S.orders.find(k=>k.id===RC);
- if(!receiptReady(o))return pgHead('Receipt')+empty('🧾','Your receipt appears here once the vendor approves your payment.');
- return pgHead('Receipt')+`<p class="sub">Your order is successful. Save the receipt as an image or PDF.</p><div class="rcw"><div class="sk" id="rcsk" style="min-height:460px"></div><img id="rcimg" alt="Receipt for ${esc(o.id)}" hidden></div><div class="rcb"><button class="btn" data-rcimg>⬇ Image (PNG)</button><button class="btn alt" data-rcpdf>⬇ PDF</button></div>`}
-function pdfFromJpeg(bytes,w,h){
- const pw=420,ph=Math.round(420*h/w),enc=t=>new TextEncoder().encode(t),parts=[],offs=[];let len=0;
- const push=b=>{parts.push(b);len+=b.length};
- const obj=(n,head,stream)=>{offs[n]=len;push(enc(n+' 0 obj\n'+head+(stream?'\nstream\n':'\n')));if(stream){push(stream);push(enc('\nendstream\n'))}push(enc('endobj\n'))};
- push(enc('%PDF-1.4\n'));
- obj(1,'<</Type/Catalog/Pages 2 0 R>>');obj(2,'<</Type/Pages/Kids[3 0 R]/Count 1>>');
- obj(3,`<</Type/Page/Parent 2 0 R/MediaBox[0 0 ${pw} ${ph}]/Resources<</XObject<</Im0 4 0 R>>>>/Contents 5 0 R>>`);
- obj(4,`<</Type/XObject/Subtype/Image/Width ${w}/Height ${h}/ColorSpace/DeviceRGB/BitsPerComponent 8/Filter/DCTDecode/Length ${bytes.length}>>`,bytes);
- const cs=enc(`q ${pw} 0 0 ${ph} 0 0 cm /Im0 Do Q`);obj(5,`<</Length ${cs.length}>>`,cs);
- const x=len;let t='xref\n0 6\n0000000000 65535 f \n';for(let n=1;n<=5;n++)t+=String(offs[n]).padStart(10,'0')+' 00000 n \n';
- t+=`trailer\n<</Size 6/Root 1 0 R>>\nstartxref\n${x}\n%%EOF`;push(enc(t));
- return new Blob(parts,{type:
+/* ================= RECEIPT (image + PDF) ========

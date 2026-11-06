@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>KAMPZA Store</title>
 <script>try{document.documentElement.dataset.theme=localStorage.getItem('kz_theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}catch(e){}</script>
+<script>(function(){var msg='';addEventListener('error',function(e){if(e&&e.message)msg=e.message+(e.filename?' ('+String(e.filename).split('/').pop()+':'+e.lineno+')':'')});setTimeout(function(){var d=document.documentElement;if(d.classList.contains('ok')||!msg)return;d.classList.add('ok');var a=document.getElementById('app');if(a)a.innerHTML='<div style="padding:40px 16px;text-align:center"><b>The store could not start.</b><br><br><small>'+msg.replace(/[<>&]/g,'')+'</small><br><br><button class="btn" onclick="location.reload()">Reload</button></div>'},4000)})();</script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&display=swap" rel="stylesheet">
 <style>
 :root{--o:#FF7628;--c:#252525;--bg:#FFFFFF;--g:#F4F4F4;--m:#6b6b6b;--b:#e8e8e8;--r:14px;--pad:14px;--gap:10px;--hh:160px;--lh:54px;color-scheme:light}
@@ -346,7 +347,7 @@ async function loadServer(){
   S.paidSeen=S.paidSeen||{};
   for(const x of S.orders){
    if(S.paidSeen[x.id]===undefined)S.paidSeen[x.id]=!!x.paid;
-   else if(!S.paidSeen[x.id]&&x.paid){S.paidSeen[x.id]=true;paidNow(x)}}
+   else if(!S.paidSeen[x.id]&&x.paid){S.paidSeen[x.id]=true;KZR.paidNow(x)}}
   S.seen=S.seen||{};
   for(const x of S.orders){const sg=x.st+'|'+x.items.map(i=>i.s).join();if(S.seen[x.id]&&S.seen[x.id]!==sg){
    const T={completed:'Order delivered ✅',shipped:'Order on the way 🚚',cancelled:'Order cancelled'}[x.st]||'Order updated',
@@ -454,25 +455,7 @@ function accountView(){
 <button class="out" data-signout>${ic('out')}Log Out</button>
 <p class="foot">KAMPZA · Find It. Get It. Love It.<br>v${VERSION}</p>`}
 
-const ordLines=o=>o.items.filter(i=>i.s!=='cancelled').map(i=>`• ${i.q}× ${i.n} — ${fmt(i.q*i.p)}`).join('\n');
-const stBadge=o=>{let t=o.status,c='';
- if(o.st!=='cancelled'){
-  if(o.pay==='transfer'&&!o.paid){t=o.claim?'Pending approval':o.rej?'Payment rejected':'Awaiting payment';c=o.claim?'pend':''}
-  else if(o.paid&&o.pay==='transfer'&&(o.st==='processing'||o.st==='paid')){t='Successful';c='ok'}}
- return `<span class="st ${c}">${esc(t)}</span>`};
-const payBtns=o=>(o.pay==='transfer'&&!o.paid&&o.st!=='cancelled')
- ?(o.claim?`<div class="pendbox">⏳ <b>Payment submitted.</b> Waiting for the vendor to approve it. Your order becomes successful and you will get an email with what you bought once it is approved.</div>`
-  :`${o.rej?'<div class="warn">The vendor could not find your payment. Check the amount and account, then pay again or chat with the vendor.</div>':''}<button class="btn full ghost" data-payord="${esc(o.id)}">Pay by transfer · ${fmt(o.total)}</button><button class="btn full" data-ipaid="${esc(o.id)}">✅ I have paid</button>`):'';
-const rcBtn=o=>receiptReady(o)?`<button class="btn full dark" data-rc="${esc(o.id)}">🧾 View receipt</button>`:'';
-let NT=-1;
-function notifView(){
- const n=S.notifs[NT];
- if(!n)return pgHead('Notification')+empty('🔔','This notification is no longer available.');
- const code=n.c||(String(n.m).match(/KZ-[A-Z0-9]{4,}/)||[])[0]||'',o=code&&S.orders.find(k=>k.id===code);
- return pgHead('Notification')+`<div class="nt"><b style="font-size:17px">${esc(n.t)}</b><small>${new Date(n.at).toLocaleString('en-NG',{weekday:'short',day:'numeric',month:'long',year:'numeric',hour:'numeric',minute:'2-digit'})}</small><div class="ntfull">${esc(n.m)}</div></div>`
- +(o?`<h2 class="sh2">Order ${esc(o.id)}</h2><div class="nt"><div class="oh"><b>${esc(o.id)}</b>${stBadge(o)}</div><small>${dt(o.at)} · ${{wallet:'Wallet',cod:'Pay on delivery',transfer:'Bank transfer',card:'Card'}[o.pay]||''}</small>${o.items.map(i=>`<div class="oh"><span>${i.q}× ${esc(i.n)}</span><span class="st">${cap(i.s)}</span></div>`).join('')}<div class="oh"><small>Delivery</small><small>${fmt(o.fee)}</small></div><div class="oh tot"><span>Total</span><b>${fmt(o.total)}</b></div></div><button class="btn full ghost" data-track="${esc(o.id)}">Track order</button>${payBtns(o)}${rcBtn(o)}`:'');
-}
-function ordersView(){return pgHead('My Orders')+(S.orders.length?S.orders.map(o=>`<div class="nt"><div class="oh"><b>${esc(o.id)}</b>${stBadge(o)}</div><small>${dt(o.at)} · ${{wallet:'Wallet',cod:'Pay on delivery',transfer:'Bank transfer',card:'Card'}[o.pay]}${o.pay!=='cod'?(o.paid?' · Paid':o.claim?' · Payment pending approval':' · Awaiting payment'):''}</small>${o.items.map(i=>`<div class="oh"><span>${i.q}× ${esc(i.n)}</span><span class="st">${cap(i.s)}</span></div>${i.s==='cancelled'?'':`<div class="steps">${STEPS.map((x,k)=>`<i class="${k<=STEPS.indexOf(i.s)?'on':''}"></i>`).join('')}</div>`}${i.s==='delivered'&&i.pid&&byId(i.pid)?`<button class="rm" data-rev="${i.pid}">Rate this item</button>`:''}`).join('')}<div class="oh"><small>Delivery</small><small>${fmt(o.fee)}</small></div><div class="oh tot"><span>Total</span><b>${fmt(o.total)}</b></div><button class="btn full ghost" data-track="${esc(o.id)}">Track order</button>${payBtns(o)}${rcBtn(o)}${cancelBtn(o)}</div>`).join(''):empty('📦','No orders yet.',shop))}
+function ordersView(){return pgHead('My Orders')+(S.orders.length?S.orders.map(o=>`<div class="nt"><div class="oh"><b>${esc(o.id)}</b>${KZR.stBadge(o)}</div><small>${dt(o.at)} · ${{wallet:'Wallet',cod:'Pay on delivery',transfer:'Bank transfer',card:'Card'}[o.pay]}${o.pay!=='cod'?(o.paid?' · Paid':o.claim?' · Payment pending approval':' · Awaiting payment'):''}</small>${o.items.map(i=>`<div class="oh"><span>${i.q}× ${esc(i.n)}</span><span class="st">${cap(i.s)}</span></div>${i.s==='cancelled'?'':`<div class="steps">${STEPS.map((x,k)=>`<i class="${k<=STEPS.indexOf(i.s)?'on':''}"></i>`).join('')}</div>`}${i.s==='delivered'&&i.pid&&byId(i.pid)?`<button class="rm" data-rev="${i.pid}">Rate this item</button>`:''}`).join('')}<div class="oh"><small>Delivery</small><small>${fmt(o.fee)}</small></div><div class="oh tot"><span>Total</span><b>${fmt(o.total)}</b></div><button class="btn full ghost" data-track="${esc(o.id)}">Track order</button>${KZR.payBtns(o)}${KZR.rcBtn(o)}${cancelBtn(o)}</div>`).join(''):empty('📦','No orders yet.',shop))}
 function checkoutView(){
  const ids=Object.keys(S.cart).filter(byId);if(!ids.length)return pgHead('Checkout')+empty('🛒','Your cart is empty.',shop);
  const a=ADDR[0]||{},sub=cartTotal(),tot=sub+FEE;
@@ -486,7 +469,7 @@ function prefsView(){return pgHead('Notifications')+`<label class="set"><div><b>
 function termsView(){return pgHead('Terms &amp; Conditions')+`<div class="terms"><h3>1. Using KAMPZA</h3><p>You must provide accurate details and keep your login private. You are responsible for activity on your account.</p><h3>2. Orders and pricing</h3><p>Prices are in Nigerian Naira. We may cancel an order if an item is unavailable or a price was listed in error, and refund any payment made.</p><h3>3. Delivery</h3><p>Delivery times are estimates. Please provide a correct address and phone number.</p><h3>4. Privacy</h3><p>We use your name, email, phone and address only to run your account, process orders and send messages you opted into. You can turn emails off or delete your account at any time.</p><h3>5. Contact</h3><p>Questions? Email ${esc(SUPPORT_EMAIL)}.</p></div>`}
 function deleteView(){return pgHead('Delete Account')+`<div class="warn"><b>This cannot be undone.</b> Your profile, orders, quotes, wishlist and wallet balance will be removed permanently.</div>${fld('dc','Type DELETE to confirm','','autocapitalize="characters" autocomplete="off"')}<button class="btn full danger" data-del>Delete my account</button>`}
 function helpView(){const f=(a,b)=>`<details><summary>${a}</summary><p>${b}</p></details>`;return pgHead('Help &amp; Support')+f('How do I place an order?','Add items to your cart, tap Checkout, enter your phone and address, then choose Bank transfer or Pay on delivery.')+f('Can’t find a product?','Use My Quotes to describe what you need and we’ll reply with a price.')+f('I didn’t get an email','Check spam, then confirm your email address is correct under Personal Information.')+`<a class="btn full" href="https://wa.me/${WHATSAPP}" target="_blank" rel="noopener">Chat on WhatsApp</a><a class="btn full ghost" href="mailto:${SUPPORT_EMAIL}">Email support</a>`}
-const PG={notif:notifView,receipt:receiptView,pay:()=>KX.payView(),chat:()=>KX.chatView(),chats:()=>KX.chatsView(),track:trackView,orders:ordersView,checkout:checkoutView,quotes:quotesView,info:infoView,security:securityView,prefs:prefsView,terms:termsView,delete:deleteView,help:helpView};
+const PG={notif:()=>KZR.notifView(),receipt:()=>KZR.receiptView(),pay:()=>KX.payView(),chat:()=>KX.chatView(),chats:()=>KX.chatsView(),track:trackView,orders:ordersView,checkout:checkoutView,quotes:quotesView,info:infoView,security:securityView,prefs:prefsView,terms:termsView,delete:deleteView,help:helpView};
 
 /* ===== GPS + TRACKING ===== */
 let GM='gps',GEO=null,GWATCH=null,GMAP=null,GMARK=null,GCIR=null,TC=null,LID=0;
@@ -551,7 +534,7 @@ async function rev(lat,lng){
 function trackView(){
  const o=S.orders.find(k=>k.id===TC);
  if(!o)return pgHead('Track order')+empty('📦','Order not found.');
- return pgHead('Track '+esc(o.id))+`<div class="nt"><div class="oh"><b>${esc(o.status)}</b><span class="st ${o.paid?'ok':o.claim?'pend':''}">${o.paid?'Paid':o.pay==='cod'?'Pay on delivery':o.claim?'Pending approval':'Awaiting payment'}</span></div><small>${dt(o.at)} · Total ${fmt(o.total)}</small></div><h2 class="sh2">Progress</h2><div class="tl" id="tl"><small>Loading…</small></div><h2 class="sh2">Items</h2>${o.items.map(i=>`<div class="oh nt"><span>${i.q}× ${esc(i.n)}</span><span class="st">${cap(i.s)}</span></div>`).join('')}${payBtns(o)}${rcBtn(o)}${cancelBtn(o)}`}
+ return pgHead('Track '+esc(o.id))+`<div class="nt"><div class="oh"><b>${esc(o.status)}</b><span class="st ${o.paid?'ok':o.claim?'pend':''}">${o.paid?'Paid':o.pay==='cod'?'Pay on delivery':o.claim?'Pending approval':'Awaiting payment'}</span></div><small>${dt(o.at)} · Total ${fmt(o.total)}</small></div><h2 class="sh2">Progress</h2><div class="tl" id="tl"><small>Loading…</small></div><h2 class="sh2">Items</h2>${o.items.map(i=>`<div class="oh nt"><span>${i.q}× ${esc(i.n)}</span><span class="st">${cap(i.s)}</span></div>`).join('')}${KZR.payBtns(o)}${KZR.rcBtn(o)}${cancelBtn(o)}`}
 async function trackLoad(){
  const el=$('#tl');if(!el||!sb)return;
  const{data,error}=await sb.from('order_events').select('*').eq('order_code',TC).order('created_at');
@@ -812,7 +795,7 @@ function msgWatch(){
 const waNum=n=>{let d=String(n||'').replace(/\D/g,'');if(d.startsWith('0'))d='234'+d.slice(1);return d};
 KX.payView=()=>{const o=S.orders.find(k=>k.id===KX.payCode);
  if(!o)return pgHead('Payment')+empty('📦','Order not found.');
- return pgHead('Pay by transfer')+`<div class="nt"><div class="oh"><b>${esc(o.id)}</b><span class="st">${o.paid?'Paid':'Awaiting payment'}</span></div><small>Total ${fmt(o.total)} (delivery ${fmt(o.fee)} included)</small></div><p class="sub" style="margin:0 0 12px">Transfer to the vendor account below, then send your receipt. Your order moves forward once the vendor verifies the payment.</p><div id="vpay"><small>Loading vendor bank details…</small></div>${o.paid?`<div class="okbox">✅ <b>Payment approved.</b> Your order is successful.</div>${rcBtn(o)}`:o.claim?payBtns(o):`<button class="btn full" data-ipaid="${esc(o.id)}">✅ I have paid</button><small style="display:block;text-align:center;margin-top:6px">Tap this after you have sent the transfer. The vendor will then check and approve it.</small>`}`};
+ return pgHead('Pay by transfer')+`<div class="nt"><div class="oh"><b>${esc(o.id)}</b><span class="st">${o.paid?'Paid':'Awaiting payment'}</span></div><small>Total ${fmt(o.total)} (delivery ${fmt(o.fee)} included)</small></div><p class="sub" style="margin:0 0 12px">Transfer to the vendor account below, then send your receipt. Your order moves forward once the vendor verifies the payment.</p><div id="vpay"><small>Loading vendor bank details…</small></div>${o.paid?`<div class="okbox">✅ <b>Payment approved.</b> Your order is successful.</div>${KZR.rcBtn(o)}`:o.claim?KZR.payBtns(o):`<button class="btn full" data-ipaid="${esc(o.id)}">✅ I have paid</button><small style="display:block;text-align:center;margin-top:6px">Tap this after you have sent the transfer. The vendor will then check and approve it.</small>`}`};
 KX.hooks=KX.hooks||{};
 KX.hooks.pay=async()=>{
  const el=$('#vpay'),o=S.orders.find(k=>k.id===KX.payCode);if(!el||!o)return;
@@ -825,6 +808,26 @@ KX.hooks.pay=async()=>{
   return `<div class="box pad" style="margin-bottom:12px"><b>${esc(v.business_name)}</b>${v.pay_status==='confirmed'?' <span class="badge">✓ Payment confirmed</span>':''}${v.items.map(i=>`<small>${i.qty}× ${esc(i.name)}</small>`).join('')}${has?`<table class="spec"><tr><td>Bank</td><td>${esc(v.bank_name)}</td></tr><tr><td>Account no.</td><td><b>${esc(v.account_number)}</b></td></tr><tr><td>Account name</td><td>${esc(v.account_name)}</td></tr><tr><td>Amount</td><td><b>${fmt(amt)}</b></td></tr></table><button class="btn ghost" data-copy="${esc(v.account_number)}">Copy account number</button>`:'<div class="warn">This vendor has not added bank details yet. Chat with them to get payment details.</div>'}${wa?`<a class="btn full wab" target="_blank" rel="noopener" href="https://wa.me/${wa}?text=${encodeURIComponent(msg)}">💬 Chat on WhatsApp (faster) — send receipt</a>`:''}<button class="btn full ghost" data-chatv="${esc(v.vendor_id)}">Chat in app — send receipt</button></div>`}).join('')};
 document.addEventListener('click',e=>{const c=e.target.closest('[data-copy]');if(c){navigator.clipboard?.writeText(c.dataset.copy);toast('Account number copied')}});
 
+/* ===== order payment states, receipt and notification detail: kept in one private scope so nothing here can clash with kz-extra.js or kz-chat.js ===== */
+(function(){
+const ordLines=o=>o.items.filter(i=>i.s!=='cancelled').map(i=>`• ${i.q}× ${i.n} — ${fmt(i.q*i.p)}`).join('\n');
+const stBadge=o=>{let t=o.status,c='';
+ if(o.st!=='cancelled'){
+  if(o.pay==='transfer'&&!o.paid){t=o.claim?'Pending approval':o.rej?'Payment rejected':'Awaiting payment';c=o.claim?'pend':''}
+  else if(o.paid&&o.pay==='transfer'&&(o.st==='processing'||o.st==='paid')){t='Successful';c='ok'}}
+ return `<span class="st ${c}">${esc(t)}</span>`};
+const payBtns=o=>(o.pay==='transfer'&&!o.paid&&o.st!=='cancelled')
+ ?(o.claim?`<div class="pendbox">⏳ <b>Payment submitted.</b> Waiting for the vendor to approve it. Your order becomes successful and you will get an email with what you bought once it is approved.</div>`
+  :`${o.rej?'<div class="warn">The vendor could not find your payment. Check the amount and account, then pay again or chat with the vendor.</div>':''}<button class="btn full ghost" data-payord="${esc(o.id)}">Pay by transfer · ${fmt(o.total)}</button><button class="btn full" data-ipaid="${esc(o.id)}">✅ I have paid</button>`):'';
+const rcBtn=o=>receiptReady(o)?`<button class="btn full dark" data-rc="${esc(o.id)}">🧾 View receipt</button>`:'';
+let NT=-1;
+function notifView(){
+ const n=S.notifs[NT];
+ if(!n)return pgHead('Notification')+empty('🔔','This notification is no longer available.');
+ const code=n.c||(String(n.m).match(/KZ-[A-Z0-9]{4,}/)||[])[0]||'',o=code&&S.orders.find(k=>k.id===code);
+ return pgHead('Notification')+`<div class="nt"><b style="font-size:17px">${esc(n.t)}</b><small>${new Date(n.at).toLocaleString('en-NG',{weekday:'short',day:'numeric',month:'long',year:'numeric',hour:'numeric',minute:'2-digit'})}</small><div class="ntfull">${esc(n.m)}</div></div>`
+ +(o?`<h2 class="sh2">Order ${esc(o.id)}</h2><div class="nt"><div class="oh"><b>${esc(o.id)}</b>${stBadge(o)}</div><small>${dt(o.at)} · ${{wallet:'Wallet',cod:'Pay on delivery',transfer:'Bank transfer',card:'Card'}[o.pay]||''}</small>${o.items.map(i=>`<div class="oh"><span>${i.q}× ${esc(i.n)}</span><span class="st">${cap(i.s)}</span></div>`).join('')}<div class="oh"><small>Delivery</small><small>${fmt(o.fee)}</small></div><div class="oh tot"><span>Total</span><b>${fmt(o.total)}</b></div></div><button class="btn full ghost" data-track="${esc(o.id)}">Track order</button>${payBtns(o)}${rcBtn(o)}`:'');
+}
 /* ================= RECEIPT (image + PDF) ================= */
 let RC=null,RCV=null;
 const receiptReady=o=>!!o&&o.st!=='cancelled'&&(o.paid||o.st==='delivered');
@@ -941,14 +944,4 @@ function pdfFromJpeg(bytes,w,h){
  const cs=enc(`q ${pw} 0 0 ${ph} 0 0 cm /Im0 Do Q`);obj(5,`<</Length ${cs.length}>>`,cs);
  const x=len;let t='xref\n0 6\n0000000000 65535 f \n';for(let n=1;n<=5;n++)t+=String(offs[n]).padStart(10,'0')+' 00000 n \n';
  t+=`trailer\n<</Size 6/Root 1 0 R>>\nstartxref\n${x}\n%%EOF`;push(enc(t));
- return new Blob(parts,{type:'application/pdf'})}
-const saveBlob=(b,name)=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),5000)};
-KX.hooks=KX.hooks||{};
-KX.hooks.receipt=async()=>{
- const o=S.orders.find(k=>k.id===RC);if(!receiptReady(o))return;
- try{RCV=await makeReceipt(o)}catch(err){console.error(err);toast('Could not build the receipt');return}
- const im=$('#rcimg');if(!im)return;im.src=RCV.toDataURL('image/png');im.hidden=false;$('#rcsk')?.remove()};
-document.addEventListener('click',async e=>{
- let b;
- if(b=e.target.closest('[data-nt]')){NT=+b.dataset.nt;const n=S.notifs[NT];if(n){n.r=1;store();badges()}pg='notif';draw();return}
- if(b=e.target.closest('[data-rc]')){RC=b.dataset.rc;RCV=n
+ return new Blob(parts,{type:

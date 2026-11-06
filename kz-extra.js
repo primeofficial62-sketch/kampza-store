@@ -1,5 +1,3 @@
-/* kz-extra.js — KAMPZA: promotions, bank transfer + receipt, chat, PWA.
-   Load BEFORE the main inline script. Uses the main script's globals (sb, U, pg, draw, toast, fmt, esc, pgHead, empty, notif, loadServer) at call time only. */
 (()=>{
 const K=window.KX={payCode:null,PAY:null,conv:null,name:'',ch:null,seen:new Set(),hooks:{}};
 const $=s=>document.querySelector(s);
@@ -10,7 +8,7 @@ const shrink=f=>new Promise((ok,no)=>{const u=URL.createObjectURL(f),i=new Image
  i.onload=()=>{const r=Math.min(1,1280/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=Math.round(i.width*r);c.height=Math.round(i.height*r);c.getContext('2d').drawImage(i,0,0,c.width,c.height);URL.revokeObjectURL(u);c.toBlob(b=>b?ok(b):no(new Error('Image error')),'image/jpeg',.82)};
  i.onerror=()=>no(new Error('Could not read the image'));i.src=u});
 
-/* ---------- promotions: turn promo price into price + old price so existing badges/flash deals work ---------- */
+/* ---------- promotions ---------- */
 K.promos=(P,rows)=>{(rows||[]).forEach(r=>{const p=P.find(x=>x.id===r.product_id);if(p&&r.promo_price<r.base_price){p.o=r.base_price;p.p=r.promo_price;p.pe=r.ends_at}})};
 
 /* ---------- leave chat page: close realtime channel ---------- */
@@ -83,13 +81,13 @@ async function send(body,path){
 async function openChat(vid){
  const{data,error}=await sb.rpc('start_chat',{p_vendor:vid});
  if(error){toast(error.message||'Could not open chat');return}
- K.conv=data;K.name='';pg='chat';draw()}
+ K.conv=data;K.name='';prod=null;if(q){q='';const qi=$('#q');if(qi)qi.value=''}pg='chat';draw()}
 
 /* ---------- events ---------- */
 document.addEventListener('click',async e=>{
  const g=s=>e.target.closest(s);let x;
  if(x=g('[data-chatv]')){openChat(x.dataset.chatv);return}
- if(x=g('[data-chat]')){K.conv=x.dataset.chat;K.name=x.dataset.nm||'';pg='chat';draw();return}
+ if(x=g('[data-chat]')){K.conv=x.dataset.chat;K.name=x.dataset.nm||'';prod=null;pg='chat';draw();return}
  if(x=g('[data-copy]')){try{await navigator.clipboard.writeText(x.dataset.copy);toast('Account number copied')}catch{toast(x.dataset.copy)}return}
  if(x=g('[data-sendrc]')){sendReceipt(x.dataset.sendrc,x);return}
  if(g('[data-csend]')){const i=$('#cin'),t=i.value.trim();if(!t)return;i.value='';if(!await send(t))i.value=t;return}

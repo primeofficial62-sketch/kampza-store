@@ -233,7 +233,7 @@ async function refresh(){
    sb.rpc('vendor_balance')]);
   if(!p.error)PR=p.data;if(!i.error)ITEMS=i.data;if(!pay.error)PAY=pay.data;if(!b.error&&b.data)BAL=b.data;
   const ids=[...new Set(ITEMS.map(x=>x.order_id))];
-  if(ids.length){const{data}=await sb.from('orders').select('id,code,pay_method,paid,phone,address,created_at,status').in('id',ids);if(data)ORD=Object.fromEntries(data.map(o=>[o.id,o]))}
+  if(ids.length){let r=await sb.from('orders').select('id,code,pay_method,paid,phone,address,created_at,status,pay_claimed_at').in('id',ids);if(r.error)r=await sb.from('orders').select('id,code,pay_method,paid,phone,address,created_at,status').in('id',ids);if(r.data)ORD=Object.fromEntries(r.data.map(o=>[o.id,o]))}
   if(PR.length){const{data}=await sb.from('reviews').select('*').in('product_id',PR.map(x=>x.id)).order('created_at',{ascending:false}).limit(100);if(data)REV=data}
   side();if(!EDIT&&!document.activeElement?.matches('input,textarea,select'))view()
  }catch(e){console.error(e);toast('Could not refresh. Check your connection.')}}
@@ -278,19 +278,21 @@ function formV(){
 <div class="two"><div class="fld"><label for="f_s">Stock</label><input id="f_s" type="number" inputmode="numeric" min="0" value="${p.stock??''}"></div><div class="fld"><label for="f_e">Emoji</label><input id="f_e" maxlength="4" value="${esc(p.emoji||'')}" placeholder="🛍️"></div></div>
 <div class="fld"><label for="f_c">Category</label><select id="f_c">${CATS.map(c=>`<option ${p.category===c?'selected':''}>${esc(c)}</option>`).join('')}</select></div>
 <div class="fld"><label for="f_b">Brand (optional)</label><input id="f_b" maxlength="60" value="${esc(p.brand||'')}"></div>
-<div class="fld"><label for="f_d">Description</label><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px"><button type="button" class="btn ghost sm" data-aiwrite>✨ Write it for me</button><small style="color:var(--m,#777)">Add a photo, name and brand first. You can edit the result or type your own.</small></div><textarea id="f_d" rows="4" maxlength="1500">${esc(p.description||'')}</textarea></div>
+<div class="fld"><label for="f_d">Description</label><textarea id="f_d" rows="4" maxlength="1500">${esc(p.description||'')}</textarea></div>
 <div class="fld"><label for="f_sp">Specifications (one per line, "Name: value")</label><textarea id="f_sp" rows="3">${esc(spec)}</textarea></div>
 <label class="chk"><input type="checkbox" id="f_a" ${p.active===false?'':'checked'}>Visible in the store</label>
 <button class="btn full" data-saveprod>Save product</button>`}
 const imgHtml=()=>IMGS.map((u,i)=>`<div class="im"><img src="${esc(u)}" alt=""><button class="x" data-rmimg="${i}" aria-label="Remove photo">×</button></div>`).join('');
 function itemCard(i){
- const o=ORD[i.order_id]||{},nx=nextOf(i.status),bl=blocked(i);
+ const o=ORD[i.order_id]||{},nx=nextOf(i.status),bl=blocked(i),lv=live(i),proc=i.status==='processing';
+ const pl=o.pay_method?({wallet:'Wallet',cod:'Pay on delivery',card:'Card',transfer:'Bank transfer'}[o.pay_method]||'')+(o.pay_method!=='cod'?(o.paid?' · Paid':o.pay_claimed_at?' · Buyer says paid, awaiting your approval':' · Awaiting payment'):''):'';
  return `<div class="box"><div class="oh"><b>${esc(o.code||'Order')}</b><span class="st ${i.status==='delivered'?'ok':i.status==='cancelled'?'no':''}">${cap(i.status)}</span></div>
 <div class="oh"><span>${i.qty}× ${esc(i.name)}</span><b>${fmt(money(i))}</b></div>
-<small>${o.created_at?dt(o.created_at)+' · ':''}${{wallet:'Wallet',cod:'Pay on delivery',card:'Card'}[o.pay_method]||''}${o.pay_method&&o.pay_method!=='cod'?(o.paid?' · Paid':' · Awaiting payment'):''}</small>
+<small>${o.created_at?dt(o.created_at)+' · ':''}${pl}</small>
 ${i.status!=='cancelled'?`<div class="steps">${STEPS.map((x,k)=>`<i class="${k<=STEPS.indexOf(i.status)?'on':''}"></i>`).join('')}</div>`:''}
-${live(i)&&o.address?`<small>Deliver to: ${esc(o.address)}${o.phone?' · '+esc(o.phone):''}</small>`:''}
-${live(i)?`<div class="acts">${nx?`<button class="btn sm" data-step="${i.id}|${nx}" ${bl?'disabled':''}>${nextLabel[nx]}</button>`:''}${o.phone?`<a class="btn ghost sm" href="tel:${esc(o.phone)}">Call buyer</a>`:''}${i.status==='processing'?`<button class="btn danger sm" data-step="${i.id}|cancelled">Cancel item</button>`:''}</div>${bl?'<small>Waiting for the buyer to pay before you can pack this.</small>':''}`:''}
+${lv&&o.address?`<small>Deliver to: ${esc(o.address)}${o.phone?' · '+esc(o.phone):''}</small>`:''}
+${lv&&bl&&proc?`<div class="warn" style="margin:2px 0">${o.pay_claimed_at?'💰 The buyer says they have paid. Check your bank, then tap <b>Accept</b> to confirm the payment.':'Waiting for the buyer to pay. Tap <b>Accept</b> only after the money is in your account.'}</div>`:''}
+${lv?`<div class="acts">${proc?`<button class="btn sm" data-accept="${i.id}|${i.order_id}">✓ Accept</button><button class="btn danger sm" data-reject="${i.id}">✕ Reject</button>`:`${nx?`<button class="btn sm" data-step="${i.id}|${nx}">${nextLabel[nx]}</button>`:''}<button class="btn danger sm" data-cancelit="${i.id}">Cancel</button>`}${o.phone?`<a class="btn ghost sm" href="tel:${esc(o.phone)}">📞 Call buyer</a>`:''}<a class="btn ghost sm" href="store.html?msgs=1">💬 Chat buyer</a></div>`:''}
 ${i.status==='delivered'?`<small>Your payout: ${o.pay_method==='cod'?'after COD is settled · ':''}${fmt(i.payout)}</small>`:''}</div>`}
 function ordV(){
  const c=s=>ITEMS.filter(i=>i.status===s).length;
@@ -417,6 +419,15 @@ document.addEventListener('click',async e=>{
   if(!confirm('Delete "'+p.name+'" permanently?'))return;
   const{error}=await sb.from('products').delete().eq('id',p.id).eq('vendor_id',UID);
   if(error){toast('This product has orders, so hide it instead.');return}toast('Product deleted');await refresh();return}
+const setItem=async(x,id,st,okMsg)=>{x.disabled=true;const{error}=await sb.rpc('vendor_set_item',{p_item:id,p_status:st});if(error){toast(error.message);x.disabled=false;return false}toast(okMsg);await refresh();return true};
+ if(x=g(e,'[data-accept]')){
+  const[id,oid]=x.dataset.accept.split('|'),needPay=blocked({order_id:oid});
+  if(!confirm(needPay?'Accept this order and confirm that you received the buyer’s payment?':'Accept this order?'))return;
+  x.disabled=true;
+  if(needPay){const{error}=await sb.rpc('vendor_approve_payment',{p_order:String(oid)});if(error){toast(error.message);x.disabled=false;return}}
+  await setItem(x,id,'packed','Order accepted'+(needPay?'. The buyer’s receipt is ready':''));return}
+ if(x=g(e,'[data-reject]')){if(!confirm('Reject this order? The buyer will be refunded if they paid and your stock is restored.'))return;await setItem(x,x.dataset.reject,'cancelled','Order rejected');return}
+ if(x=g(e,'[data-cancelit]')){if(!confirm('Cancel this order? The buyer will be refunded if they paid.'))return;await setItem(x,x.dataset.cancelit,'cancelled','Order cancelled');return}
  if(x=g(e,'[data-step]')){
   const[id,st]=x.dataset.step.split('|');
   if(st==='cancelled'&&!confirm('Cancel this item? The buyer will be refunded if they paid.'))return;
@@ -465,20 +476,6 @@ document.addEventListener('click',async e=>{
   if(error){toast(error.message);x.disabled=false;x.textContent='Submit application';return}
   try{await sb.functions.invoke('resolve-account',{body:{save:true}})}catch{}
   V=await loadVendor();toast('Application submitted');V?enter():boot();return}
- if(x=g(e,'[data-aiwrite]')){
-  if(BUSY)return;
-  const name=val('f_n'),brand=val('f_b');
-  if(name.length<2){toast('Enter the product name first');return}
-  if(!IMGS.length&&!brand&&!confirm('No photo or brand yet, so the write-up will be very short. Continue?'))return;
-  if(val('f_d').trim()&&!confirm('Replace your current description?'))return;
-  BUSY=true;const old=x.textContent;x.disabled=true;x.textContent='Writing…';
-  try{
-   const{data:{session}}=await sb.auth.getSession();
-   const{data,error}=await sb.functions.invoke('product-writeup',{body:{token:session?.access_token||'',name,brand,category:val('f_c'),image:IMGS[0]||'',notes:val('f_sp')}});
-   if(error||!data?.ok){toast(data?.error||'Could not write it right now. Please type it yourself.')}
-   else{$('#f_d').value=data.description;toast(data.note?('Done. Check: '+data.note):'Done. Read it and edit anything that is not right.')}
-  }catch(err){toast('Could not write it right now. Please type it yourself.')}
-  BUSY=false;x.disabled=false;x.textContent=old;return}
  if(x=g(e,'[data-saveprod]')){
   if(BUSY)return;
   const name=val('f_n'),price=Math.floor(Number(val('f_p'))),old=Math.floor(Number(val('f_o')))||null,stock=Math.floor(Number(val('f_s')));

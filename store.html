@@ -239,6 +239,12 @@ body{padding-bottom:calc(130px + env(safe-area-inset-bottom,0px))}
 .okbox{background:#e6f6ec;border:1px solid #b7e4c7;color:#1a7f43;border-radius:var(--r);padding:12px;margin-top:10px;font-size:13px;line-height:1.45}
 [data-theme=dark] .st.pend,[data-theme=dark] .pendbox{background:#3a2f0b;color:#ffd666;border-color:#5c4a12}
 [data-theme=dark] .st.ok,[data-theme=dark] .okbox{background:#12301e;color:#6fdc9a;border-color:#1d4a2e}
+/* ===== openable notifications ===== */
+button.nt{display:grid;width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer;transition:transform .1s}
+button.nt:active{transform:scale(.99)}
+.nt .pv{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-line;color:var(--m)}
+.nt .more{color:var(--o);font-weight:600;font-size:12.5px}
+.ntfull{white-space:pre-line;line-height:1.6;overflow-wrap:anywhere;margin-top:6px}
 /* ===== dark mode ===== */
 :root[data-theme=dark]{--c:#f2f2f2;--bg:#141414;--g:#232323;--m:#a0a0a0;--b:#34343a;color-scheme:dark}
 [data-theme=dark] .pdesc,[data-theme=dark] .rv p{color:#cfcfcf}
@@ -276,7 +282,7 @@ body{padding-bottom:calc(130px + env(safe-area-inset-bottom,0px))}
 <script>
 /* ================= CONFIG ================= */
 const SUPABASE_URL='https://fcgvmxkxwgymgqcbtzjd.supabase.co',SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjZ3ZteGt4d2d5bWdxY2J0empkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMwODgyODcsImV4cCI6MjEwODY2NDI4N30.SEROg_J5x2dldpI6buHKYVQbuuyzM4bOJLHPYDWtIbM',AUTH_URL='auth.html#signin',MAIL_ENDPOINT=SUPABASE_URL+'/functions/v1/notify',CATALOG_URL='deals.json';
-const SUPPORT_EMAIL='kampzastore@gmail.com',WHATSAPP='2349059538257',VERSION='2.5.0';
+const SUPPORT_EMAIL='kampzastore@gmail.com',WHATSAPP='2349059538257',VERSION='2.6.0';
 const MAIL_FN=['notify-ts'];
 async function callFn(names,body){let last;for(const n of names){try{const r=await fetch(SUPABASE_URL+'/functions/v1/'+n,{method:'POST',headers:{'Content-Type':'application/json',apikey:SUPABASE_ANON_KEY,Authorization:'Bearer '+SUPABASE_ANON_KEY},body:JSON.stringify(body)});if(r.status===404)continue;return await r.json()}catch(e){last=e}}throw last||new Error('function not found')}
 
@@ -342,7 +348,10 @@ async function loadServer(){
    if(S.paidSeen[x.id]===undefined)S.paidSeen[x.id]=!!x.paid;
    else if(!S.paidSeen[x.id]&&x.paid){S.paidSeen[x.id]=true;paidNow(x)}}
   S.seen=S.seen||{};
-  for(const x of S.orders){const sg=x.st+'|'+x.items.map(i=>i.s).join();if(S.seen[x.id]&&S.seen[x.id]!==sg)notif('Order '+x.id+' updated','Status: '+x.status);S.seen[x.id]=sg}
+  for(const x of S.orders){const sg=x.st+'|'+x.items.map(i=>i.s).join();if(S.seen[x.id]&&S.seen[x.id]!==sg){
+   const T={completed:'Order delivered ✅',shipped:'Order on the way 🚚',cancelled:'Order cancelled'}[x.st]||'Order updated',
+    M=`Your order ${x.id} is now ${x.status.toLowerCase()}.\n\n`+x.items.map(i=>`• ${i.q}× ${i.n} — ${cap(i.s)}`).join('\n')+`\n\nTotal: ${fmt(x.total)}`+(x.st==='completed'?'\n\nWe hope you love it! You can rate your items from My Orders.':'');
+   notif(T,M,x.id)}S.seen[x.id]=sg}
   store();badges();nav();
   const sg=JSON.stringify([S.orders,S.wallet,S.quotes,ADDR]);
   if(sg!==LASTSIG){LASTSIG=sg;if(!['checkout','quotes','info','security','delete','pay','chat','chats'].includes(pg)&&!document.activeElement?.matches?.('input,textarea,select'))view()}
@@ -411,7 +420,7 @@ function cartView(){
  const ids=Object.keys(S.cart).filter(id=>byId(id));
  if(!ids.length)return `<div class="top"><h1>Cart</h1></div>${empty('🛒','Your cart is empty.',shop)}`;
  return `<div class="top"><h1>Cart (${cartCount()})</h1></div><div class="cartw"><div>${ids.map(id=>{const p=byId(id),n=S.cart[id];return `<div class="line"><div class="pimg" data-open="${id}">${thumb(p)}</div><div class="mid"><b data-open="${id}">${esc(p.n)}</b><span>${fmt(p.p)}</span>${p.st>0&&p.st<=5?`<small>Only ${p.st} left</small>`:''}<div style="display:flex;align-items:center;gap:8px"><span class="qty"><button data-qty="${id}" data-d="-1" aria-label="Decrease">−</button><span>${n}</span><button data-qty="${id}" data-d="1" aria-label="Increase">+</button></span><button class="rm" data-rm="${id}">Remove</button></div></div></div>`}).join('')}</div><div class="sum"><div><span>Subtotal</span><span>${fmt(cartTotal())}</span></div><small>Delivery (${fmt(FEE)}) is added at checkout.</small><button class="btn" data-pg="checkout">Checkout</button></div></div>`}
-function notifsView(){return `<div class="top"><h1>Notifications</h1><button class="btn ghost" data-read>Mark all as read</button></div>${S.notifs.length?S.notifs.map(n=>`<div class="nt ${n.r?'':'un'}"><b>${esc(n.t)}</b><div>${esc(n.m)}</div><small>${new Date(n.at).toLocaleString()}</small></div>`).join(''):empty('🔔','No notifications yet.')}`}
+function notifsView(){return `<div class="top"><h1>Notifications</h1><button class="btn ghost" data-read>Mark all as read</button></div>${S.notifs.length?S.notifs.map((n,k)=>`<button class="nt ${n.r?'':'un'}" data-nt="${k}"><b>${esc(n.t)}</b><div class="pv">${esc(n.m)}</div><small>${new Date(n.at).toLocaleString()} · <span class="more">Open ›</span></small></button>`).join(''):empty('🔔','No notifications yet.')}`}
 
 function prodView(id){
  const p=byId(id),d=p.o&&p.o>p.p?Math.round((1-p.p/p.o)*100):0,imgs=p.imgs||[],out=p.st===0;
@@ -445,6 +454,7 @@ function accountView(){
 <button class="out" data-signout>${ic('out')}Log Out</button>
 <p class="foot">KAMPZA · Find It. Get It. Love It.<br>v${VERSION}</p>`}
 
+const ordLines=o=>o.items.filter(i=>i.s!=='cancelled').map(i=>`• ${i.q}× ${i.n} — ${fmt(i.q*i.p)}`).join('\n');
 const stBadge=o=>{let t=o.status,c='';
  if(o.st!=='cancelled'){
   if(o.pay==='transfer'&&!o.paid){t=o.claim?'Pending approval':o.rej?'Payment rejected':'Awaiting payment';c=o.claim?'pend':''}
@@ -454,6 +464,14 @@ const payBtns=o=>(o.pay==='transfer'&&!o.paid&&o.st!=='cancelled')
  ?(o.claim?`<div class="pendbox">⏳ <b>Payment submitted.</b> Waiting for the vendor to approve it. Your order becomes successful and you will get an email with what you bought once it is approved.</div>`
   :`${o.rej?'<div class="warn">The vendor could not find your payment. Check the amount and account, then pay again or chat with the vendor.</div>':''}<button class="btn full ghost" data-payord="${esc(o.id)}">Pay by transfer · ${fmt(o.total)}</button><button class="btn full" data-ipaid="${esc(o.id)}">✅ I have paid</button>`):'';
 const rcBtn=o=>receiptReady(o)?`<button class="btn full dark" data-rc="${esc(o.id)}">🧾 View receipt</button>`:'';
+let NT=-1;
+function notifView(){
+ const n=S.notifs[NT];
+ if(!n)return pgHead('Notification')+empty('🔔','This notification is no longer available.');
+ const code=n.c||(String(n.m).match(/KZ-[A-Z0-9]{4,}/)||[])[0]||'',o=code&&S.orders.find(k=>k.id===code);
+ return pgHead('Notification')+`<div class="nt"><b style="font-size:17px">${esc(n.t)}</b><small>${new Date(n.at).toLocaleString('en-NG',{weekday:'short',day:'numeric',month:'long',year:'numeric',hour:'numeric',minute:'2-digit'})}</small><div class="ntfull">${esc(n.m)}</div></div>`
+ +(o?`<h2 class="sh2">Order ${esc(o.id)}</h2><div class="nt"><div class="oh"><b>${esc(o.id)}</b>${stBadge(o)}</div><small>${dt(o.at)} · ${{wallet:'Wallet',cod:'Pay on delivery',transfer:'Bank transfer',card:'Card'}[o.pay]||''}</small>${o.items.map(i=>`<div class="oh"><span>${i.q}× ${esc(i.n)}</span><span class="st">${cap(i.s)}</span></div>`).join('')}<div class="oh"><small>Delivery</small><small>${fmt(o.fee)}</small></div><div class="oh tot"><span>Total</span><b>${fmt(o.total)}</b></div></div><button class="btn full ghost" data-track="${esc(o.id)}">Track order</button>${payBtns(o)}${rcBtn(o)}`:'');
+}
 function ordersView(){return pgHead('My Orders')+(S.orders.length?S.orders.map(o=>`<div class="nt"><div class="oh"><b>${esc(o.id)}</b>${stBadge(o)}</div><small>${dt(o.at)} · ${{wallet:'Wallet',cod:'Pay on delivery',transfer:'Bank transfer',card:'Card'}[o.pay]}${o.pay!=='cod'?(o.paid?' · Paid':o.claim?' · Payment pending approval':' · Awaiting payment'):''}</small>${o.items.map(i=>`<div class="oh"><span>${i.q}× ${esc(i.n)}</span><span class="st">${cap(i.s)}</span></div>${i.s==='cancelled'?'':`<div class="steps">${STEPS.map((x,k)=>`<i class="${k<=STEPS.indexOf(i.s)?'on':''}"></i>`).join('')}</div>`}${i.s==='delivered'&&i.pid&&byId(i.pid)?`<button class="rm" data-rev="${i.pid}">Rate this item</button>`:''}`).join('')}<div class="oh"><small>Delivery</small><small>${fmt(o.fee)}</small></div><div class="oh tot"><span>Total</span><b>${fmt(o.total)}</b></div><button class="btn full ghost" data-track="${esc(o.id)}">Track order</button>${payBtns(o)}${rcBtn(o)}${cancelBtn(o)}</div>`).join(''):empty('📦','No orders yet.',shop))}
 function checkoutView(){
  const ids=Object.keys(S.cart).filter(byId);if(!ids.length)return pgHead('Checkout')+empty('🛒','Your cart is empty.',shop);
@@ -468,7 +486,7 @@ function prefsView(){return pgHead('Notifications')+`<label class="set"><div><b>
 function termsView(){return pgHead('Terms &amp; Conditions')+`<div class="terms"><h3>1. Using KAMPZA</h3><p>You must provide accurate details and keep your login private. You are responsible for activity on your account.</p><h3>2. Orders and pricing</h3><p>Prices are in Nigerian Naira. We may cancel an order if an item is unavailable or a price was listed in error, and refund any payment made.</p><h3>3. Delivery</h3><p>Delivery times are estimates. Please provide a correct address and phone number.</p><h3>4. Privacy</h3><p>We use your name, email, phone and address only to run your account, process orders and send messages you opted into. You can turn emails off or delete your account at any time.</p><h3>5. Contact</h3><p>Questions? Email ${esc(SUPPORT_EMAIL)}.</p></div>`}
 function deleteView(){return pgHead('Delete Account')+`<div class="warn"><b>This cannot be undone.</b> Your profile, orders, quotes, wishlist and wallet balance will be removed permanently.</div>${fld('dc','Type DELETE to confirm','','autocapitalize="characters" autocomplete="off"')}<button class="btn full danger" data-del>Delete my account</button>`}
 function helpView(){const f=(a,b)=>`<details><summary>${a}</summary><p>${b}</p></details>`;return pgHead('Help &amp; Support')+f('How do I place an order?','Add items to your cart, tap Checkout, enter your phone and address, then choose Bank transfer or Pay on delivery.')+f('Can’t find a product?','Use My Quotes to describe what you need and we’ll reply with a price.')+f('I didn’t get an email','Check spam, then confirm your email address is correct under Personal Information.')+`<a class="btn full" href="https://wa.me/${WHATSAPP}" target="_blank" rel="noopener">Chat on WhatsApp</a><a class="btn full ghost" href="mailto:${SUPPORT_EMAIL}">Email support</a>`}
-const PG={receipt:receiptView,pay:()=>KX.payView(),chat:()=>KX.chatView(),chats:()=>KX.chatsView(),track:trackView,orders:ordersView,checkout:checkoutView,quotes:quotesView,info:infoView,security:securityView,prefs:prefsView,terms:termsView,delete:deleteView,help:helpView};
+const PG={notif:notifView,receipt:receiptView,pay:()=>KX.payView(),chat:()=>KX.chatView(),chats:()=>KX.chatsView(),track:trackView,orders:ordersView,checkout:checkoutView,quotes:quotesView,info:infoView,security:securityView,prefs:prefsView,terms:termsView,delete:deleteView,help:helpView};
 
 /* ===== GPS + TRACKING ===== */
 let GM='gps',GEO=null,GWATCH=null,GMAP=null,GMARK=null,GCIR=null,TC=null,LID=0;
@@ -626,7 +644,7 @@ document.addEventListener('click',async e=>{
   /* vendors can never order their own products: drop them from the cart and stop */
   const own=Object.keys(S.cart).filter(id=>mine(byId(id)));
   if(own.length){own.forEach(id=>delete S.cart[id]);store();nav();toast('You cannot buy your own product. It was removed from your cart.');view();return}
-  const items=Object.keys(S.cart).filter(byId).map(id=>({id,qty:S.cart[id]}));
+  const items=Object.keys(S.cart).filter(byId).map(id=>({id,qty:S.cart[id]})),nl=Object.keys(S.cart).filter(byId).map(id=>`• ${S.cart[id]}× ${byId(id).n} — ${fmt(byId(id).p*S.cart[id])}`).join('\n');
   PLACING=true;x.disabled=true;x.textContent='Placing order…';
   try{
    const{data,error}=await sb.rpc('place_order',{p_items:items,p_pay:pay,p_phone:ph,p_address:ad,p_key:CKEY});
@@ -636,7 +654,7 @@ document.addEventListener('click',async e=>{
    GEO=null;try{sessionStorage.removeItem('kz_gps')}catch{}
    S.cart={};CKEY=crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random();U.phone=ph;store();
    /* the "order placed" email is sent by the server (database trigger -> order-mail function) */
-   notif('Order placed ✅',data.code+' · '+fmt(data.total));
+   notif('Order placed ✅',`Your order ${data.code} has been placed.\n\n${nl}\n\nDelivery: ${fmt(FEE)}\nTotal: ${fmt(data.total)}\n\nDeliver to: ${ad}\n\n`+(pay==='transfer'?'Pay the vendor by bank transfer, then tap “I have paid”. Your order moves forward once the vendor confirms your payment.':'You will pay when your order is delivered.'),data.code);
    await Promise.all([loadServer(),loadCatalog()]);if(pay==='transfer')KX.payCode=data.code;tab='account';pg=pay==='transfer'?'pay':'orders';draw();toast('Order placed. A confirmation email is on its way');
   }catch(err){toast(err.message||'Could not place your order');x.disabled=false;x.textContent='Place order · '+fmt(t)}
   PLACING=false;return}
@@ -690,7 +708,7 @@ function stop(){clearInterval(timer)}
 /* ================= AUTH + NOTIFICATIONS + EMAIL ================= */
 const sb=(window.supabase&&!SUPABASE_URL.startsWith('YOUR_'))?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true,storage:window.localStorage}}):null;
 function badges(){const n=S.notifs.filter(x=>!x.r).length,b=$('#bb');if(b){b.hidden=!n;b.textContent=n>9?'9+':n}}
-function notif(t,m){S.notifs.unshift({t,m,at:Date.now(),r:0});S.notifs=S.notifs.slice(0,50);store();badges();
+function notif(t,m,c){S.notifs.unshift({t,m,c:c||'',at:Date.now(),r:0});S.notifs=S.notifs.slice(0,50);store();badges();
  try{if('Notification' in window&&Notification.permission==='granted')new Notification(t,{body:m})}catch{}}
 /* The server verifies the Supabase token and uses the VERIFIED email; the browser can never choose a recipient. */
 async function mail(type){
@@ -733,7 +751,7 @@ async function boot(){
  U={id:u.id,email:u.email,verified:!!u.email_confirmed_at,
   name:md.full_name||md.name||(u.email||'').split('@')[0],
   phone:u.phone||md.phone||'',avatar:md.avatar_url||md.picture||'',meta:md};
- loadState();welcome();try{const nv=jget('kz_nav_'+U.id,null);if(nv){tab=nv.tab||'home';sub=nv.sub||null;pg=(nv.pg==='pay'||nv.pg==='chat')?null:(nv.pg||null);prod=nv.prod||null;TC=nv.tc||null}}catch{}try{if(new URLSearchParams(location.search).get('msgs')){tab='account';pg='chats';prod=null;sub=null}}catch{}history.replaceState({root:1},'');showPage();draw();await Promise.all([loadCatalog(),loadServer(),loadVendor()]);live();msgWatch()}
+ loadState();welcome();try{const nv=jget('kz_nav_'+U.id,null);if(nv){tab=nv.tab||'home';sub=nv.sub||null;pg=(nv.pg==='pay'||nv.pg==='chat'||nv.pg==='notif')?null:(nv.pg||null);prod=nv.prod||null;TC=nv.tc||null}}catch{}try{if(new URLSearchParams(location.search).get('msgs')){tab='account';pg='chats';prod=null;sub=null}}catch{}history.replaceState({root:1},'');showPage();draw();await Promise.all([loadCatalog(),loadServer(),loadVendor()]);live();msgWatch()}
 /* Only the user's own Log Out signs them out. Other SIGNED_OUT events are re-checked first. */
 sb?.auth.onAuthStateChange((ev,ses)=>{if(ses?.access_token)TOKEN=ses.access_token;
  if(ev==='SIGNED_OUT'&&U){if(OUT)toLogin();else setTimeout(async()=>{if(!await session())toLogin()},800)}});
@@ -812,7 +830,7 @@ let RC=null,RCV=null;
 const receiptReady=o=>!!o&&o.st!=='cancelled'&&(o.paid||o.st==='delivered');
 const RPAY={wallet:'KAMPZA Wallet',cod:'Pay on delivery',transfer:'Bank transfer',card:'Card'};
 function paidNow(o){
- notif('Payment approved ✅',o.id+' · your receipt is ready');toast('Payment approved! Your receipt is ready');
+ notif('Payment confirmed ✅',`The vendor has confirmed your payment for order ${o.id}.\n\n${ordLines(o)}\n\nDelivery: ${fmt(o.fee)}\nTotal paid: ${fmt(o.total)}\n\nYour order is now being prepared and your receipt is ready. Open the order to download it.`,o.id);toast('Payment confirmed! Your receipt is ready');
 }
 function rr(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
 function wrapT(c,t,mw){const out=[];let l='';for(const w of String(t||'').split(/\s+/).filter(Boolean)){const n=l?l+' '+w:w;if(c.measureText(n).width>mw&&l){out.push(l);l=w}else l=n}if(l)out.push(l);return out.length?out:['—']}
@@ -932,30 +950,5 @@ KX.hooks.receipt=async()=>{
  const im=$('#rcimg');if(!im)return;im.src=RCV.toDataURL('image/png');im.hidden=false;$('#rcsk')?.remove()};
 document.addEventListener('click',async e=>{
  let b;
- if(b=e.target.closest('[data-rc]')){RC=b.dataset.rc;RCV=null;pg='receipt';draw();return}
- if(b=e.target.closest('[data-rcimg],[data-rcpdf]')){
-  const o=S.orders.find(k=>k.id===RC);if(!receiptReady(o))return;
-  try{
-   if(!RCV)RCV=await makeReceipt(o);
-   if(b.hasAttribute('data-rcimg')){RCV.toBlob(bl=>{saveBlob(bl,'KAMPZA-Receipt-'+o.id+'.png');toast('Receipt image saved')},'image/png')}
-   else{const u=RCV.toDataURL('image/jpeg',.95),bin=atob(u.split(',')[1]),by=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)by[i]=bin.charCodeAt(i);
-    saveBlob(pdfFromJpeg(by,RCV.width,RCV.height),'KAMPZA-Receipt-'+o.id+'.pdf');toast('Receipt PDF saved')}
-  }catch(err){console.error(err);toast('Could not save the receipt')}
-  return}
- if(b=e.target.closest('[data-ipaid]')){
-  const code=b.dataset.ipaid,o=S.orders.find(k=>k.id===code);if(!o||o.paid||o.claim)return;
-  if(!confirm('Confirm that you have transferred '+fmt(o.total)+' to the vendor?'))return;
-  b.disabled=true;b.textContent='Submitting…';
-  try{const{error}=await sb.rpc('order_mark_paid',{p_code:code});if(error)throw error}catch(err){toast(err.message||'Could not submit your payment');b.disabled=false;b.textContent='✅ I have paid';return}
-  o.claim=true;o.rej=false;
-  notif('Payment submitted ⏳',code+' · waiting for vendor approval');
-  toast('Done. Waiting for the vendor to approve your payment');
-  tab='account';pg='orders';draw();loadServer();return}
-});
-
-boot();
-
-</script>
-<script src="kz-chat.js"></script>
-</body>
-</html>
+ if(b=e.target.closest('[data-nt]')){NT=+b.dataset.nt;const n=S.notifs[NT];if(n){n.r=1;store();badges()}pg='notif';draw();return}
+ if(b=e.target.closest('[data-rc]')){RC=b.dataset.rc;RCV=n

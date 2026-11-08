@@ -840,7 +840,7 @@ async function boot(){
  U={id:u.id,email:u.email,verified:!!u.email_confirmed_at,
   name:md.full_name||md.name||(u.email||'').split('@')[0],
   phone:u.phone||md.phone||'',avatar:md.avatar_url||md.picture||'',meta:md};
- loadState();welcome();try{const nv=jget('kz_nav_'+U.id,null);if(nv){tab=nv.tab||'home';sub=nv.sub||null;pg=(nv.pg==='pay'||nv.pg==='chat'||nv.pg==='notif')?null:(nv.pg||null);prod=nv.prod||null;TC=nv.tc||null}}catch{}try{if(new URLSearchParams(location.search).get('msgs')){tab='account';pg='chats';prod=null;sub=null}}catch{}history.replaceState({root:1},'');showPage();draw();await Promise.all([loadCatalog(),loadServer(),loadVendor()]);live();msgWatch()}
+ loadState();try{const nv=jget('kz_nav_'+U.id,null);if(nv){tab=nv.tab||'home';sub=nv.sub||null;pg=(nv.pg==='pay'||nv.pg==='chat'||nv.pg==='notif')?null:(nv.pg||null);prod=nv.prod||null;TC=nv.tc||null}}catch{}try{if(new URLSearchParams(location.search).get('msgs')){tab='account';pg='chats';prod=null;sub=null}}catch{}history.replaceState({root:1},'');showPage();draw();await Promise.all([loadCatalog(),loadServer(),loadVendor()]);live();msgWatch()}
 /* Only the user's own Log Out signs them out. Other SIGNED_OUT events are re-checked first. */
 sb?.auth.onAuthStateChange((ev,ses)=>{if(ses?.access_token)TOKEN=ses.access_token;
  if(ev==='SIGNED_OUT'&&U){if(OUT)toLogin();else setTimeout(async()=>{if(!await session())toLogin()},800)}});

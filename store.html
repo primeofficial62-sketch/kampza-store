@@ -261,23 +261,13 @@ button.nt:active{transform:scale(.99)}
 [data-theme=dark] #gmap{background:#222}
 
 /* chat screen: no bottom nav, input bar sits at the bottom */
+/* chat screen: no bottom nav, input bar pinned to the bottom */
 body.inchat nav{display:none}
-body.inchat{padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
-body.inchat .cbar{bottom:calc(8px + env(safe-area-inset-bottom,0px))}
-body.inchat .chat{min-height:calc(100dvh - 330px)}
+body.inchat{padding-bottom:calc(86px + env(safe-area-inset-bottom,0px))}
+body.inchat .cbar{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:1240px;padding:8px var(--pad) calc(8px + env(safe-area-inset-bottom,0px));z-index:40;border-top:1px solid var(--b)}
+body.inchat .chat{min-height:calc(100dvh - 300px)}
 .cempty{text-align:center;color:var(--m);padding:60px 16px}
-</style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#FF7628"><link rel="apple-touch-icon" href="icon-192.png"><script>
-(()=>{
-const K=window.KX={payCode:null,PAY:null,conv:null,name:'',ch:null,seen:new Set(),hooks:{}};
-const $=s=>document.querySelector(s);
-const E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const M=n=>'₦'+Number(n).toLocaleString('en-NG');
-const wa=p=>{p=String(p||'').replace(/\D/g,'');if(p.startsWith('0'))p='234'+p.slice(1);return p};
-const shrink=f=>new Promise((ok,no)=>{const u=URL.createObjectURL(f),i=new Image();
- i.onload=()=>{const r=Math.min(1,1280/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=Math.round(i.width*r);c.height=Math.round(i.height*r);c.getContext('2d').drawImage(i,0,0,c.width,c.height);URL.revokeObjectURL(u);c.toBlob(b=>b?ok(b):no(new Error('Image error')),'image/jpeg',.82)};
- i.onerror=()=>no(new Error('Could not read the image'));i.src=u});
+ 
 
 /* ---------- promotions ---------- */
 K.promos=(P,rows)=>{(rows||[]).forEach(r=>{const p=P.find(x=>x.id===r.product_id);if(p&&r.promo_price<r.base_price){p.o=r.base_price;p.p=r.promo_price;p.pe=r.ends_at}})};

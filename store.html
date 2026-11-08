@@ -259,6 +259,14 @@ button.nt:active{transform:scale(.99)}
 [data-theme=dark] .ccard .im{background:linear-gradient(135deg,#FF76281f,#1b1b1b)}
 [data-theme=dark] .sw s{background:#555}
 [data-theme=dark] #gmap{background:#222}
+
+ /* chat screen: no bottom nav, input bar sits at the bottom */
+body.inchat nav{display:none}
+body.inchat{padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+body.inchat .cbar{bottom:calc(8px + env(safe-area-inset-bottom,0px))}
+body.inchat .chat{min-height:calc(100dvh - 330px)}
+.cempty{text-align:center;color:var(--m);padding:60px 16px}
+ 
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <link rel="manifest" href="manifest.json"><meta name="theme-color" content="#FF7628"><link rel="apple-touch-icon" href="icon-192.png"><script>
@@ -670,18 +678,18 @@ function nav(){const n=cartCount();
  $('#nav').innerHTML=NAV.map(x=>`<button data-t="${x[0]}" class="${x[0]==tab?'on':''}" aria-label="${x[1]}" ${x[0]==tab?'aria-current="page"':''}><svg viewBox="0 0 24 24" aria-hidden="true">${IC[x[0]]}</svg>${x[1]}${x[0]=='cart'&&n?`<span class="cb">${n>99?'99+':n}</span>`:''}</button>`).join('')}
 function view(){
  stop();KX.leave(pg);let h;
+ const chatOpen=(pg==='chat'||pg==='chats'||pg==='pay')&&!q.trim();
  if(q.trim()){h=listView('Results for “'+esc(q.trim())+'”',P.filter(match))}
- else if(prod&&byId(prod))h=prodView(prod);
  else if(pg&&PG[pg])h=PG[pg]();
+ else if(prod&&byId(prod))h=prodView(prod);
  else if(sub&&tab==='home'){const[t,it]=listItems();h=listView(t,it)}
  else h=tab==='home'?home():tab==='cats'?catsView():tab==='wish'?wishView():tab==='cart'?cartView():tab==='account'?accountView():notifsView();
- $('#app').innerHTML=h;if(prod&&byId(prod)&&!q.trim()&&!pg)loadReviews(prod);
+ $('#app').innerHTML=h;
+ document.body.classList.toggle('inchat',pg==='chat'&&!q.trim());
+ if(prod&&byId(prod)&&!q.trim()&&!pg)loadReviews(prod);
  if(pg==='checkout'&&!q.trim()){gpsInit();addrMode()}else if(pg==='track'&&!q.trim())trackLoad();else if(!q.trim()&&KX.hooks[pg])KX.hooks[pg]();
  if(tab==='home'&&!sub&&!pg&&!prod&&!q.trim())start()}
-const snap=()=>({tab,sub,pg,prod,tc:TC});
-function draw(h=true){nav();view();scrollTo(0,0);try{U&&localStorage.setItem('kz_nav_'+U.id,JSON.stringify(snap()))}catch{}if(h){const t=snap();if(JSON.stringify(history.state)!==JSON.stringify(t))history.pushState(t,'')}}
-function go2(t,s=null){tab=t;sub=s;pg=null;prod=null;q='';$('#q').value='';draw()}
-
+ 
 /* ================= EVENTS ================= */
 $('#nav').onclick=e=>{const b=e.target.closest('[data-t]');if(b)go2(b.dataset.t)};
 $('#bell').onclick=()=>go2('notifs');

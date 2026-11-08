@@ -267,7 +267,14 @@ body.inchat{padding-bottom:calc(86px + env(safe-area-inset-bottom,0px))}
 body.inchat .cbar{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:1240px;padding:8px var(--pad) calc(8px + env(safe-area-inset-bottom,0px));z-index:40;border-top:1px solid var(--b)}
 body.inchat .chat{min-height:calc(100dvh - 300px)}
 .cempty{text-align:center;color:var(--m);padding:60px 16px}
- 
+
+ </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+const K=window.KX=window.KX||{};K.hooks=K.hooks||{};
+const E=s=>esc(s),M=n=>fmt(n),wa=n=>waNum(n);
+const shrink=f=>new Promise((ok,no)=>{const i=new Image,u=URL.createObjectURL(f);i.onload=()=>{const s=Math.min(1,1280/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=Math.round(i.width*s);c.height=Math.round(i.height*s);c.getContext('2d').drawImage(i,0,0,c.width,c.height);URL.revokeObjectURL(u);c.toBlob(b=>b?ok(b):no(new Error('Image failed')),'image/jpeg',.8)};i.onerror=()=>no(new Error('Bad image'));i.src=u});
 
 /* ---------- promotions ---------- */
 K.promos=(P,rows)=>{(rows||[]).forEach(r=>{const p=P.find(x=>x.id===r.product_id);if(p&&r.promo_price<r.base_price){p.o=r.base_price;p.p=r.promo_price;p.pe=r.ends_at}})};

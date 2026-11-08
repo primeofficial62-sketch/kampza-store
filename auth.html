@@ -606,13 +606,13 @@ $('f-signin').addEventListener('submit',async function(ev){
     if(want!==rem){rem=want;try{localStorage.setItem('kz_rem',want?'1':'0')}catch(e){}sb=mk(rem)}
     var r=await sb.auth.signInWithPassword({email:em,password:pw});
     if(r.error)throw r.error;
-    keep=true;
+    keep=true;document.documentElement.classList.add('chk');
     /* finishes any pending vendor application, then picks dashboard or store */
     goTo(await homeFor(r.data.user));
   }catch(e){
     console.error(e);var m=friendly(e);
     if(m==='UNVERIFIED'){ctx={email:em,purpose:'signup',role:ctx.role};save();var rr=await sb.auth.resend({type:'signup',email:em});O.verify.clear();go('verify');cool('verify');note('verify',rr.error?friendly(rr.error):'Your account isn’t verified yet. We’ve sent a new code to your email.','ok')}
-    else note('signin',m);
+    else{document.documentElement.classList.remove('chk');note('signin',m)}
   }finally{if(!keep)busy(b,false)}
 });
 

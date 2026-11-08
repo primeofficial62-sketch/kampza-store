@@ -343,9 +343,13 @@ async function send(body,path){
  const r=await sb.from('messages').insert({conversation_id:K.conv,sender_id:U.id,body:body||null,image_path:path||null}).select().single();
  if(r.error){toast('Message not sent');return false}addMsg(r.data);return true}
 async function openChat(vid){
+ if(!vid){toast('This product has no vendor to chat with');return}
  const{data,error}=await sb.rpc('start_chat',{p_vendor:vid});
  if(error){toast(error.message||'Could not open chat');return}
- K.conv=data;K.name='';pg='chat';draw()}
+ K.conv=data;K.name='';
+ prod=null;sub=null;q='';
+ const qi=document.querySelector('#q');if(qi)qi.value='';
+ pg='chat';draw()}
 
 /* ---------- events ---------- */
 document.addEventListener('click',async e=>{

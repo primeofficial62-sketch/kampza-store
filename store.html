@@ -589,8 +589,9 @@ const CI={'Electronics':'<rect x="4" y="5" width="16" height="11" rx="1.5"/><pat
 'Sports & Outdoors':'<circle cx="12" cy="12" r="9"/><path d="M12 7l4 3-1.5 5h-5L8 10z"/>',
 'Books & Stationery':'<path d="M5 4h10a3 3 0 013 3v13H8a3 3 0 01-3-3z"/><path d="M5 17a3 3 0 013-3h10"/>'};
 const vbadge=id=>AV.includes(id)?'<span class="vb" title="Verified vendor"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 12.5l3 3 5-6"/></svg>Verified</span>':'';
-const ICO={user:IC.account,shield:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',doc:'<path d="M6 3h8l4 4v14H6z"/><path d="M9 13h6M9 17h4"/>',trash:'<path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 11v6M14 11v6"/>',help:'<path d="M4 14v-2a8 8 0 0116 0v2"/><rect x="3" y="14" width="4" height="6" rx="2"/><rect x="17" y="14" width="4" height="6" rx="2"/>',out:'<path d="M9 4H5v16h4M16 8l4 4-4 4M20 12H9"/>',tag:'<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.2"/>',wallet:'<path d="M3 7h16a2 2 0 012 2v10H5a2 2 0 01-2-2z"/><path d="M3 7l2-3h12"/><circle cx="17" cy="14" r="1"/>',heart:IC.wish,bell:'<path d="M6 9a6 6 0 0112 0c0 6 2 7 2 8H4c0-1 2-2 2-8zM10 20a2 2 0 004 0"/>',moon:'<path d="M20 14.5A8 8 0 019.5 4 8 8 0 1020 14.5z"/>'};
+const ICO={user:IC.account, ... };
 const ic=n=>`<svg viewBox="0 0 24 24" aria-hidden="true">${ICO[n]}</svg>`;
+ICO.pen='<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>';
 const NAV=[['home','Home'],['cats','Categories'],['wish','Wishlist'],['cart','Cart'],['account','Account']];
 
 /* ================= STATE ================= */

@@ -3,6 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<script>
+/* scale whole site down on phones: change 0.88 to taste */
+(function(){var s=0.88;if(innerWidth<560){document.write('<style>html{zoom:'+s+'}</style>')}})();
+</script>
 <title>KAMPZA Store</title>
 <script>try{document.documentElement.dataset.theme=localStorage.getItem('kz_theme')||'dark'}catch(e){}</script>
 <script>(function(){var msg='';addEventListener('error',function(e){if(e&&e.message)msg=e.message+(e.filename?' ('+String(e.filename).split('/').pop()+':'+e.lineno+')':'')});setTimeout(function(){var d=document.documentElement;if(d.classList.contains('ok')||!msg)return;d.classList.add('ok');var a=document.getElementById('app');if(a)a.innerHTML='<div style="padding:40px 16px;text-align:center"><b>The store could not start.</b><br><br><small>'+msg.replace(/[<>&]/g,'')+'</small><br><br><button class="btn" onclick="location.reload()">Reload</button></div>'},4000)})();</script>
@@ -375,7 +379,7 @@ nav .on::after{content:"";position:absolute;bottom:0;left:50%;margin-left:-2px;w
 .card .hb{width:30px;height:30px}
 .card .hb svg{width:15px;height:15px}
 .disc{font-size:10px;padding:2px 6px}
- 
+ @media(max-width:559px){html{zoom:.88}}
  </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>KAMPZA Store</title>
-<script>try{document.documentElement.dataset.theme=localStorage.getItem('kz_theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}catch(e){}</script>
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('kz_theme')||'dark'}catch(e){}</script>
 <script>(function(){var msg='';addEventListener('error',function(e){if(e&&e.message)msg=e.message+(e.filename?' ('+String(e.filename).split('/').pop()+':'+e.lineno+')':'')});setTimeout(function(){var d=document.documentElement;if(d.classList.contains('ok')||!msg)return;d.classList.add('ok');var a=document.getElementById('app');if(a)a.innerHTML='<div style="padding:40px 16px;text-align:center"><b>The store could not start.</b><br><br><small>'+msg.replace(/[<>&]/g,'')+'</small><br><br><button class="btn" onclick="location.reload()">Reload</button></div>'},4000)})();</script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&display=swap" rel="stylesheet">
 <style>
@@ -268,6 +268,97 @@ body.inchat .cbar{position:fixed;left:50%;transform:translateX(-50%);bottom:0;wi
 body.inchat .chat{min-height:calc(100dvh - 300px)}
 .cempty{text-align:center;color:var(--m);padding:60px 16px}
 
+ /* ===== KAMPZA redesign ===== */
+:root{--card:#fff;--lh:44px;--hh:176px}
+:root[data-theme=dark]{--bg:#0e0e0f;--card:#1a1a1c;--g:#202023;--b:#2d2d31;--m:#9a9aa1;--c:#f4f4f5}
+[data-theme=dark] .logo img{background:#fff;border-radius:12px;padding:3px 6px}
+
+/* header */
+header{padding:10px 0 8px}
+.hrow{gap:10px}
+.logo img{height:var(--lh);border-radius:12px}
+.loc{display:flex;align-items:center;gap:7px;margin:0 auto;padding:10px 16px;border-radius:999px;background:var(--g);border:1px solid var(--b);font-weight:500;font-size:14px;max-width:52vw}
+.loc svg{width:17px;height:17px;fill:var(--o);stroke:none;flex:none}
+.loc span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bell{width:44px;height:44px}
+.bell span{top:5px;right:5px;min-width:16px;height:16px;font-size:9px}
+.srow{display:flex;gap:10px;align-items:center;margin-top:10px}
+.srow .search{flex:1;margin:0;background:var(--g);border-color:var(--b)}
+.search .mic{display:grid;place-items:center;width:30px;height:30px;flex:none}
+.search .mic svg{width:20px;height:20px}
+.fbtn{width:46px;height:46px;border-radius:16px;background:var(--g);border:1px solid var(--b);display:grid;place-items:center;flex:none}
+.fbtn svg{width:22px;height:22px;fill:none;stroke:var(--c);stroke-width:1.8;stroke-linecap:round}
+
+/* hero */
+.hero{border-radius:22px;border:1px solid var(--b)}
+.sl{background:linear-gradient(110deg,#141415 35%,#3b1c0a)!important;padding:18px 20px 32px;gap:6px}
+.sl::after{left:auto;right:0;top:0;bottom:0;width:40%;height:auto;transform:none;border-radius:70% 0 0 70%/50% 0 0 50%;background:linear-gradient(160deg,#ff8a3d,#f0610a);opacity:1}
+.sl .t{font-size:14px}
+.sl h2{font-size:clamp(22px,6.6vw,30px);line-height:1.15;max-width:60%}
+.sl .em{right:7%;transform:translateY(-50%);font-size:clamp(64px,19vw,100px)}
+.sl .btn{border-radius:999px;padding:10px 18px;margin-top:8px}
+.dots{right:40%;bottom:10px}
+.pr-sl{padding-bottom:32px}
+
+/* categories (home row) */
+.cats{border-bottom:0;padding-top:16px}
+.cat{flex:0 0 78px;font-size:12px}
+.cat i{width:62px;height:62px;background:var(--card);border:1px solid var(--b)}
+.cat i svg{width:27px;height:27px;fill:none;stroke:var(--c);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.cat:active i{border-color:var(--o)}
+.cat:active i svg{stroke:var(--o)}
+
+/* product cards */
+.card{background:var(--card);border-radius:20px;padding:10px;gap:8px}
+.pimg{aspect-ratio:1/.78;border-radius:14px;background:#f1f1f2}
+.pimg img{padding:8px}
+.hb{background:#1e1e1e8c;box-shadow:none;backdrop-filter:blur(6px);width:34px;height:34px}
+.hb svg{stroke:#fff}
+.card h3{font:600 15px/1.3 Inter;min-height:0}
+.meta{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.meta:empty{display:none}
+.rt{font-weight:600;font-size:13px}.rt i{font-style:normal;color:#f5a623}
+.vb{display:inline-flex;align-items:center;gap:5px;background:var(--g);color:var(--c);font:500 12px Inter;padding:4px 10px 4px 6px;border-radius:99px}
+.vb svg{width:15px;height:15px;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;fill:none}
+.vb svg circle{fill:currentColor;stroke:none}.vb svg path{stroke:var(--bg)}
+[data-theme=dark] .vb{color:var(--c)}
+.foot{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:auto}
+.foot .pr{margin-top:0;font-size:17px}
+.foot .btn{border-radius:999px;min-height:42px;padding:0 16px;flex:0 1 auto}
+.grid .foot .btn{flex:1 1 100%}
+.row .card{flex:0 0 min(78%,340px)}
+@media(min-width:560px){.row .card{flex-basis:300px}}
+
+/* categories page */
+.ccard{background:var(--card);border-radius:20px}
+.ccard .im{height:96px;margin:8px 8px 0;border-radius:14px;font-size:32px;background:linear-gradient(135deg,#3a2415,#1c1a19)}
+:root[data-theme=light] .ccard .im{background:linear-gradient(135deg,#FF76281f,#f4f4f4)}
+.ccard .ft{padding:12px 12px 14px}
+.ccard small.cnt{color:var(--o);font-weight:500}
+.ccard .cv{width:34px;height:34px}
+
+/* account */
+.prof{background:#FF76281a;border-color:#FF76283a;border-radius:20px;position:relative}
+.pen{width:40px;height:40px;border-radius:50%;background:#FF762826;display:grid;place-items:center;flex:none}
+.pen svg{width:19px;height:19px;fill:none;stroke:var(--o);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.badge.gr{background:#1fa87a26;color:#2fd0a0}
+.vend{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;padding:18px;border-radius:20px;background:linear-gradient(100deg,#e8590c,#ff8a3d);color:#fff;text-decoration:none;box-shadow:0 10px 30px #ff76283a}
+.vend span:first-child{display:grid;gap:2px}.vend b{font:700 19px Sora}.vend small{color:#fff;opacity:.9}
+.vgo{background:#1b1b1b;color:var(--o);font-weight:600;padding:11px 16px;border-radius:999px;white-space:nowrap;flex:none}
+.qt button{background:var(--card);border-radius:20px;padding:16px 4px 14px}
+.ico{width:48px;height:48px;background:#FF762822}
+.box{background:var(--card);border-radius:18px}
+.li{padding:16px}
+.li .cv{background:none;width:auto;height:auto;font-size:26px;padding:0}
+.li small{color:var(--m)}
+.li.dng{background:#e5484d14;border:1px solid #e5484d40;border-radius:18px;margin-top:14px}
+.li.dng .ic svg{stroke:#ef5350}.li.dng .cv{color:#ef5350}
+.out{border-radius:18px}
+
+/* floating nav */
+nav{background:color-mix(in srgb,var(--card) 92%,transparent);backdrop-filter:blur(14px);border-radius:28px}
+nav .on::after{content:"";position:absolute;bottom:0;left:50%;margin-left:-2px;width:4px;height:4px;border-radius:50%;background:var(--o)}
+ 
  </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -383,10 +474,14 @@ if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWor
 <body>
 <header><div class="wrap">
  <div class="hrow">
-  <button class="logo" data-go="home" aria-label="KAMPZA home"><img src="kampza-logo.png" alt="KAMPZA - Find It. Get It. Love It." onerror="this.replaceWith(Object.assign(document.createElement('b'),{textContent:'KAMPZA'}))"></button>
+  <button class="logo" data-go="home" aria-label="KAMPZA home"><img src="kampza-logo.png" alt="KAMPZA" onerror="this.replaceWith(Object.assign(document.createElement('b'),{textContent:'KAMPZA'}))"></button>
+  <button class="loc" id="loc" aria-label="Delivery location"><svg viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 22s7-6.2 7-12a7 7 0 10-14 0c0 5.8 7 12 7 12zm0-9a3 3 0 110-6 3 3 0 010 6z"/></svg><span id="loct">Main Campus</span></button>
   <button class="bell" id="bell" aria-label="Notifications"><svg viewBox="0 0 24 24"><path d="M6 9a6 6 0 0112 0c0 6 2 7 2 8H4c0-1 2-2 2-8zM10 20a2 2 0 004 0"/></svg><span id="bb" hidden></span></button>
  </div>
- <form class="search" id="sf" role="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="q" type="search" placeholder="Search for products, brands and more…" aria-label="Search products" autocomplete="off" enterkeyhint="search"></form>
+ <div class="srow">
+  <form class="search" id="sf" role="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="q" type="search" placeholder="Search for products, brands and more…" aria-label="Search products" autocomplete="off" enterkeyhint="search"><button type="button" class="mic" id="mic" aria-label="Voice search" hidden><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg></button></form>
+  <button class="fbtn" id="fbtn" aria-label="Filters"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg></button>
+ </div>
 </div></header>
 
 <main class="wrap" id="app"></main>
@@ -485,6 +580,16 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&U)loadSer
 const heart='<svg viewBox="0 0 24 24"><path d="M12 21s-8-5.5-8-11a4.5 4.5 0 018-2.8A4.5 4.5 0 0120 10c0 5.5-8 11-8 11z"/></svg>';
 const cartI='<svg viewBox="0 0 24 24"><path d="M3 4h3l2.5 12h10L21 8H7"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg>';
 const IC={home:'<path d="M3 11l9-8 9 8v10h-6v-6H9v6H3z"/>',cats:'<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>',wish:'<path d="M12 21s-8-5.5-8-11a4.5 4.5 0 018-2.8A4.5 4.5 0 0120 10c0 5.5-8 11-8 11z"/>',cart:cartI.slice(cartI.indexOf('<path'),-6),account:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>'};
+ICO.pen='<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>';
+const CI={'Electronics':'<rect x="4" y="5" width="16" height="11" rx="1.5"/><path d="M2 19h20"/>',
+'Fashion':'<path d="M8 4L3 7l2 4 3-1v10h8V10l3 1 2-4-5-3c-.5 1.5-2 2.5-4 2.5S8.5 5.5 8 4z"/>',
+'Home & Living':'<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10M10 20v-6h4v6"/>',
+'Beauty':'<rect x="8" y="3" width="4" height="7" rx="1"/><rect x="7" y="10" width="6" height="10" rx="1"/><path d="M16 20v-8l1.5-3"/>',
+'Appliances':'<path d="M4 9h16l-2 11H6zM8 9l2-5h4l2 5"/>',
+'Groceries':'<path d="M3 4h3l2.5 12h10L21 8H7"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/>',
+'Sports & Outdoors':'<circle cx="12" cy="12" r="9"/><path d="M12 7l4 3-1.5 5h-5L8 10z"/>',
+'Books & Stationery':'<path d="M5 4h10a3 3 0 013 3v13H8a3 3 0 01-3-3z"/><path d="M5 17a3 3 0 013-3h10"/>'};
+const vbadge=id=>AV.includes(id)?'<span class="vb" title="Verified vendor"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 12.5l3 3 5-6"/></svg>Verified</span>':'';
 const ICO={user:IC.account,shield:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',doc:'<path d="M6 3h8l4 4v14H6z"/><path d="M9 13h6M9 17h4"/>',trash:'<path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 11v6M14 11v6"/>',help:'<path d="M4 14v-2a8 8 0 0116 0v2"/><rect x="3" y="14" width="4" height="6" rx="2"/><rect x="17" y="14" width="4" height="6" rx="2"/>',out:'<path d="M9 4H5v16h4M16 8l4 4-4 4M20 12H9"/>',tag:'<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.2"/>',wallet:'<path d="M3 7h16a2 2 0 012 2v10H5a2 2 0 01-2-2z"/><path d="M3 7l2-3h12"/><circle cx="17" cy="14" r="1"/>',heart:IC.wish,bell:'<path d="M6 9a6 6 0 0112 0c0 6 2 7 2 8H4c0-1 2-2 2-8zM10 20a2 2 0 004 0"/>',moon:'<path d="M20 14.5A8 8 0 019.5 4 8 8 0 1020 14.5z"/>'};
 const ic=n=>`<svg viewBox="0 0 24 24" aria-hidden="true">${ICO[n]}</svg>`;
 const NAV=[['home','Home'],['cats','Categories'],['wish','Wishlist'],['cart','Cart'],['account','Account']];
@@ -508,9 +613,9 @@ const setPromos=d=>{PROMO=(d||[]).filter(r=>r.base_price>0&&r.promo_price<r.base
 const promoSlide=m=>{const p=byId(m.pid);if(!p)return'';const d=Math.ceil((m.end-Date.now())/864e5);if(d<=0)return'';
  return `<section class="sl pr-sl" style="--a:var(--o);background:#252525"><span class="t">🔥 ${m.pct}% OFF · ${d<=1?'Ends today':d+' days left'}</span><h2>${esc(m.hl||p.n)}</h2><div class="pp"><b>${fmt(m.price)}</b><s>${fmt(m.old)}</s></div><span class="em" aria-hidden="true">${p.img?`<img src="${esc(p.img)}" data-e="${esc(p.e)}" alt="">`:esc(p.e)}</span><button class="btn" data-open="${p.id}">Buy now →</button></section>`};
 const heroSlides=()=>[...PROMO.map(promoSlide).filter(Boolean),...SLIDES.map(slide)];
-function card(p,showAdd=true){
+ function card(p,showAdd=true){
  const d=p.o&&p.o>p.p?Math.round((1-p.p/p.o)*100):0,out=p.st===0;
- return `<article class="card" data-open="${p.id}">${d?`<span class="disc">-${d}%</span>`:''}<button class="hb ${S.wish.includes(p.id)?'on':''}" data-w="${p.id}" aria-label="Wishlist ${esc(p.n)}" aria-pressed="${S.wish.includes(p.id)}">${heart}</button><div class="pimg">${p.img?`<img src="${esc(p.img)}" data-e="${esc(p.e)}" alt="${esc(p.n)}" loading="lazy">`:esc(p.e)}</div><h3>${esc(p.n)}</h3>${vbadge(p.v)}${p.r?`<small class="stars">★ ${p.r} <span style="color:var(--m)">(${p.rn})</span></small>`:''}<div class="pr">${fmt(p.p)}${d?`<span class="old">${fmt(p.o)}</span>`:''}</div>${showAdd?(mine(p)?'<button class="btn" disabled>Your product</button>':`<button class="btn" data-add="${p.id}" ${out?'disabled':''}>${out?'Out of stock':cartI+'Add to Cart'}</button>`):''}</article>`}
+ return `<article class="card" data-open="${p.id}">${d?`<span class="disc">-${d}%</span>`:''}<button class="hb ${S.wish.includes(p.id)?'on':''}" data-w="${p.id}" aria-label="Wishlist ${esc(p.n)}" aria-pressed="${S.wish.includes(p.id)}">${heart}</button><div class="pimg">${p.img?`<img src="${esc(p.img)}" data-e="${esc(p.e)}" alt="${esc(p.n)}" loading="lazy">`:esc(p.e)}</div><h3>${esc(p.n)}</h3><div class="meta">${vbadge(p.v)}${p.r?`<span class="rt">${p.r} <i>★</i></span>`:''}</div><div class="foot"><div class="pr">${fmt(p.p)}${d?`<span class="old">${fmt(p.o)}</span>`:''}</div>${showAdd?(mine(p)?'<button class="btn" disabled>Your product</button>':`<button class="btn" data-add="${p.id}" ${out?'disabled':''}>${out?'Out of stock':cartI+'Add to Cart'}</button>`):''}</div></article>`}
 const thumb=p=>p.img?`<img src="${esc(p.img)}" data-e="${esc(p.e||'🛍️')}" alt="">`:esc(p.e||'🛍️');
 const empty=(i,m,b='')=>`<div class="soon"><b>${i}</b>${m}${b}</div>`;
 const shop='<br><br><button class="btn" data-list="all">Start shopping</button>';
@@ -522,7 +627,7 @@ const skel=n=>`<div class="grid">${Array(n).fill('<div class="sk"></div>').join(
 function home(){
  const fl=flash(),rc=recs(),SL=heroSlides();N=SL.length;
  return `<div class="hero" id="hero" aria-roledescription="carousel" aria-label="Campaigns"><div class="track" id="track">${SL.join('')}</div><div class="dots">${SL.map(()=>'<i></i>').join('')}</div></div>
-<div class="cats">${CATS.map(c=>`<button class="cat" data-cat="${esc(c[0])}"><i>${c[1]}</i><span>${esc(c[0])}</span></button>`).join('')}</div>`
+<div class="cats">${CATS.map(c=>`<button class="cat" data-cat="${esc(c[0])}"><i><svg viewBox="0 0 24 24">${CI[c[0]]||''}</svg></i><span>${esc(c[0])}</span></button>`).join('')}</div>`
  +(!LOADED?`<div class="sh"><h2>Loading products…</h2></div>${skel(4)}`
  :!P.length?empty('🛍️','No products yet. Our vendors are getting set up. Check back soon.')
  :(fl.length?`<div class="sh"><h2>Flash Deals</h2><a data-list="flash">View All →</a></div><div class="grid">${fl.map(p=>card(p)).join('')}</div>`:'')
@@ -530,7 +635,7 @@ function home(){
 function listView(title,items){
  const it=(INSTOCK?items.filter(p=>p.st!==0):items.slice()).sort({low:(a,b)=>a.p-b.p,high:(a,b)=>b.p-a.p,top:(a,b)=>b.r-a.r,new:(a,b)=>b.t-a.t}[SORT]);
  return `<div class="top"><h1>${title}</h1>${q?'':'<button class="btn ghost" data-back>← Back</button>'}</div><div class="bar"><select id="sort" aria-label="Sort products">${[['new','Newest'],['low','Price: low to high'],['high','Price: high to low'],['top','Top rated']].map(o=>`<option value="${o[0]}" ${SORT===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select><label class="chk"><input type="checkbox" id="stk" ${INSTOCK?'checked':''}>In stock only</label><small>${it.length} items</small></div>${it.length?`<div class="grid">${it.map(p=>card(p)).join('')}</div>`:empty('🔎',q?'No products match your search.':LOADED?'No products here yet. Check back soon.':'Loading…')}`}
-function catsView(){return `<div class="top"><h1>Categories</h1></div><p class="sub">Explore our wide range of products across different categories.</p><div class="cgrid">${CATS.map(c=>`<button class="ccard" data-cat="${esc(c[0])}"><div class="im" aria-hidden="true">${c[2]}</div><div class="ft"><span><b>${esc(c[0])}</b><small>${P.filter(p=>p.c===c[0]).length.toLocaleString()} items</small></span><span class="cv">›</span></div></button>`).join('')}</div>`}
+ function catsView(){return `<div class="top"><h1>Categories</h1></div><p class="sub">Explore our wide range of products</p><div class="cgrid">${CATS.map(c=>{const n=P.filter(p=>p.c===c[0]).length;return `<button class="ccard" data-cat="${esc(c[0])}"><div class="im" aria-hidden="true">${c[2]}</div><div class="ft"><span><b>${esc(c[0])}</b>${n?`<small class="cnt">${n.toLocaleString()} item${n==1?'':'s'}</small>`:'<small>Explore</small>'}</span><span class="cv">›</span></div></button>`}).join('')}</div>`}
 function wishView(){const it=S.wish.map(byId).filter(Boolean);return `<div class="top"><h1>Wishlist</h1></div>${it.length?`<div class="grid">${it.map(p=>card(p)).join('')}</div>`:empty('🤍','Tap the heart on any product to save it here.')}`}
 function cartView(){
  const ids=Object.keys(S.cart).filter(id=>byId(id));
@@ -557,19 +662,19 @@ ${rel.length?`<div class="sh"><h2>More in ${esc(p.c)}</h2></div><div class="grid
 /* ---- account ---- */
 function accountView(){
  const row=(p,i,t,s)=>`<button class="li" data-pg="${p}"><span class="ic">${ic(i)}</span><span><b>${t}</b><small>${s}</small></span><span class="cv">›</span></button>`;
+ const vm={approved:['Vendor Dashboard','Manage your products, orders and payouts','Open'],pending:['Vendor Application','Under review. We will notify you once approved','View'],rejected:['Vendor Application','Not approved. Tap to see details or reapply','View'],suspended:['Vendor Dashboard','Your vendor account is suspended','View']}[VS]||['Become a Vendor','Start selling on KAMPZA','Register Now'];
  return `<div class="top"><h1>Account</h1></div>
-<button class="prof" data-pg="info"><span class="av">${U.avatar?`<img src="${esc(U.avatar)}" alt="">`:esc((U.name[0]||'?').toUpperCase())}</span><span class="pm"><b>${esc(U.name)}</b><small>${esc(U.email)}</small><span class="badge ${U.verified?'':'no'}">${U.verified?'✓ Verified Account':'Email not verified'}</span>${VS==='approved'?'<span class="badge">✓ Verified Vendor</span>':''}</span><span class="cv">›</span></button>
+<div class="prof"><span class="av">${U.avatar?`<img src="${esc(U.avatar)}" alt="">`:esc((U.name[0]||'?').toUpperCase())}</span><span class="pm"><b>${esc(U.name)}</b><small>${esc(U.email)}</small><span class="badge ${U.verified?'gr':'no'}">${U.verified?'✓ Verified Student':'Email not verified'}</span></span><button class="pen" data-pg="info" aria-label="Edit profile">${ic('pen')}</button></div>
+<a class="vend" href="vendor-dashboard.html"><span><b>${vm[0]}</b><small>${vm[1]}</small></span><span class="vgo">${vm[2]}</span></a>
 <div class="qt">
  <button data-pg="orders"><span class="ico">${ic('doc')}</span>My Orders<small>${S.orders.length} orders</small></button>
  <button data-go="wish"><span class="ico">${ic('heart')}</span>Wishlist<small>${S.wish.length} saved</small></button>
  <button data-pg="quotes"><span class="ico">${ic('tag')}</span>My Quotes<small>${S.quotes.length} quotes</small></button></div>
 <h2 class="sh2">Account Settings</h2>
-<div class="box">${row('chats','help','Messages','Chat with vendors, send receipts')}${row('info','user','Personal Information','Name, email, phone number, address')}${row('security','shield','Security','Change password, verification')}${row('prefs','bell','Notifications','Email alerts and daily deals')}<label class="li"><span class="ic">${ic('moon')}</span><span><b>Dark mode</b><small>Easier on the eyes at night</small></span><span class="sw"><input type="checkbox" data-theme-sw ${document.documentElement.dataset.theme==='dark'?'checked':''}><s></s></span></label>${row('terms','doc','Terms &amp; Conditions','Read our terms and policies')}${row('delete','trash','Delete Account','Permanently remove your account')}</div>
-<a class="li tint" href="vendor-dashboard.html" style="text-decoration:none;color:inherit"><span class="ic">${ic('tag')}</span><span><b>${VS==='approved'?'Vendor Dashboard':VS==='pending'?'Vendor Application':VS==='rejected'?'Vendor Application':VS==='suspended'?'Vendor Dashboard':'Become a Vendor'}</b><small>${VS==='approved'?'Manage your products, orders and payouts':VS==='pending'?'Under review. We will notify you once approved':VS==='rejected'?'Not approved. Tap to see details or reapply':VS==='suspended'?'Your vendor account is suspended':'Apply to sell on KAMPZA'}</small></span><span class="cv">›</span></a>
-<button class="li tint" data-pg="help"><span class="ic">${ic('help')}</span><span><b>Help &amp; Support</b><small>Get help, contact us, or visit FAQs</small></span><span class="cv">›</span></button>
+<div class="box">${row('chats','help','Messages','Chat with vendors, send receipts')}${row('info','user','Personal Information','Name, email, phone number, address')}${row('security','shield','Security','Change password, verification')}${row('prefs','bell','Notifications','Email alerts and daily deals')}<label class="li"><span class="ic">${ic('moon')}</span><span><b>Dark Mode</b><small>Easier on the eyes at night</small></span><span class="sw"><input type="checkbox" data-theme-sw ${document.documentElement.dataset.theme==='dark'?'checked':''}><s></s></span></label>${row('terms','doc','Terms &amp; Conditions','Read our terms and policies')}${row('help','help','Help &amp; Support','Get help, contact us, or visit FAQs')}</div>
+<button class="li dng" data-pg="delete"><span class="ic">${ic('trash')}</span><span><b>Delete Account</b><small>Permanently remove your account</small></span><span class="cv">›</span></button>
 <button class="out" data-signout>${ic('out')}Log Out</button>
 <p class="foot">KAMPZA · Find It. Get It. Love It.<br>v${VERSION}</p>`}
-
 function ordersView(){return pgHead('My Orders')+(S.orders.length?S.orders.map(o=>`<div class="nt"><div class="oh"><b>${esc(o.id)}</b>${KZR.stBadge(o)}</div><small>${dt(o.at)} · ${{wallet:'Wallet',cod:'Pay on delivery',transfer:'Bank transfer',card:'Card'}[o.pay]}${o.pay!=='cod'?(o.paid?' · Paid':o.claim?' · Payment pending approval':' · Awaiting payment'):''}</small>${o.items.map(i=>`<div class="oh"><span>${i.q}× ${esc(i.n)}</span><span class="st">${cap(i.s)}</span></div>${i.s==='cancelled'?'':`<div class="steps">${STEPS.map((x,k)=>`<i class="${k<=STEPS.indexOf(i.s)?'on':''}"></i>`).join('')}</div>`}${i.s==='delivered'&&i.pid&&byId(i.pid)?`<button class="rm" data-rev="${i.pid}">Rate this item</button>`:''}`).join('')}<div class="oh"><small>Delivery</small><small>${fmt(o.fee)}</small></div><div class="oh tot"><span>Total</span><b>${fmt(o.total)}</b></div><button class="btn full ghost" data-track="${esc(o.id)}">Track order</button>${KZR.payBtns(o)}${KZR.rcBtn(o)}${cancelBtn(o)}</div>`).join(''):empty('📦','No orders yet.',shop))}
 function checkoutView(){
  const ids=Object.keys(S.cart).filter(byId);if(!ids.length)return pgHead('Checkout')+empty('🛒','Your cart is empty.',shop);
@@ -672,8 +777,9 @@ function listItems(){
 
 /* ================= RENDER ================= */
 function nav(){const n=cartCount();
+ const lt=$('#loct');if(lt)lt.textContent=((ADDR[0]&&ADDR[0].campus)||'Main Campus').split(',')[0];
  $('#nav').innerHTML=NAV.map(x=>`<button data-t="${x[0]}" class="${x[0]==tab?'on':''}" aria-label="${x[1]}" ${x[0]==tab?'aria-current="page"':''}><svg viewBox="0 0 24 24" aria-hidden="true">${IC[x[0]]}</svg>${x[1]}${x[0]=='cart'&&n?`<span class="cb">${n>99?'99+':n}</span>`:''}</button>`).join('')}
-function view(){
+ function view(){
  stop();KX.leave(pg);let h;
  if(q.trim()){h=listView('Results for “'+esc(q.trim())+'”',P.filter(match))}
  else if(pg&&PG[pg])h=PG[pg]();
@@ -692,6 +798,10 @@ function go2(t,s=null){tab=t;sub=s;pg=null;prod=null;q='';$('#q').value='';draw(
 /* ================= EVENTS ================= */
 $('#nav').onclick=e=>{const b=e.target.closest('[data-t]');if(b)go2(b.dataset.t)};
 $('#bell').onclick=()=>go2('notifs');
+ $('#loc').onclick=()=>{tab='account';pg='info';sub=null;prod=null;q='';$('#q').value='';draw()};
+$('#fbtn').onclick=()=>{tab='home';sub='all';pg=null;prod=null;q='';$('#q').value='';draw()};
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+if(SR){$('#mic').hidden=false;$('#mic').onclick=()=>{const r=new SR();r.lang='en-NG';r.onresult=e=>{const t=e.results[0][0].transcript;$('#q').value=t;q=t;view()};try{r.start();toast('Listening…')}catch{}}}
 $('#sf').onsubmit=e=>{e.preventDefault();$('#q').blur()};
 $('#q').addEventListener('input',e=>{q=e.target.value;view();if(!q.trim())nav()});
 document.addEventListener('error',e=>{const i=e.target;if(i.tagName==='IMG'&&i.dataset.e){i.replaceWith(Object.assign(document.createElement('span'),{textContent:i.dataset.e}))}},true);

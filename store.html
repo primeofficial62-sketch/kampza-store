@@ -521,8 +521,7 @@ const STEPS=['processing','packed','shipped','delivered'],cap=t=>t?t[0].toUpperC
 const canCancel=o=>!['cancelled','completed'].includes(o.st)&&o.items.some(i=>i.s==='processing')&&o.items.every(i=>i.s==='processing'||i.s==='cancelled');
 const cancelBtn=o=>canCancel(o)?`<button class="btn full danger" data-cancel="${esc(o.id)}">Cancel order</button>`:'';
 const byId=id=>P.find(x=>x.id===id);
-/* approved vendors get a verified badge (ids come from the approved_vendor_ids() database function) */
-const vbadge=id=>AV.includes(id)?'<span class="vb" title="Verified vendor">✓ Verified</span>':'';
+ 
 /* true when the product belongs to the signed-in user: vendors can never buy their own products */
 const mine=p=>!!(U&&p&&p.v&&p.v===U.id);
 const flash=()=>FLASH.map(byId).filter(Boolean);

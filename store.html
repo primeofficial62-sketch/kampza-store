@@ -11,6 +11,8 @@
 <script>try{document.documentElement.dataset.theme=localStorage.getItem('kz_theme')||'dark'}catch(e){}</script>
 <script>(function(){var msg='';addEventListener('error',function(e){if(e&&e.message)msg=e.message+(e.filename?' ('+String(e.filename).split('/').pop()+':'+e.lineno+')':'')});setTimeout(function(){var d=document.documentElement;if(d.classList.contains('ok')||!msg)return;d.classList.add('ok');var a=document.getElementById('app');if(a)a.innerHTML='<div style="padding:40px 16px;text-align:center"><b>The store could not start.</b><br><br><small>'+msg.replace(/[<>&]/g,'')+'</small><br><br><button class="btn" onclick="location.reload()">Reload</button></div>'},4000)})();</script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0e0e0f">
 <style>
 :root{--o:#FF7628;--c:#252525;--bg:#FFFFFF;--g:#F4F4F4;--m:#6b6b6b;--b:#e8e8e8;--r:14px;--pad:14px;--gap:10px;--hh:160px;--lh:54px;color-scheme:light}
 @media(min-width:560px){:root{--pad:18px;--gap:12px;--hh:190px}}
@@ -381,6 +383,7 @@ nav .on::after{content:"";position:absolute;bottom:0;left:50%;margin-left:-2px;w
 .disc{font-size:10px;padding:2px 6px}
  @media(max-width:559px){html{zoom:.88}}
  header{padding:calc(env(safe-area-inset-top,0px) + 12px) 0 14px}
+ [hidden]{display:none!important}
  </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -992,6 +995,7 @@ async function boot(){
   name:md.full_name||md.name||(u.email||'').split('@')[0],
   phone:u.phone||md.phone||'',avatar:md.avatar_url||md.picture||'',meta:md};
  loadState();try{const nv=jget('kz_nav_'+U.id,null);if(nv){tab=nv.tab||'home';sub=nv.sub||null;pg=(nv.pg==='pay'||nv.pg==='chat'||nv.pg==='notif')?null:(nv.pg||null);prod=nv.prod||null;TC=nv.tc||null}}catch{}try{if(new URLSearchParams(location.search).get('msgs')){tab='account';pg='chats';prod=null;sub=null}}catch{}history.replaceState({root:1},'');showPage();draw();await Promise.all([loadCatalog(),loadServer(),loadVendor()]);live();msgWatch()}
+ live();msgWatch();welcome()
 /* Only the user's own Log Out signs them out. Other SIGNED_OUT events are re-checked first. */
 sb?.auth.onAuthStateChange((ev,ses)=>{if(ses?.access_token)TOKEN=ses.access_token;
  if(ev==='SIGNED_OUT'&&U){if(OUT)toLogin();else setTimeout(async()=>{if(!await session())toLogin()},800)}});
